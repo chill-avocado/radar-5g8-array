@@ -647,7 +647,7 @@ def main():
     print(f"    {sum(len(p['board_holes']) for p in (tx, rx)):2d} x M3 x 8 cap head    "
           f"array board -> plate -> nut in the tray")
     print(f"    {sum(len(p['plate_holes']) for p in (tx, rx)):2d} x M3 x 8 countersunk  "
-          f"plate -> nut in the tray, sitting flush in the ground")
+          f"plate -> nut in the tray (pan head: a countersink would break through 1.5 mm plate)")
     print(f"    {n_bolt:2d} x M3 nut            dropped into the tray's underside")
     print(f"     7 x M3 x 30 + nut     through the lap, setting the separation")
     print(f"    12 x M3 x 8 + nut      amplifier and receive board -> shelf")
