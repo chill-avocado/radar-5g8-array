@@ -1,11 +1,27 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-08-09T11:14:29",
+    "date": "2026-08-09T20:19:20",
     "ignored_checks": [
         {
-            "description": "Solder mask aperture bridges items with different nets",
-            "key": "solder_mask_bridge"
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
         }
     ],
     "included_severities": [
@@ -17,5 +33,126 @@
     "schematic_parity": [],
     "source": "radar_5g8_transmit.kicad_pcb",
     "unconnected_items": [],
-    "violations": []
+    "violations": [
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint TX1",
+                    "pos": {
+                        "x": 6.4,
+                        "y": 47.237
+                    },
+                    "uuid": "07930469-8c97-4542-8c84-12f47fdd5488"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint R1",
+                    "pos": {
+                        "x": 15.398231,
+                        "y": 41.386984
+                    },
+                    "uuid": "56cdf975-deb6-4bf5-a76f-baa66312197f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint H4",
+                    "pos": {
+                        "x": 40.0,
+                        "y": 34.237
+                    },
+                    "uuid": "69d43d55-04c9-448c-8d97-3ab1620d9ed3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint H1",
+                    "pos": {
+                        "x": 4.0,
+                        "y": 4.237
+                    },
+                    "uuid": "820d6117-3c68-4e77-9189-3c6d670c7a0f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint R2",
+                    "pos": {
+                        "x": 65.442137,
+                        "y": 41.386984
+                    },
+                    "uuid": "a0f151bc-909f-4d5d-afc7-375e7f249f53"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint H3",
+                    "pos": {
+                        "x": 34.0,
+                        "y": 43.237
+                    },
+                    "uuid": "c6de1b30-67d8-4e3d-a4d8-716a1f65d43b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint H2",
+                    "pos": {
+                        "x": 67.0,
+                        "y": 7.237
+                    },
+                    "uuid": "e1b744db-b58d-4262-85c6-7ef5cd7c731d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The footprint library 'radar5g8' is not enabled in the current configuration",
+            "items": [
+                {
+                    "description": "Footprint TX2",
+                    "pos": {
+                        "x": 56.443906,
+                        "y": 47.237
+                    },
+                    "uuid": "f4b85bbb-168c-42b3-a4bd-100a5413cab0"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        }
+    ]
 }

@@ -217,6 +217,10 @@ def ground_zone(layer):
     z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
     z.SetThermalReliefGap(MM(0.3))
     z.SetThermalReliefSpokeWidth(MM(0.3))
+    # A scrap of pour that ends up with nothing tying it to ground is not
+    # ground: it is a floating piece of metal beside a connector, which is
+    # the one thing a ground plane must never leave behind.  Drop them.
+    z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)
     o = z.Outline()
     o.NewOutline()
     m, r = 0.25, CR - 0.25
