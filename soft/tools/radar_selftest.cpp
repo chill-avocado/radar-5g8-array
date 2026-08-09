@@ -40,6 +40,7 @@
 #include <vector>
 
 using namespace radar;
+using namespace radar::proto;
 
 //============================================================================
 // A very small harness
