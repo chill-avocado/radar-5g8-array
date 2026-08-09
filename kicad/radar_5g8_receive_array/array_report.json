@@ -23,18 +23,44 @@
     "pitch_in_wavelengths": 0.5,
     "first_grating_lobe_deg": 89.924,
     "array_factor_beamwidth_deg": 50.76,
-    "transmit_positions_mm": [],
-    "receive_positions_mm": [
+    "transmit_positions_mm": [
       [
-        34.195,
-        23.025744000000003
+        -12.922088706896552,
+        0.0
       ],
       [
-        34.195,
-        48.86992141379311
+        12.922088706896552,
+        0.0
       ]
     ],
-    "virtual_array_positions_mm": [],
+    "receive_positions_mm": [
+      [
+        0.0,
+        -12.922088706896552
+      ],
+      [
+        0.0,
+        12.922088706896552
+      ]
+    ],
+    "virtual_array_positions_mm": [
+      [
+        -12.9221,
+        -12.9221
+      ],
+      [
+        -12.9221,
+        12.9221
+      ],
+      [
+        12.9221,
+        -12.9221
+      ],
+      [
+        12.9221,
+        12.9221
+      ]
+    ],
     "virtual_array_note": "transmit position + receive position; the constant offset is common to all four and cancels out of any angle estimate",
     "transmit_polarisation": "RHCP",
     "receive_polarisation": "LHCP",
