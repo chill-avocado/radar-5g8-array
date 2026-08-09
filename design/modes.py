@@ -41,6 +41,7 @@ TARGET = 5.800e9
 
 VARIANT = os.environ.get("VARIANT", "ZYF300CA")
 TAG = os.environ.get("TOPO", "square")
+NOTRANS = os.environ.get("NOTRANS", "0") == "1"
 STUB = 2.0                  # 50 ohm lead-in, so both ports refer to the same
                             # kind of plane as the coupler arm would
 
@@ -68,10 +69,6 @@ def build(drive):
     sys.path.insert(0, HERE)
     from geom import rect, hseg, vseg
     TOPO = os.environ.get("TOPO", "square")
-    # NOTRANS: feed the patch edge with a plain 50 ohm line and no matching
-    # section at all, so the impedance read at the port IS the edge, with
-    # nothing to de-embed and nothing to get wrong.
-    NOTRANS = os.environ.get("NOTRANS", "0") == "1"
     if TOPO == "diamond":
         from element3 import Element
     else:
@@ -87,10 +84,6 @@ def build(drive):
     el = Element(cfg, dLx=dLx, dLy=dLy)
     wq = el.wq
 
-    # NOTRANS: feed the patch edge with a plain 50 ohm line and no matching
-    # section at all, so the impedance read at the port IS the edge, with
-    # nothing to de-embed and nothing to get wrong.
-    NOTRANS = os.environ.get("NOTRANS", "0") == "1"
     if TOPO == "diamond":
         # Turned corner-up, both feeds come in horizontally from outboard at
         # the same two heights, so both ports sit on the same side.
@@ -251,7 +244,7 @@ def run(which):
     # overwrite each other's port data and both come back corrupt
     sp = os.path.join(tempfile.gettempdir(),
                       f"oems_modes_{TAG}"
-                      f"{'_bare' if os.environ.get('NOTRANS') == '1' else ''}"
+                      f"{'_bare' if NOTRANS else ''}"
                       f"_{which}")
     os.makedirs(sp, exist_ok=True)
     FDTD.Run(sp, cleanup=False, verbose=0,
