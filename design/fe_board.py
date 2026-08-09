@@ -649,20 +649,22 @@ def build():
     # ----------------------------------------------------------- mechanical
     # Four of the eight bolts sit as close to the four amplifiers as the
     # copper allows, because that is where the heat has to leave the board.
-    for x, y in ((X_PA + 2.0, Y_TX1 + 8.8), (X_PA + 2.0, Y_TX2 - 8.8),
-                 (63.0, 29.0), (63.0, 71.0),
-                 (95.5, 21.0), (95.5, 79.0), (10.0, 90.0), (30.0, 50.0)):
+    for x, y in ((19.5, 3.5), (44.0, 3.5), (19.5, 96.5), (44.0, 96.5),
+                 (95.5, 21.0), (95.5, 79.0), (30.0, 50.0), (10.0, 90.0)):
         b.mounts.append((x, y, MOUNT_D, MOUNT_PAD))
 
     b.unify_nets()
     b.pour()
     # the underside is left bare under each amplifier, so its heat meets the
     # chassis through metal rather than through solder resist
+    # six millimetres square under each amplifier: wide enough to take
+    # everything the ring of holes brings down, and narrow enough to leave the
+    # corridor the temperature sensor's run uses between them
     for y in (Y_TX1, Y_TX2):
-        b.mask_bot.append([X_PA - 3.6, y - 3.6, X_PA + 3.6, y + 3.6])
-        b.mask_bot.append([X_DRV - 2.6, y - 3.4, X_DRV + 2.6, y + 3.4])
+        b.mask_bot.append([X_PA - 3.0, y - 3.0, X_PA + 3.0, y + 3.0])
+        b.mask_bot.append([X_DRV - 2.6, y - 3.0, X_DRV + 2.6, y + 3.0])
     for y in (Y_RX1, Y_RX2):
-        b.mask_bot.append([XR_LNA - 3.6, y - 3.6, XR_LNA + 3.6, y + 3.6])
+        b.mask_bot.append([XR_LNA - 3.0, y - 3.0, XR_LNA + 3.0, y + 3.0])
     for x, y in ((6.0, 97.0), (94.0, 97.0), (60.0, 3.2)):
         b.fiducial(x, y)
     b.labels += [

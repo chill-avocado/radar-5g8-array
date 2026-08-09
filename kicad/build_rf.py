@@ -372,16 +372,16 @@ for i, m in enumerate(D.get("mask_bot", [])):
     p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
     p.SetShape(pcbnew.PAD_SHAPE_RECT)
     p.SetSize(pcbnew.VECTOR2I(MM(x1 - x0), MM(y1 - y0)))
-    ls = pcbnew.LSET()
-    ls.AddLayer(pcbnew.B_Cu)
-    ls.AddLayer(pcbnew.B_Mask)
-    p.SetLayerSet(ls)
+    p.SetLayerSet(pcbnew.PAD.SMDMask())
     fp.Add(p)
     p.SetPosition(P(cx, cy))
     p.SetNet(net("GND"))
     p.SetLocalSolderMaskMargin(0)
     fp.Reference().SetVisible(False)
     fp.Value().SetVisible(False)
+    # it belongs to the face that meets the chassis, so it goes on the back --
+    # which also keeps its outline from arguing with the parts above it
+    fp.Flip(P(cx, cy), False)
 
 for lb in D["labels"]:
     x, y, txt, size = lb[0], lb[1], lb[2], lb[3]
