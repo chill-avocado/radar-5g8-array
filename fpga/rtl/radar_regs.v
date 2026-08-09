@@ -97,6 +97,8 @@ module radar_regs #(
     output reg                  win_we,             // 1-cycle pulse
     output reg         [15:0]   win_addr,
     output reg         [31:0]   win_data,           // [31:16] Doppler, [15:0] range
+    output wire signed [15:0]   win_data_r,         // the range half
+    output wire signed [15:0]   win_data_d,         // the Doppler half
 
     // detection
     output reg         [3:0]    cfar_guard_range,
