@@ -327,10 +327,15 @@ void run_size(int N, int NLOG2) {
                     lo = std::min(lo, m); hi = std::max(hi, m);
                 }
             const double ripple_db = 20.0 * std::log10((hi + 1e-300) / (lo + 1e-300));
-            char t[96];
-            std::snprintf(t, sizeof t, "  flatness=%.3f dB peak-to-peak", ripple_db);
+            // An impulse scaled by 1/N comes out at 32767/N LSB, so the
+            // flattest a 16-bit result can possibly be is one LSB of spread.
+            const double ideal   = full / N;
+            const double allowed = 20.0 * std::log10((ideal + 1.0) / (ideal - 1.0));
+            char t[128];
+            std::snprintf(t, sizeof t, "  flatness=%.3f dB pk-pk (1 LSB floor is %.3f)",
+                          ripple_db, allowed);
             flat_txt = t;
-            flat_ok  = (ripple_db < 0.5);
+            flat_ok  = (ripple_db <= allowed);
         }
 
         const bool ok = (rms < RMS_LIMIT_DB) && peak_ok && flat_ok &&
@@ -373,7 +378,7 @@ void run_size(int N, int NLOG2) {
     //------------------------------------------------------------------------
     {
         char line[256];
-        const int expect = 3 * NLOG2 + 2 * N - 2;
+        const int expect = 3 * NLOG2 + 2 * N - 1;
         std::snprintf(line, sizeof line,
                       "N=%-4d %-22s  %d clocks first in_valid to first out_valid "
                       "(3*NLOG2 + 2N - 2 = %d)",

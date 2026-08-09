@@ -88,9 +88,11 @@ public:
 private:
     struct Evidence { int frames = 0; double score[4] = {0, 0, 0, 0}; };
 
+    /// Declared before the transforms because it sizes one of them, and
+    /// members are built in declaration order.
+    int    n_cpi_;
     Fft    fft_stft_;   ///< 64 point, for the spectrogram and the blade flashes
     Fft    fft_cpi_;    ///< whole interval, for the width and the symmetry
-    int    n_cpi_;
     double lambda_m_;
     double prf_hz_;
 

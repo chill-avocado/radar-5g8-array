@@ -109,9 +109,9 @@ inline int next_pow2_at_least(int v, int lo, int hi) {
 
 //============================================================================
 MicroDoppler::MicroDoppler(const Config& cfg)
-    : fft_stft_(kWin, false),
-      n_cpi_(next_pow2_at_least(std::max(cfg.n_chirp, kWin), kWin, 65536)) {
-    fft_cpi_.plan(n_cpi_, false);
+    : n_cpi_(next_pow2_at_least(std::max(cfg.n_chirp, kWin), kWin, 65536)),
+      fft_stft_(kWin, false),
+      fft_cpi_(n_cpi_, false) {
     const Scales sc = resolution_scales(cfg);
     lambda_m_ = sc.lambda_m;
     prf_hz_   = sc.prf_slow_hz > 0 ? sc.prf_slow_hz : 1.0;
