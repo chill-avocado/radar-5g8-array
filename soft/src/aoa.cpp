@@ -271,7 +271,11 @@ bool quad_peak_3x3(const double f[9], double& di, double& dj) {
 
     // Stationary point of a + b i + c j + d i^2 + e j^2 + g ij.
     const double det = 4.0 * dd * ee - gg * gg;
-    if (std::abs(det) < 1e-18) return false;
+    // Callers always hand in a patch whose centre is the smallest value, so
+    // the fitted surface has to curve upwards in both directions for the
+    // stationary point to be the minimum being looked for.  A saddle means the
+    // patch straddles a ridge and the grid cell is the better answer.
+    if (!(det > 1e-18) || !(dd > 0.0)) return false;
     di = (-2.0 * ee * bb + gg * cc) / det;
     dj = (-2.0 * dd * cc + gg * bb) / det;
     if (!std::isfinite(di) || !std::isfinite(dj)) return false;
@@ -410,8 +414,10 @@ AoaEngine::Result AoaEngine::run_monopulse(const std::array<cf32, 4>& v) const {
     Result r;
     r.method    = AoaMethod::Monopulse;
     r.n_sources = 1;
-    work().spec.assign(work().spec.size(), -120.0f);
-    work().spec.clear();   // monopulse computes no spectrum; say so with an empty one
+    r.degraded  = (method_ != AoaMethod::Monopulse);
+    // Monopulse scans nothing, which is the entire reason it is cheap.  An
+    // empty spectrum is how the display is told there is nothing to draw.
+    work().spec.clear();
 
     double energy = 0.0;
     for (int i = 0; i < 4; ++i) energy += std::norm(v[std::size_t(i)]);
