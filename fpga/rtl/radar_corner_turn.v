@@ -90,7 +90,8 @@ module radar_corner_turn #(
     localparam integer FIFO_D  = 4;                      // output skid depth
 
     localparam [AW-1:0] AONE   = {{(AW-1){1'b0}}, 1'b1};
-    localparam [4:0]    SUM_EXP = CT_WORDS_LOG2;
+    localparam [31:0]   CTW32   = CT_WORDS_LOG2;
+    wire       [4:0]    SUM_EXP = CTW32[4:0];
 
     //------------------------------------------------------------------------
     // Configuration check.  A bad split holds the whole module in reset.
