@@ -357,4 +357,9 @@ struct FileSourceOptions {
 std::unique_ptr<IqSource> make_file_source(const Config&, const std::string& path,
                                            const FileSourceOptions&);
 
+/// Open a real B210.  Always present, so the stack links whether or not UHD was
+/// found; without it the returned source fails its open() with a message saying
+/// the build has no radio support rather than pretending there is no device.
+std::unique_ptr<IqSource> make_uhd_source(const Config&);
+
 } // namespace radar
