@@ -215,6 +215,22 @@ for _name, _polys in _by_net.items():
         s.SetNet(nets[_name])
         _merged += 1
 
+# ---------------------------------------------------- back face, bare metal
+# The board bolts face-down onto an aluminium ground plate, and the bond that
+# matters is the whole back face pressing against it -- far better than any
+# bolt.  With the back fully resisted it was pressing MASK against the plate
+# instead, which is neither the electrical joint the design assumes nor a flat
+# one.  Open it, keeping a 1 mm border so the mask still seals the routed edge.
+_bm = 1.0
+_bp = []
+_rb = CR - _bm
+for cx, cy, a0 in ((BW - CR, CR, -90.0), (BW - CR, BH - CR, 0.0),
+                   (CR, BH - CR, 90.0), (CR, CR, 180.0)):
+    for i in range(13):
+        t = math.radians(a0 + 90.0 * i / 12.0)
+        _bp.append((cx + _rb * math.cos(t), cy + _rb * math.sin(t)))
+add_poly(_bp, pcbnew.B_Mask)
+
 # ------------------------------------------------------- solder mask windows
 # The windows over the radiating faces are deliberately wide open -- resist
 # on a patch detunes it.  But a bolt pad sitting inside one of them is bare
