@@ -25,9 +25,12 @@
 
 #include "radar/config.hpp"
 #include "radar/core.hpp"
+#include "radar/fft.hpp"
 #include "radar/types.hpp"
 #include "radar/waveform.hpp"
 
+#include <memory>
+#include <mutex>
 #include <vector>
 
 namespace radar {
