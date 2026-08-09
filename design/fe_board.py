@@ -742,11 +742,14 @@ def report(b, ch):
     tl = LN.thermal(ch["C"]["n_under"], ch["C"]["n_ring"])
     iso = isolation()
     lk = leak_budget()
+    th = LN.threats(RX_PAD_DEFAULT_DB)
+    worst_lna = max(t["at_lna"] for t in th)
+    worst_radio = max(t["at_radio"] for t in th)
 
     print("5.8 GHz radar front end: two transmit chains and two receive "
           "chains on one board\n")
     print(f"  board {BW:g} x {BH:g} mm, {STACK['layers']} layer, "
-          f"{STACK['thickness_mm']:.3f} mm, {SUB.name}")
+          f"{STACK['total_mm']:.3f} mm, {SUB.name}")
     print(f"  mounts straight on the radio: four plugs at {PITCH:g} mm "
           f"pitch, on four separate fingers")
     print(f"  {len(b.ports)} connectors, {len(b.bom)} lines on the parts "
