@@ -78,12 +78,12 @@ error that must be corrected (Section 8) before spatial processing.
 |  [VITA-49 CHDR Transport] <--- [Ping-Pong BRAM Matrix] <--- [5-Stage CIC Filter (R=8)]             |
 |       (64-bit Packetizer)         (1024x128 Transpose)        (200 MSps -> 25 MSps)                |
 +-------------------------------------------|--------------------------------------------------------+
-                                            | VITA-49 CHDR over PCIe / 10GbE (Kernel Bypass)
+                                            | VITA-49 CHDR over USB 3.0
                                             v
 +---------------------------------------------------------------------------------------------------+
-|  HOST PC ZERO-COPY STREAMING LAYER (C++17 / DPDK / POSIX Real-Time Threads)                       |
+|  HOST PC ZERO-COPY STREAMING LAYER (C++17 / POSIX Real-Time Threads)                              |
 |                                                                                                    |
-|  [UHD DPDK Driver] ---> [Cache-Padded SPSC Ring Buffer] ---> [Lock-Free Frame Dispatcher]          |
+|  [UHD USB 3.0 Driver] ---> [Cache-Padded SPSC Ring Buffer] ---> [Lock-Free Frame Dispatcher]        |
 |   (SCHED_FIFO Core 2)         (Capacity 1024, alignas(64))          (Zero-Copy Handoff)             |
 +----------------------------------------------------------------------------------------------------+
                                                                           |
@@ -112,9 +112,9 @@ error that must be corrected (Section 8) before spatial processing.
    decimation, ping-pong corner-turn BRAM transpose, TDM antenna GPIO switching) run entirely in
    synthesizable Verilog/SystemVerilog inside the Kintex-7 fabric, consuming under 6.5% of DSPs and
    under 32% of Block RAM (see Section 5).
-2. **Zero-copy, kernel-bypass ingestion**: the host driver bypasses OS socket-copy overhead via UHD
-   DPDK kernel bypass, landing frames in a 64-byte cache-line-padded SPSC ring buffer with
-   atomic acquire/release semantics (Section 9).
+2. **Zero-copy ingestion over USB 3.0**: the host driver uses UHD's asynchronous USB bulk-transfer
+   streaming path, landing frames in a 64-byte cache-line-padded SPSC ring buffer with atomic
+   acquire/release semantics (Section 9).
 3. **Aperture multiplication via TDM-MIMO**: orthogonal time-domain chirp interleaving between 2
    transmitters doubles the effective array aperture to 4 virtual half-wavelength-spaced elements;
    Doppler-induced inter-chirp phase drift is corrected with a precomputed phasor LUT (Section 8).
