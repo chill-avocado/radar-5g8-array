@@ -319,9 +319,9 @@ void Tracker::update(const std::vector<Target>& z, double dt, std::vector<Track>
     pairs_.clear();
 
     // Everything the update needs, computed once per (track, measurement) pair
-    // and kept so the assignment does not have to recompute it.
-    struct Cache { double H[NZ][NX]; double S_inv[NZ][NZ]; double nu[NZ]; bool ok; };
-    std::vector<Cache> cache(std::size_t(nt) * std::size_t(std::max(nm, 1)));
+    // and kept so neither the assignment nor the correction recomputes it.
+    const std::size_t stride = std::size_t(std::max(nm, 1));
+    cache_.assign(std::size_t(nt) * stride, Cache{});
 
     for (int i = 0; i < nt; ++i) {
         const Track& t = tracks_[std::size_t(i)];

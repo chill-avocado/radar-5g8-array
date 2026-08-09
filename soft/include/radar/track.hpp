@@ -91,8 +91,16 @@ private:
 
     // Association scratch, kept so the hot path never allocates.
     struct Pair { double d2; int trk; int meas; };
-    std::vector<Pair> pairs_;
-    std::vector<int>  meas_of_track_, track_of_meas_;
+    struct Cache {
+        double H[4][6]     = {};
+        double S_inv[4][4] = {};
+        double R[4][4]     = {};
+        double nu[4]       = {};
+        bool   ok          = false;
+    };
+    std::vector<Pair>  pairs_;
+    std::vector<Cache> cache_;
+    std::vector<int>   meas_of_track_, track_of_meas_;
 };
 
 } // namespace radar
