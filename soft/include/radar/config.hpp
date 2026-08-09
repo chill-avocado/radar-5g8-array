@@ -101,8 +101,9 @@ struct Config {
     bool        realtime       = true;
     int         http_port      = 8730;
     std::string web_root       = "";     ///< empty = use the built-in page
-    std::string record_path    = "";
+    std::string record_path    = "";     ///< also the replay path when source is File
     std::string calib_path     = "";
+    std::string scene_path     = "";     ///< simulated scene; empty = built-in default
 
     //------------------------------------------------------------------
     // Derived.  Filled by derive(); never set these by hand.

@@ -78,10 +78,18 @@ struct Clusterer::Work {
 
     std::vector<int>  labels, neigh, neigh2, seeds;
     std::vector<char> visited, in_seed;
+
+    // Accumulators for turning clusters into targets, kept here so a steady
+    // stream of frames of similar size never reaches the allocator.
+    std::vector<double> wsum, wang, snr_lin, rmin, rmax, vmin, vmax;
+    std::vector<int>    order, remap;
+    std::vector<Target> sorted;
 };
 
+namespace { Clusterer::Work& clusterer_tls(); }
+
 Clusterer::Work& Clusterer::work(std::size_t n) const {
-    static thread_local Work w;
+    Work& w = clusterer_tls();
     w.s0.resize(n); w.s1.resize(n); w.s2.resize(n); w.s3.resize(n);
     w.has_angle.resize(n);
     w.c0.resize(n); w.c1.resize(n); w.c2.resize(n); w.c3.resize(n);
@@ -93,10 +101,7 @@ Clusterer::Work& Clusterer::work(std::size_t n) const {
     return w;
 }
 
-const std::vector<int>& Clusterer::last_labels() const {
-    static thread_local std::vector<int> empty;
-    return work(0).labels.empty() ? work(0).labels : work(0).labels;
-}
+const std::vector<int>& Clusterer::last_labels() const { return clusterer_tls().labels; }
 
 //============================================================================
 Clusterer::Clusterer(const Config& cfg)
