@@ -36,8 +36,8 @@ CUDA host stack.
 
 ## 1. Overview & Architecture
 
-Processing multi-channel high-rate raw IQ streams (e.g. 4 receive channels x 100 MSps x 32-bit
-complex IQ = 12.8 Gbps) is a streaming-bandwidth and compute problem before it is a radar-algorithm
+Processing multi-channel high-rate raw IQ streams (e.g. 2 receive channels x 100 MSps x 32-bit
+complex IQ = 6.4 Gbps) is a streaming-bandwidth and compute problem before it is a radar-algorithm
 problem. The workable architecture splits work by determinism and data rate:
 
 - **FPGA (Kintex-7, RFNoC 4.0 fabric)**: everything that is high-rate, repetitive, and needs
