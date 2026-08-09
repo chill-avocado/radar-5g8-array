@@ -152,15 +152,24 @@ class Board:
                     shorts.setdefault(tuple(sorted((a, b))),
                                       (round(sum(xs) / len(xs), 2),
                                        round(sum(ys) / len(ys), 2)))
-        if shorts:
-            msg = "\n".join(
-                f"    {a} shorted to {b}  near ({x}, {y}) mm"
-                for (a, b), (x, y) in sorted(shorts.items()))
+        # A supply legitimately shares copper with the RF line it biases, so
+        # those pairs are reported and allowed.  Anything joined to GROUND is
+        # not a bias network, and the board does not get written.
+        hard = {k: v for k, v in shorts.items() if "GND" in k}
+        soft = {k: v for k, v in shorts.items() if "GND" not in k}
+        if soft:
+            print("  note: copper joins these nets, which both reach a pin --"
+                  " intended where a supply feeds an RF line through its bias,"
+                  " a fault otherwise:")
+            for (a, b), (x, y) in sorted(soft.items()):
+                print(f"        {a} + {b}  near ({x}, {y}) mm")
+        if hard:
+            msg = "\n".join(f"    {a} shorted to {b}  near ({x}, {y}) mm"
+                            for (a, b), (x, y) in sorted(hard.items()))
             raise SystemExit(
-                f"copper joins {len(shorts)} pair(s) of nets that each reach a "
-                f"component pin:\n{msg}\n"
-                "  These are shorts, not two names for one node.  Refusing to "
-                "write a board that would hide them from the checker.")
+                f"copper shorts {len(hard)} net(s) to GROUND:\n{msg}\n"
+                "  Refusing to write a board that would hide that from the "
+                "checker.")
 
         RANK = {"GND": 0}
         groups = {}
