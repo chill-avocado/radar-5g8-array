@@ -1,0 +1,115 @@
+{
+  "board": {
+    "name": "radar_5g8_transmit_array",
+    "size_mm": [
+      71.34198,
+      47.237
+    ],
+    "substrate": {
+      "name": "ZYF300CA-P PTFE",
+      "h_mm": 0.76,
+      "er": 3.0,
+      "tand": 0.0018,
+      "finish": "Immersion silver",
+      "layers": 2
+    },
+    "layers": 2,
+    "finish": "Immersion silver"
+  },
+  "array": {
+    "centre_frequency_ghz": 5.8,
+    "wavelength_mm": 51.6884,
+    "element_pitch_mm": 25.8442,
+    "pitch_in_wavelengths": 0.5,
+    "first_grating_lobe_deg": 89.924,
+    "array_factor_beamwidth_deg": 50.76,
+    "transmit_positions_mm": [
+      [
+        22.998980000000003,
+        34.195
+      ],
+      [
+        48.84315741379311,
+        34.195
+      ]
+    ],
+    "receive_positions_mm": [],
+    "virtual_array_positions_mm": [],
+    "virtual_array_note": "transmit position + receive position; the constant offset is common to all four and cancels out of any angle estimate",
+    "transmit_polarisation": "RHCP",
+    "receive_polarisation": "LHCP",
+    "nearest_tx_rx_mm": 0.0
+  },
+  "elements": [
+    {
+      "name": "TX1",
+      "hand": "RHCP",
+      "phase_centre_mm": [
+        22.998980000000003,
+        34.195
+      ],
+      "mirrored": false,
+      "feed_point_mm": [
+        6.400000000000002,
+        7.9500160000000015
+      ]
+    },
+    {
+      "name": "TX2",
+      "hand": "RHCP",
+      "phase_centre_mm": [
+        48.84315741379311,
+        34.195
+      ],
+      "mirrored": true,
+      "feed_point_mm": [
+        56.44390641379311,
+        7.9500160000000015
+      ]
+    }
+  ],
+  "ports": [
+    {
+      "name": "TX1",
+      "edge": "bottom",
+      "x_mm": 6.4,
+      "y_mm": 0.0
+    },
+    {
+      "name": "TX2",
+      "edge": "bottom",
+      "x_mm": 56.4439,
+      "y_mm": 0.0
+    }
+  ],
+  "geometry": {
+    "patch_mm": [
+      14.1135,
+      14.1135
+    ],
+    "transformer": [
+      0.341374,
+      8.54223,
+      110.0
+    ],
+    "coupler_arms_mm": [
+      8.844984,
+      8.998231
+    ],
+    "trace_50ohm_mm": 1.853528
+  },
+  "measured": {
+    "note": "openEMS, both elements present, converged to -40 dB",
+    "axial_ratio_db": {
+      "element1": 2.83,
+      "element2": 3.16
+    },
+    "input_match_db": {
+      "element1": -20.6,
+      "element2": -14.5
+    },
+    "element_coupling_db": -20.5,
+    "tx_to_rx_worst_db": -41.1,
+    "launch_impedance_ohm": 47.86
+  }
+}

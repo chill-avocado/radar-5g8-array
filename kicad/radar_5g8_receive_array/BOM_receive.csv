@@ -1,0 +1,6 @@
+Ref,Qty,Description,Manufacturer,Part number,Notes
+"J1-J4 (TX1,TX2,RX1,RX2)",4,"SMA jack, PCB end launch, solder, 50 ohm, DC-18 GHz",Cinch / Johnson,142-0701-881,"designed for 0.031 in (0.79 mm) board; this board finishes at 0.850 mm, so the spring legs close on it. Nickel-plated equivalent is 142-0701-886"
+R1-R4,4,"50.0 ohm +/-1% thin film chip resistor, 0402, to 20 GHz",Vishay,FC0402E50R0BST1,terminates the hybrid isolated port; a Susumu RR0510P-500-D also fits
+"D1, D2",0 (DO NOT FIT),"Optional receive limiter, 0402, shunt to ground",-,see note,"Site is empty as shipped and costs 0.09 dB. Fit ONLY a diode whose total off-state capacitance is 0.10 pF or less: measured in openEMS, 0.1 pF gives -13.8 dB return loss and 0.26 dB loss, 0.2 pF gives -8.1 dB and 0.82 dB, 0.4 pF shorts the line. An in-line coaxial limiter is the alternative if you need more margin"
+H1-H6,6,M3 mounting hardware,-,-,"holes are plated and bonded to the ground plane: use metal hardware if you want the mounting plate grounded, nylon if you do not"
+PCB,1,"ZYF300CA-P PTFE, 0.76 mm dielectric, 2 layer, 1 oz, immersion silver (finished 0.850 mm)",PCBWay / JLCPCB,-,"47.237 x 71.368744 mm, see fabrication drawing"
