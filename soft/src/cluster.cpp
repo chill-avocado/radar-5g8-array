@@ -235,13 +235,15 @@ void Clusterer::cluster(const std::vector<Hit>& hits, std::vector<Target>& out) 
     if (cid == 0) return;
 
     //-- Condense each cluster into a Target ---------------------------------
-    out.resize(std::size_t(cid));
-    std::vector<double> wsum(std::size_t(cid), 0.0), wang(std::size_t(cid), 0.0);
-    std::vector<double> snr_lin(std::size_t(cid), 0.0);
-    std::vector<double> rmin(std::size_t(cid),  std::numeric_limits<double>::infinity());
-    std::vector<double> rmax(std::size_t(cid), -std::numeric_limits<double>::infinity());
-    std::vector<double> vmin(std::size_t(cid),  std::numeric_limits<double>::infinity());
-    std::vector<double> vmax(std::size_t(cid), -std::numeric_limits<double>::infinity());
+    out.assign(std::size_t(cid), Target{});
+    const double kInf = std::numeric_limits<double>::infinity();
+    std::vector<double>& wsum    = w.wsum;    wsum.assign(std::size_t(cid), 0.0);
+    std::vector<double>& wang    = w.wang;    wang.assign(std::size_t(cid), 0.0);
+    std::vector<double>& snr_lin = w.snr_lin; snr_lin.assign(std::size_t(cid), 0.0);
+    std::vector<double>& rmin    = w.rmin;    rmin.assign(std::size_t(cid),  kInf);
+    std::vector<double>& rmax    = w.rmax;    rmax.assign(std::size_t(cid), -kInf);
+    std::vector<double>& vmin    = w.vmin;    vmin.assign(std::size_t(cid),  kInf);
+    std::vector<double>& vmax    = w.vmax;    vmax.assign(std::size_t(cid), -kInf);
 
     for (std::size_t i = 0; i < n; ++i) {
         const int c = w.labels[i];
