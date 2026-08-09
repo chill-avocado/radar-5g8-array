@@ -81,20 +81,45 @@
 `define RADAR_N_RANGE_FFT_LOG2 10
 `define RADAR_RANGE_BIN_MM     2250
 
-// Only the low range bins are kept.  256 bins = 576 m, past the 250 m the
-// link budget gives with the LNA fitted, with margin for a large target.
+// ---------------------------------------------------------------------------
+// THE MEMORY CONSTRAINT THAT SETS THE OPERATING POINT
+// ---------------------------------------------------------------------------
+// The corner-turn buffer holds a whole coherent processing interval on chip,
+// twice over so that one frame can be read out while the next is written:
+//     n_range * n_chirp_total * n_rx * 4 bytes * 2 buffers
+// The XC7K325T has 445 BRAM36K tiles, 2.051 MB.  256 range bins by 512 chirps
+// would need 2.048 MB -- 102% of the device, before the radio core takes its
+// share.  It does not fit, and there is no external DRAM on this board.
+//
+// So the PRODUCT is fixed at 65536 words per receive channel per buffer
+// (1.0 MB total, 228 tiles, 51%) and the SPLIT is chosen at runtime.  Both
+// useful operating points come out of one bitstream:
+//
+//   surveillance   256 range (576 m) x 256 chirps  -> 62.5 maps/s, 1.62 m/s
+//   fine Doppler   128 range (288 m) x 512 chirps  -> 31.2 maps/s, 0.81 m/s
+//
+// Both are powers of two, so the corner-turn address arithmetic stays a
+// variable shift and never needs a multiplier.
+`define RADAR_CT_WORDS_LOG2    16            // n_range_log2 + n_chirp_log2
+`define RADAR_CT_WORDS         65536
+
+// Defaults: the surveillance point.  62.5 maps a second matters more for
+// tracking an agile quadcopter than 0.8 m/s of Doppler resolution does, and
+// 576 m of range covers everything the link budget can reach.
 `define RADAR_N_RANGE          256
+`define RADAR_N_RANGE_LOG2     8
 `define RADAR_RANGE_W          8
 
-// Doppler transform: 256 chirps per transmitter.
-//   CPI          = 512 chirps * 62.5 us = 32.0 ms  -> 31.25 maps/second
+// Doppler transform: 128 chirps per transmitter in TDM, so 256 chirps total.
+//   CPI          = 256 chirps * 62.5 us = 16.0 ms  -> 62.5 maps/second
 //   v unambiguous= +/- lambda/(4*T_PRI_eff)        -> +/- 103.4 m/s
-//   v resolution = lambda/(2*CPI)                  -> 0.81 m/s
-`define RADAR_N_CHIRP          256
-`define RADAR_N_CHIRP_LOG2     8
-`define RADAR_N_DOPPLER        256
-`define RADAR_N_DOPPLER_LOG2   8
-`define RADAR_CHIRP_W          9
+//   v resolution = lambda/(2*CPI)                  -> 1.62 m/s
+`define RADAR_N_CHIRP          128           // per transmitter
+`define RADAR_N_CHIRP_LOG2     7
+`define RADAR_N_CHIRP_TOTAL    256           // across transmitters, TDM
+`define RADAR_N_DOPPLER        128
+`define RADAR_N_DOPPLER_LOG2   7
+`define RADAR_CHIRP_W          10
 
 // Virtual array: 2 transmitters x 2 receivers = 4 virtual elements at
 // (+/- lambda/4, +/- lambda/4), i.e. lambda/2 spacing on each axis.
