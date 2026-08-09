@@ -330,8 +330,11 @@ def scad(tx, rx):
     # than at the halfway point.  The trays are different sizes, so halfway
     # made the transmit half 219 mm long -- past what a 220 mm bed can hold
     # once the skirt is counted.
-    # Put the joint where the two prints come out the same length.
-    mid = (gap_hi + gap_lo) / 2.0
+    # Put the joint where the two PRINTS come out the same length, not at
+    # the midpoint of the gap: the trays are different heights, so the gap's
+    # middle made the receive half 219 mm -- past what a 220 mm bed holds
+    # once the skirt is counted.
+    mid = (T[3] + R[1]) / 2.0
     n_hole = int((LAP_L - STEP) // STEP)
     lap_hi, lap_lo = mid + LAP_L / 2.0, mid - LAP_L / 2.0
     tx_holes = [lap_lo + STEP * (i + 1) for i in range(n_hole)]
