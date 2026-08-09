@@ -314,23 +314,30 @@ def scad(tx, rx):
         return (ox - WALL, oy - WALL, ox + p["PW"] + WALL, oy + p["PH"] + WALL,
                 ox, oy)
 
-    T = tray_box(tx, 0.0)
-    R = tray_box(rx, SEP)
-    bar_top = min(T[1], R[1]) - BAR_DROP
-    bar_bot = bar_top - BAR_D
-    y_split = bar_top - HALF
+    def tray_box2(p, cx, cy):
+        ox, oy = cx - p["ac"][0], cy - p["ac"][1]
+        return (ox - WALL, oy - WALL, ox + p["PW"] + WALL, oy + p["PH"] + WALL,
+                ox, oy)
+
+    T = tray_box2(tx, 0.0, 0.0)
+    R = tray_box2(rx, 0.0, -SEP)
+    # The gap the spine lives in, between the two trays.
+    gap_hi, gap_lo = T[1], R[3]
+    x_split = 0.0                       # tx takes x<0, rx takes x>0
+    bar_x0, bar_x1 = -HALF, HALF
 
     # Put the joint wherever it makes the two prints the same length, rather
     # than at the halfway point.  The trays are different sizes, so halfway
     # made the transmit half 219 mm long -- past what a 220 mm bed can hold
     # once the skirt is counted.
-    mid = (R[2] - T[0]) / 2.0 + T[0]
+    # Put the joint where the two prints come out the same length.
+    mid = (gap_hi + gap_lo) / 2.0
     n_hole = int((LAP_L - STEP) // STEP)
-    lap0, lap1 = mid - LAP_L / 2.0, mid + LAP_L / 2.0
-    tx_holes = [lap1 - STEP * (i + 1) for i in range(n_hole)]
-    rx_holes = [lap0 + STEP * (i + 1) for i in range(n_hole)]
-    pad_tx = lap0 - 25.0
-    pad_rx = lap1 + 25.0
+    lap_hi, lap_lo = mid + LAP_L / 2.0, mid - LAP_L / 2.0
+    tx_holes = [lap_lo + STEP * (i + 1) for i in range(n_hole)]
+    rx_holes = [lap_hi - STEP * (i + 1) for i in range(n_hole)]
+    pad_tx = lap_hi + 25.0
+    pad_rx = lap_lo - 25.0
 
     def nut_pockets(p, ox, oy):
         s = []
