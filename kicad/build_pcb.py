@@ -487,7 +487,8 @@ for _fp in board.GetFootprints():
     _fp.SetPosition(pcbnew.VECTOR2I(0, 0))
     for _p, _n in _nets:
         _p.SetNetCode(0)
-    pcbnew.FootprintSave(_lib, _fp)
+    _io = pcbnew.PCB_IO_MGR.PluginFind(pcbnew.PCB_IO_MGR.KICAD_SEXP)
+    _io.FootprintSave(_lib, _fp)
     _fp.SetPosition(_pos)                       # and put it straight back
     _fp.SetOrientationDegrees(_ang)
     for _p, _n in _nets:
