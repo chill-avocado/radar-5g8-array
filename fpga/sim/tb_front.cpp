@@ -548,8 +548,14 @@ void test_decim4()
     for (double f : tones) ms.push_back(measure_tone(dut, f * 1e6, amp, n_discard, n_meas));
 
     std::printf("\n      input MHz   lands at MHz   composite gain dB\n");
-    for (const DecimMeas& m : ms)
-        std::printf("      %9.3f   %12.3f   %+17.2f\n", m.f_in_mhz, m.f_out_mhz, m.gain_db);
+    for (const DecimMeas& m : ms) {
+        if (m.silent)
+            std::printf("      %9.3f   %12.3f   %17s\n", m.f_in_mhz, m.f_out_mhz,
+                        "output all zero");
+        else
+            std::printf("      %9.3f   %12.3f   %+17.2f\n", m.f_in_mhz, m.f_out_mhz,
+                        m.gain_db);
+    }
     std::printf("\n");
 
     auto at = [&](double f) -> const DecimMeas& {
