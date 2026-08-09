@@ -301,9 +301,10 @@ void test_nco()
     dut->restart = 0; dut->ena = 1;
     int  lat   = 0;
     bool found = false;
+    // the restart tick above ended cycle 0, so loop tick n shows cycle n+2
     for (int n = 0; n < 16 && !found; ++n) {
         tick(dut);
-        if (dut->out_valid) { lat = n + 1; found = true; }
+        if (dut->out_valid) { lat = n + 2; found = true; }
     }
     const bool lat_ok = found && lat == 4 &&
                         (int16_t)dut->out_i == 32767 && (int16_t)dut->out_q == 25;
