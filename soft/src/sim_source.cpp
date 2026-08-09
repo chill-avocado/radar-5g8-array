@@ -572,7 +572,6 @@ struct SimSource::Slice {
     std::vector<float>     accr, acci;      // one class's accumulation
     std::vector<float>     outr, outi;      // the whole receive channel
     std::vector<ChanParam> par;             // scatterers x transmitters
-    std::vector<int>       order;           // indices sorted into delay classes
     Rng                    rng;
 };
 
@@ -1027,7 +1026,6 @@ bool SimSource::open(const Config& c) {
         slices_[i].outr.assign(std::size_t(g_.n_sweep), 0.0f);
         slices_[i].outi.assign(std::size_t(g_.n_sweep), 0.0f);
         slices_[i].par.assign(npar + 4, ChanParam{});
-        slices_[i].order.assign(npar + 4, 0);
         slices_[i].rng.reseed(scene_.seed * 6364136223846793005ull + 1442695040888963407ull + i);
     }
 
