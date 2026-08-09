@@ -546,6 +546,11 @@ def input_block(b):
                pkg="SOT-23", mpn="2N7002",
                note="holds the switch on; the enable line lets go of it")
     b.line(7.5, 22.69, 7.5, 24.5, "V12G", w=0.35)
+    # The gate network fences off a pocket of ground with this transistor
+    # inside it.  Its own earth pin gets the hole that ties the pocket down;
+    # without it the pocket is a piece of metal joined to nothing.
+    b.line(8.45, 20.81, 9.4, 20.81, "GND", w=0.40)
+    b._via(9.4, 20.81, pcbgen.VIA_D, pcbgen.VIA_PAD, "GND")
     b.smd_part("R2", 2.6, 13.0, _chip((0.62, 0.62, 0.585), "VF", "EN",
                                       horiz=False),
                pkg="0402", value="100k",
@@ -655,8 +660,7 @@ def build():
 
     # two corners the stitching grid cannot reach, tied by hand so no scrap of
     # ground is left floating between the connector and the board edge
-    for cx, cy in ((96.0, 1.7), (97.6, 1.9), (98.8, 2.4),
-                   (96.0, 98.3), (97.6, 98.1), (98.8, 97.6)):
+    for cx, cy in ((96.0, 1.7), (97.6, 1.9), (96.0, 98.3), (97.6, 98.1)):
         b._via(cx, cy, pcbgen.VIA_D, pcbgen.VIA_PAD, "GND")
     b.unify_nets()
     b.pour()
