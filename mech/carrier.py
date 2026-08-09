@@ -510,107 +510,55 @@ else {{
 
 
 def shelf(pads):
-    """A flat tray behind the bar for the amplifier and the receive board.
+    """One tray behind each array for its own amplifier board.
 
-    Both boards already carry six M3 holes and had nowhere to go.  They bolt
-    to this; it bolts to the four M4 points already on the bar's mounting
-    pads.  It sits BEHIND the plane of the arrays, so the ground plates
-    shield it and it takes nothing out of the aperture.
+    Stacked, a single shelf spanning both arrays would be 247 mm long and off
+    the bed.  It is also the wrong shape: the amplifier belongs at the
+    transmit antenna and the receive board at the receive antenna, because
+    every millimetre of cable in front of a receive amplifier is noise figure
+    given away.  So there are two, one bolted to each end of the spine.
 
-    The receive board goes on the receive side on purpose.  Its whole benefit
-    is being the first thing the signal meets, so every millimetre of cable
-    in front of it is noise figure given away.
+    Both sit BEHIND the plane of the arrays, where the ground plates shield
+    them and they take nothing out of the aperture.
     """
-    (txx, txy), (rxx, rxy) = pads
-    pa, lna = BOARDS["pa"], BOARDS["lna"]
-    gap, marg = 10.0, 6.0
-    W = marg + pa["size"][0] + gap + lna["size"][0] + marg
-    H = marg + max(pa["size"][1], lna["size"][1]) + marg
-    # put each board under its own side of the bracket
-    ox_pa = marg
-    ox_lna = marg + pa["size"][0] + gap
-    # line the shelf up so its M4 holes fall on the bracket's pads
-    sx = txx - (ox_pa + pa["size"][0] / 2.0)
-    sy = min(txy, rxy) - 14.0 - H
-
-    def nut(x, y):
-        return (f"    translate([{x:.3f}, {y:.3f}, -1]) "
+    out = []
+    for (px, py), key in zip(pads, ("pa", "lna")):
+        b = BOARDS[key]
+        W = b["size"][0] + 2 * 6.0
+        H = b["size"][1] + 2 * 6.0
+        body = []
+        for hx, hy in b["holes"]:
+            x, y = 6.0 + hx, 6.0 + hy
+            body.append(
+                f"    translate([{x:.3f}, {y:.3f}, -1]) "
                 f"cylinder(d={NUT_AF/math.cos(math.pi/6):.3f}, "
                 f"h={NUT_T+1:.2f}, $fn=6);\n"
                 f"    translate([{x:.3f}, {y:.3f}, -1]) "
                 f"cylinder(d={M3:.2f}, h={SHELF_T+2:.2f});")
-
-    body = []
-    for tag, b, ox in (("pa", pa, ox_pa), ("lna", lna, ox_lna)):
-        oy = marg
-        for hx, hy in b["holes"]:
-            body.append(nut(ox + hx, oy + hy))
-    # four clearance holes onto the bracket's own M4 pattern
-    tabs, tab_h = [], 14.0
-    for px, py in ((txx, txy), (rxx, rxy)):
-        for dx in (-11.0, 11.0):
-            tabs.append((px - sx + dx, py - sy))
-    tab_s = "\n".join(
-        f"    translate([{x:.3f}, {y:.3f}, -1]) "
-        f"cylinder(d={M4:.2f}, h={SHELF_T+2:.2f}, $fn=24);" for x, y in tabs)
-    tab_body = "\n".join(
-        f"      translate([{x-14:.3f}, {H - 1:.3f}, 0]) "
-        f"cube([28.0, {y - H + 8:.3f}, {SHELF_T:.2f}]);"
-        for x, y in tabs[::2])
-    return f"""
-// ---------------------------------------------------------------- shelf
-// Bolts to the four M4 points on the bar and carries both electronics
-// boards behind the arrays.  Print flat.  {W:.0f} x {H:.0f} mm.
-module shelf() {{
+        # four clearance holes onto that arm's own mounting pad
+        tabs = [(W / 2 + dx, H + 7.0 + dy) for dx in (-8.0, 8.0)
+                for dy in (-6.5, 6.5)]
+        tab_s = "\n".join(
+            f"    translate([{x:.3f}, {y:.3f}, -1]) "
+            f"cylinder(d={M4:.2f}, h={SHELF_T+2:.2f}, $fn=24);" for x, y in tabs)
+        src = f"""
+module shelf_{key}() {{
   difference() {{
     union() {{
       cube([{W:.2f}, {H:.2f}, {SHELF_T:.2f}]);
-{tab_body}
+      translate([{W/2-14:.3f}, {H-1:.3f}, 0])
+        cube([28.0, 16.0, {SHELF_T:.2f}]);
     }}
 {chr(10).join(body)}
 {tab_s}
-    // lighten it: it only has to be flat and hold nine bolts
-    for (i = [0 : 3]) for (j = [0 : 1])
-      translate([{marg + 18:.2f} + i * 46, {marg + 20:.2f} + j * 34, -1])
-        cube([26, 22, {SHELF_T+2:.2f}]);
+    for (i = [0 : 2]) for (j = [0 : 1])
+      translate([{6.0+18:.2f} + i * 30, {6.0+20:.2f} + j * 30, -1])
+        cube([18, 20, {SHELF_T+2:.2f}]);
   }}
 }}
-""", (W, H), (sx, sy)
-
-
-FIN_W, FIN_H, FIN_WING, FIN_FLANGE = 200.0, 100.0, 60.0, 25.0
-
-
-def fin_flat():
-    """The isolation fin, as a flat pattern with bend lines.
-
-    Each array radiates -2.23 dBi straight out of its edge, right at the
-    other one, so at 250 mm apart air alone gives about -40 dB.  A sheet of
-    metal standing between them makes the signal bend over an edge to get
-    across, and bending costs it dearly.
-
-    What actually limits it is not the tip but the way round the SIDES.  A
-    fin the width of the plates is worth only 11 dB because the leak simply
-    goes round.  Folding the side edges forward beats making it wider:
-    200 mm with 60 mm returns gives 16.5 dB, which a flat 300 mm fin does not
-    reach.  Total -56.6 dB.
-
-    It only blocks past 51 degrees off boresight, and the radar looks +/-27,
-    so the coverage never sees it.
-    """
-    W, H, wg, fl = FIN_W, FIN_H, FIN_WING, FIN_FLANGE
-    x0 = -(W / 2 + wg)
-    outline = [((x0, 0.0), 2.0), ((x0 + 2 * wg + W, 0.0), 2.0),
-               ((x0 + 2 * wg + W, H), 2.0), ((x0, H), 2.0)]
-    # a flange along the bottom of the centre panel, bent back to bolt down
-    outline = [((x0, -fl if False else 0.0), 2.0)] + outline[1:]
-    # Four bolts onto the spine, which is only BAR_D wide -- the flange is
-    # 200 mm across but the thing it fastens to is 25 mm, so a hole pattern
-    # spanning the fin would have missed it entirely.
-    holes = [(x, y, M4) for x in (-8.0, 8.0) for y in (6.0, fl - 6.0)]
-    bends = [(-W / 2, 0.0, -W / 2, H), (W / 2, 0.0, W / 2, H),
-             (-W / 2, fl, W / 2, fl)]
-    return outline, holes, bends
+"""
+        out.append((key, src, (W, H + 23.0), (px - W / 2, py - H - 7.0)))
+    return out
 
 
 # --------------------------------------------------------------------- main
@@ -640,7 +588,8 @@ def main():
                   2.0, p["PH"] + 4.0))
 
     boxes, src = scad(tx, rx)
-    sh_src, sh_wh, sh_off = shelf(boxes["pads"])
+    shelves = shelf(boxes["pads"])
+    sh_src = "".join(x[1] for x in shelves)
     _o, _h, _b = fin_flat()
     dxf(os.path.join(HERE, "fin.dxf"), _o, _h, csk=(),
         note=(f"5.8 GHz RADAR ISOLATION FIN - {PLATE_T} mm AL - "
@@ -652,14 +601,18 @@ def main():
     print(f"    stands between the two arrays and buys 16.5 dB, taking them "
           f"from -40.1 to -56.6 dB")
     print(f"    blocks nothing inside 51 deg; the radar looks +/-27")
-    src = src.replace('if (part == "transmit")',
-                      sh_src + '\nif (part == "shelf") shelf();\n'
-                      'else if (part == "transmit")')
+    src = src.replace(
+        'if (part == "transmit")',
+        sh_src + '\nif (part == "shelf_pa") shelf_pa();\n'
+        'else if (part == "shelf_lna") shelf_lna();\n'
+        'else if (part == "transmit")')
     # show it in place in the assembly view, behind the arrays
-    src = src.replace('  half_tx();\n  half_rx();',
-                      '  half_tx();\n  half_rx();\n'
-                      f'  translate([{sh_off[0]:.3f}, {sh_off[1]:.3f}, -{SHELF_T:.2f}])\n'
-                      '    color("#4a6fa5") shelf();')
+    src = src.replace(
+        '  half_tx();\n  half_rx();',
+        '  half_tx();\n  half_rx();\n' + "".join(
+            f'  translate([{o[0]:.3f}, {o[1]:.3f}, -{SHELF_T:.2f}])\n'
+            f'    color("#4a6fa5") shelf_{k}();\n'
+            for k, _s, _wh, o in shelves))
     sc = os.path.join(HERE, "carrier.scad")
     open(sc, "w").write(src)
 
@@ -684,7 +637,8 @@ def main():
     if os.path.exists(osc):
         for part, out in (("transmit", "half_transmit.stl"),
                           ("receive", "half_receive.stl"),
-                          ("shelf", "shelf.stl")):
+                          ("shelf_pa", "shelf_pa.stl"),
+                          ("shelf_lna", "shelf_lna.stl")):
             r = subprocess.run([osc, "-o", os.path.join(HERE, out),
                                 "-D", f'part="{part}"', sc],
                                capture_output=True, text=True)
