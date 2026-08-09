@@ -310,12 +310,12 @@ struct Scat {
 /// Per (scatterer, transmitter, receiver) parameters for one chirp.  These are
 /// what the sample loop consumes; everything geometric has already happened.
 struct ChanParam {
-    float ar = 0, ai = 0;   ///< complex amplitude at the first valid sample
-    float cr = 1, ci = 0;   ///< per-sample phasor rotation
-    int   n0 = 0;           ///< first sample the echo has arrived by
-    int   cls = 0;          ///< phase-noise delay class
-    int   frac = 0;         ///< fractional-delay table index, Sinc path
-    int   idel = 0;         ///< integer sample delay, Sinc path
+    float  ar = 0, ai = 0;      ///< complex amplitude at the first valid sample
+    double rot_r = 1, rot_i = 0;///< per-sample phasor rotation, kept in double
+    int    n0 = 0;              ///< first sample the echo has arrived by
+    int    cls = 0;             ///< phase-noise delay class
+    int    frac = 0;            ///< fractional-delay table index, Sinc path
+    int    idel = 0;            ///< integer sample delay, Sinc path
 };
 
 enum class DelayMode { Exact, Sinc };
