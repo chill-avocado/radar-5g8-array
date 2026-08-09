@@ -179,12 +179,21 @@ def classify(ports):
     return roles
 
 
-def emit_shim(module_name, ports, roles, out_path):
+def emit_shim(module_name, ports, roles, params, out_path):
     def decl(p):
         w = (" " + p.width) if p.width else ""
         return f"    {p.dir}{w} {p.name}"
 
     port_decls = ",\n".join(decl(p) for p in ports)
+
+    if params:
+        param_decls = " #(\n" + ",\n".join(
+            f"    parameter {n} = {v}" for n, v in params) + "\n)"
+        param_pass = " #(\n" + ",\n".join(
+            f"        .{n}({n})" for n, _ in params) + "\n    )"
+    else:
+        param_decls = ""
+        param_pass = ""
     # The radio instance sees everything unchanged except the receive samples,
     # which come from the radar when it is enabled.
     conns = []
