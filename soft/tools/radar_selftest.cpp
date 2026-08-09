@@ -778,14 +778,15 @@ static void test_proto() {
     encode_rdmap(buf, f, 12345, r);
     encode_hits(buf, f, 12345);
 
-    Header h{};
-    std::size_t off = 0, payload = 0;
-    check(decode_header(buf.data(), buf.size(), h, payload), "header decodes", "type %u, %u bytes",
-          unsigned(h.type), h.bytes);
+    Header      h{};
+    const u8*   payload = nullptr;
+    std::size_t payload_bytes = 0;
+    check(decode_header(buf.data(), buf.size(), h, &payload, &payload_bytes),
+          "header decodes", "type %u, %u bytes", unsigned(h.type), h.bytes);
     check(h.magic == kMagic, "magic is right", "0x%08X", h.magic);
 
     RdMapMsg m;
-    check(decode_rdmap(buf.data() + kHeaderBytes, h.bytes, m), "map decodes",
+    check(payload && decode_rdmap(payload, payload_bytes, m), "map decodes",
           "%u x %u", unsigned(m.head.n_range), unsigned(m.head.n_doppler));
     check(int(m.head.n_range) == f.n_range && int(m.head.n_doppler) == f.n_doppler,
           "map dimensions survive", "%u x %u", unsigned(m.head.n_range), unsigned(m.head.n_doppler));
@@ -801,7 +802,6 @@ static void test_proto() {
         }
     check(worst < (r.max_db - r.min_db) / 255.0 + 0.01, "quantisation error is one step",
           "worst %.4f dB, step %.4f dB", worst, (r.max_db - r.min_db) / 255.0);
-    (void)off;
 }
 
 //============================================================================
