@@ -44,7 +44,10 @@ public:
 
 private:
     struct Work;
-    Work& work(std::size_t n) const;
+    /// One working set per thread, so one Clusterer can serve several worker
+    /// threads on different frames with no lock and no allocation.
+    static Work& tls();
+    static Work& work(std::size_t n);
 
     double eps_m_, eps_ms_, eps_deg_;
     int    min_pts_;
