@@ -151,9 +151,9 @@ RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
     for (int t = 0; t < 8; ++t) { dut.clk = 0; dut.eval(); dut.clk = 1; dut.eval(); }
     dut.rst = 0;
 
-    std::vector<cd> cur;
-    cur.reserve(N);
-    uint32_t  exp_idx   = 0;
+    std::vector<cd> cur(N);
+    int       pos       = 0;   // position within the output frame
+    int       filled    = 0;
     long long tick      = 0;   // clocks
     long long si        = 0;   // input samples actually accepted
     long long first_in  = -1;
@@ -180,14 +180,16 @@ RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
 
         if (dut.out_valid) {
             if (r.latency < 0) r.latency = static_cast<int>(tick - first_in);
-            const uint32_t idx      = dut.out_idx;
-            const bool     want_end = (exp_idx == static_cast<uint32_t>(N - 1));
-            if (idx != exp_idx)                              r.idx_ok  = false;
+            const uint32_t want     = rev ? bitrev(static_cast<uint32_t>(pos), NLOG2)
+                                          : static_cast<uint32_t>(pos);
+            const bool     want_end = (pos == N - 1);
+            if (static_cast<uint32_t>(dut.out_idx) != want)  r.idx_ok  = false;
             if (static_cast<bool>(dut.out_last) != want_end) r.last_ok = false;
-            cur.push_back(cd(static_cast<int16_t>(dut.out_i),
-                             static_cast<int16_t>(dut.out_q)));
-            exp_idx = want_end ? 0u : exp_idx + 1u;
-            if (static_cast<int>(cur.size()) == N) { r.frames.push_back(cur); cur.clear(); }
+            cur[want] = cd(static_cast<int16_t>(dut.out_i),
+                           static_cast<int16_t>(dut.out_q));
+            ++filled;
+            pos = want_end ? 0 : pos + 1;
+            if (filled == N) { r.frames.push_back(cur); filled = 0; }
         }
         if (dut.overflow) r.overflow = true;
         if (v) ++si;
