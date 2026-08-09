@@ -650,7 +650,7 @@ def isolation(sep_mm=None, run_mm=35.0):
                 from_sep_db=d_sep, from_run_db=d_run)
 
 
-def leak_budget(pad_db=RX_PAD_DEFAULT_DB, sep_m=0.375):
+def leak_budget(pad_db=RX_PAD_DEFAULT_DB, sep_m=0.624):
     """Everything that reaches the radio while the transmitter is running.
 
     Two routes: through the air between the two antenna arrays, and across
