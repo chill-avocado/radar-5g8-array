@@ -28,13 +28,6 @@ void put(std::vector<u8>& out, const T& v) {
     std::memcpy(out.data() + at, &v, sizeof(T));
 }
 
-void put_bytes(std::vector<u8>& out, const void* p, std::size_t n) {
-    if (!n) return;
-    const auto at = out.size();
-    out.resize(at + n);
-    std::memcpy(out.data() + at, p, n);
-}
-
 /// Write the header now, come back and fill in `bytes` once the payload has
 /// been appended.  Avoids building the payload twice or into a scratch buffer.
 struct HeaderPatch {
