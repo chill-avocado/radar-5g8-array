@@ -132,11 +132,10 @@ int main(int argc, char** argv) {
         const double t_chirp = time_median(reps * 4, [&] {
             for (int k = 0; k < 32; ++k) rm.range_chirp(rx[0].data(), nsw, one_out.data());
         }) / 32.0;
-        row("de-chirp + decimate + range FFT", t_chirp * 1e3 * nct * 2,
-            "one chirp costs " + std::to_string(int(t_chirp * 1e6)) + " us" == ""
-                ? "" : "");
-        std::printf("        one chirp, one receiver: %.1f us; %d chirps x 2 receivers per frame\n",
-                    t_chirp * 1e6, nct);
+        char note[96];
+        std::snprintf(note, sizeof(note), "%.1f us per chirp x %d chirps x 2 receivers",
+                      t_chirp * 1e6, nct);
+        row("de-chirp + decimate + range FFT", t_chirp * 1e3 * nct * 2, note);
 
         RdFrame f;
         const ci16* ptrs[2] = {rx[0].data(), rx[1].data()};
