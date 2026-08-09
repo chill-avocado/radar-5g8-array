@@ -117,13 +117,13 @@ RDO,1k,0402,,keeps the reading off the radio-frequency side
 RTA,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
 RTB,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
 J5,8x2 header,2.54 mm,,
-TX1_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+TX1_RADIO,"SMA plug, edge launch",0.062 in board,,"MALE, the counterpart of the 142-0701-801 used everywhere else on this radar: DC-18 GHz, tab-and-legs end launch for 1.57 mm board, 4.10 mm tab pitch. It screws straight onto the radio's own socket"
 TX1_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
-TX2_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+TX2_RADIO,"SMA plug, edge launch",0.062 in board,,"MALE, the counterpart of the 142-0701-801 used everywhere else on this radar: DC-18 GHz, tab-and-legs end launch for 1.57 mm board, 4.10 mm tab pitch. It screws straight onto the radio's own socket"
 TX2_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
 RX1_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
-RX1_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+RX1_RADIO,"SMA plug, edge launch",0.062 in board,,"MALE, the counterpart of the 142-0701-801 used everywhere else on this radar: DC-18 GHz, tab-and-legs end launch for 1.57 mm board, 4.10 mm tab pitch. It screws straight onto the radio's own socket"
 RX2_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
-RX2_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+RX2_RADIO,"SMA plug, edge launch",0.062 in board,,"MALE, the counterpart of the 142-0701-801 used everywhere else on this radar: DC-18 GHz, tab-and-legs end launch for 1.57 mm board, 4.10 mm tab pitch. It screws straight onto the radio's own socket"
 H1-H8,M3 x 6 pan head and washer,M3,,four of the eight sit beside the amplifiers and carry their heat
 TIM,"thermal pad 0.5 mm, 3 W/mK",10 x 10 mm,,"under each amplifier, between the bare underside and the chassis"
