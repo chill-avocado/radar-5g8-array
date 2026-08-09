@@ -56,8 +56,11 @@ struct Config {
     //------------------------------------------------------------------
     int        decim         = 4;      ///< halfband cascade, 61.44 -> 15.36 MSps
     int        n_range_fft   = 1024;
+    /// n_range * n_chirp_total is fixed at 65536 by the on-chip corner-turn
+    /// buffer -- see the memory note in fpga/rtl/radar_pkg.svh. validate()
+    /// enforces it, so raising one of these lowers the other.
     int        n_range       = 256;    ///< range bins kept and streamed
-    int        n_doppler     = 256;
+    int        n_doppler     = 128;    ///< equals n_chirp in TDM
     WindowKind range_window  = WindowKind::BlackmanHarris;
     WindowKind dopp_window   = WindowKind::BlackmanHarris;
 
