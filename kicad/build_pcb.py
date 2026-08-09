@@ -475,6 +475,7 @@ if os.path.isdir(_lib):
         os.remove(os.path.join(_lib, _f))
 else:
     os.makedirs(_lib, exist_ok=True)
+_io = pcbnew.PCB_IO_MGR.FindPlugin(pcbnew.PCB_IO_MGR.KICAD_SEXP)
 _seen = set()
 for _fp in board.GetFootprints():
     _nm = str(_fp.GetFPID().GetLibItemName())
@@ -487,7 +488,6 @@ for _fp in board.GetFootprints():
     _fp.SetPosition(pcbnew.VECTOR2I(0, 0))
     for _p, _n in _nets:
         _p.SetNetCode(0)
-    _io = pcbnew.PCB_IO_MGR.PluginFind(pcbnew.PCB_IO_MGR.KICAD_SEXP)
     _io.FootprintSave(_lib, _fp)
     _fp.SetPosition(_pos)                       # and put it straight back
     _fp.SetOrientationDegrees(_ang)
