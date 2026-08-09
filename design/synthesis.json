@@ -244,5 +244,76 @@
    "finish": "Immersion silver",
    "layers": 2
   }
+ },
+ "ZYF300CA_D45": {
+  "substrate": {
+   "name": "ZYF300CA-P PTFE",
+   "er": 3.0,
+   "tand": 0.0018,
+   "h_mm": 0.76
+  },
+  "f0_hz": 5800000000.0,
+  "lambda0_mm": 51.6883548275862,
+  "spacing_mm": 25.8441774137931,
+  "patch": {
+   "L": 13.193558027409894,
+   "W": 13.193558027409894,
+   "eeff": 3.4523488993024594,
+   "dL": 0.35787258109190134,
+   "Leff": 13.909303189593698,
+   "G1": 0.000694006354528162,
+   "G12": 0.00015772023975226882,
+   "Rin_edge": 587.0428413972654,
+   "lam0": 51.6883548275862,
+   "bw_pct": 1.1036289342662078,
+   "_note": "Copied from the Rogers synthesis and never recomputed for this laminate. Nothing reads it. Do not start."
+  },
+  "feed": {
+   "w50_mm": 1.853528,
+   "lam_g50_mm": 32.849368,
+   "eeff50": 2.449068,
+   "loss_db_per_m": 3.19917,
+   "wq_mm": 0.024961977982093684,
+   "lq_mm": 7.806793569699913,
+   "zq_ohm": 171.32466859697487,
+   "_note": "eeff50/loss_db_per_m/wq_mm/lq_mm are Rogers values; the live numbers are w50_mm, lam_g50_mm and the tuned block."
+  },
+  "hybrid": {
+   "z_series": 35.35533905932737,
+   "w_series_mm": 3.113032,
+   "l_series_mm": 8.056264,
+   "z_shunt": 50.0,
+   "w_shunt_mm": 1.853528,
+   "l_shunt_mm": 8.212342,
+   "ring_x_mm": 8.056264,
+   "ring_y_mm": 8.212342
+  },
+  "launch": {
+   "gap_mm": 0.9699
+  },
+  "tuned": {
+   "L": 14.0835,
+   "wq": 0.341374,
+   "lq": 8.54223,
+   "arm_series": 8.844984,
+   "arm_shunt": 8.998231,
+   "dip_trim": 0.4129,
+   "dLx": -0.05383,
+   "dLy": -0.05383,
+   "zq_ohm": 110.0,
+   "source": "Diamond topology: the same square patch stood on its corner. Both modes measured at 5.7655 GHz -- IDENTICAL, to four decimals, on a symmetric grid -- which is the point: turned 45 degrees the two modes are mirror images and cannot split. They rang 34.5 MHz low, so both dimensions shrink together by 0.0838 mm. There is no differential trim and there never can be. Feed match at the patch is -27.4 dB against the flat-on version's -12.7, so far less of the drive comes back to be burned in the terminating resistor.",
+   "z_arm_v": 34.11,
+   "w_arm_v": 3.272726,
+   "z_arm_h": 46.65,
+   "w_arm_h": 2.068457
+  },
+  "stack": {
+   "name": "ZYF300CA-P PTFE",
+   "h_mm": 0.76,
+   "er": 3.0,
+   "tand": 0.0018,
+   "finish": "Immersion silver",
+   "layers": 2
+  }
  }
 }

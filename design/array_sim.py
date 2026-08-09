@@ -26,7 +26,11 @@ from openEMS import openEMS
 HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN = HERE
 sys.path.insert(0, DESIGN)
-from element2 import Element                                  # noqa: E402
+TOPO = os.environ.get("TOPO", "square")
+if TOPO == "diamond":
+    from element3 import Element                              # noqa: E402
+else:
+    from element2 import Element                              # noqa: E402
 
 F0, FC = 5.80e9, 0.85e9
 VARIANT = os.environ.get("VARIANT", "ZYF300CA")
