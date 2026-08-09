@@ -1463,7 +1463,20 @@ std::unique_ptr<IqSource> make_source(const Config& c) {
         case SourceKind::Simulate:
         default: {
             SimScene s = default_scene();
-            if (!c.calib_path.empty()) { /* calibration is not a scene */ }
+            if (!c.scene_path.empty()) {
+                std::string err;
+                SimScene    loaded;
+                if (load_scene(c.scene_path, loaded, err)) {
+                    s = std::move(loaded);
+                    LOG_I("sim: scene from %s, %d objects", c.scene_path.c_str(),
+                          int(s.objects.size()));
+                } else {
+                    // A bad scene file is worth complaining about loudly, but it
+                    // is not worth refusing to run over: the built-in scene is
+                    // always there and the operator can see what went wrong.
+                    LOG_E("%s -- falling back to the built-in scene", err.c_str());
+                }
+            }
             return std::unique_ptr<IqSource>(new SimSource(s));
         }
     }
