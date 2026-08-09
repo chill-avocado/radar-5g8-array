@@ -87,7 +87,7 @@ module radar_nco #(
     //------------------------------------------------------------------------
     reg signed [OUT_W-1:0] sin_rom [0:LUT_N-1];
 
-    integer k;
+    integer k, rv;
     real    pi_r, amp_r, nph_r, ang_r;
 
     initial begin
@@ -95,8 +95,9 @@ module radar_nco #(
         amp_r = (2.0 ** (OUT_W - 1)) - 1.0;      // 32767.0
         nph_r = 2.0 ** IDX_W;                    // 4096.0
         for (k = 0; k < LUT_N; k = k + 1) begin
-            ang_r       = (2.0 * pi_r) * ((k + 0.5) / nph_r);
-            sin_rom[k]  = $rtoi(amp_r * $sin(ang_r) + 0.5);
+            ang_r      = (2.0 * pi_r) * ((k + 0.5) / nph_r);
+            rv         = $rtoi(amp_r * $sin(ang_r) + 0.5);
+            sin_rom[k] = rv[OUT_W-1:0];
         end
     end
 

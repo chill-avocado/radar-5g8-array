@@ -86,7 +86,14 @@ struct Clusterer::Work {
     std::vector<Target> sorted;
 };
 
-namespace { Clusterer::Work& clusterer_tls(); }
+namespace {
+/// One working set per thread, so one Clusterer can serve several worker
+/// threads on different frames without a lock and without allocating.
+Clusterer::Work& clusterer_tls() {
+    static thread_local Clusterer::Work w;
+    return w;
+}
+} // namespace
 
 Clusterer::Work& Clusterer::work(std::size_t n) const {
     Work& w = clusterer_tls();
