@@ -371,6 +371,14 @@ class Board:
             ys = [q[1] for q in p]
             keep.append((min(xs) - 1.0, min(ys) - 1.0,
                          max(xs) + 1.0, max(ys) + 1.0))
+        # and the same for anything given a stretch of the underside: a hole
+        # drilled through a run down there is exactly as much of a short as
+        # one drilled through a buried run
+        for p in getattr(self, "bot", []):
+            xs = [q[0] for q in p]
+            ys = [q[1] for q in p]
+            keep.append((min(xs) - 1.0, min(ys) - 1.0,
+                         max(xs) + 1.0, max(ys) + 1.0))
         for g in list(self.gnd_top):
             xs = [q[0] for q in g]
             ys = [q[1] for q in g]
