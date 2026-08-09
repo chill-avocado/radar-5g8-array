@@ -1,9 +1,9 @@
-(footprint "R_0402_50R"
+(footprint "MountingHole_M3"
 	(version 20240108)
 	(generator "build_pcb.py")
 		(layer "F.Cu")
 	(at 0 0)
-		(property "Reference" "R4"
+		(property "Reference" "H4"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -13,7 +13,7 @@
 				)
 			)
 		)
-		(property "Value" "50R"
+		(property "Value" "M3"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -43,11 +43,10 @@
 				)
 			)
 		)
-		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_rect
-			(start -1.609999 -0.56)
-			(end 1.609999 0.56)
+			(start -3.25 -3.25)
+			(end 3.25 3.25)
 			(stroke
 				(width 0.05)
 				(type default)
@@ -55,19 +54,13 @@
 			(fill no)
 			(layer "F.CrtYd")
 		)
-		(pad "1" smd rect
-			(at 1.049999 0)
-			(size 0.62 0.62)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "RX2")
-			(thermal_bridge_angle 45)
-		)
-		(pad "2" smd rect
-			(at -1.049999 0)
-			(size 0.62 0.62)
-			(layers "F.Cu" "F.Mask" "F.Paste")
+		(pad "1" thru_hole circle
+			(at 0 0)
+			(size 6 6)
+			(drill 3.2)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
 			(net "GND")
-			(thermal_bridge_angle 45)
 		)
 		(embedded_fonts no)
 	)

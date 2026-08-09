@@ -1,10 +1,10 @@
-(footprint "MountingHole_M3"
+(footprint "D_0805_Limiter"
 	(version 20240108)
 	(generator "build_pcb.py")
 		(layer "F.Cu")
 	(at 0 0)
-		(property "Reference" "H2"
-			(at 0 0 0)
+		(property "Reference" "D1"
+			(at 0 0 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(effects
@@ -13,8 +13,8 @@
 				)
 			)
 		)
-		(property "Value" "M3"
-			(at 0 0 0)
+		(property "Value" "DNF - limiter site"
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(effects
@@ -24,7 +24,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 0)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(effects
@@ -34,7 +34,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 0)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(effects
@@ -43,10 +43,11 @@
 				)
 			)
 		)
+		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_rect
-			(start -3.25 -3.25)
-			(end 3.25 3.25)
+			(start 1.649999 -0.9)
+			(end -1.649999 0.9)
 			(stroke
 				(width 0.05)
 				(type default)
@@ -54,13 +55,19 @@
 			(fill no)
 			(layer "F.CrtYd")
 		)
-		(pad "1" thru_hole circle
-			(at 0 0)
-			(size 6 6)
-			(drill 3.2)
-			(layers "*.Cu" "*.Mask")
-			(remove_unused_layers no)
+		(pad "1" smd rect
+			(at 0.899999 0 90)
+			(size 1.3 1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "RX1")
+			(thermal_bridge_angle 45)
+		)
+		(pad "2" smd rect
+			(at -0.899999 0 90)
+			(size 1.3 1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net "GND")
+			(thermal_bridge_angle 45)
 		)
 		(embedded_fonts no)
 	)
