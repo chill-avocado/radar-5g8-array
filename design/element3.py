@@ -59,7 +59,7 @@ class Element:
     """The diamond element.  Mirroring it flips the handedness, nothing else."""
 
     def __init__(self, cfg, dLx=None, dLy=None, mirror=False, launch_y=None,
-                 route=None):
+                 route=None, route_delta=0.0):
         t = cfg.get("tuned", {})
         self.mirror = mirror
         L = t.get("L", 14.0835)
@@ -74,6 +74,12 @@ class Element:
         # direction that partly cancels the patch's own swing -- so those
         # routes may be buying the flat-on element its bandwidth.
         self.route = t.get("route_mm", 0.0) if route is None else route
+        # A deliberate difference between the two feeds.  Perfect symmetry
+        # gives the two modes equal drive, which is right, but it also
+        # leaves no way to make up the coupler's own quadrature shortfall
+        # -- that correction is asymmetric by nature.
+        self.route_delta = t.get("route_delta_mm", 0.0) if route_delta == 0.0 \
+            else route_delta
         self.wq = t.get("wq", 0.3414)
         self.lq = t.get("lq", 8.5422)
         self.wf = f["w50_mm"]
@@ -134,7 +140,8 @@ class Element:
                              (self.edge_x + JOIN * 0.7,
                               s * (self.edge_y - JOIN * 0.7)), wq))
             if self.route > 0.01:
-                polys.append(seg((self.xR - JOIN, s * hy),
+                extra = self.route_delta if s > 0 else 0.0
+                polys.append(seg((self.xR - JOIN - extra, s * hy),
                                  (self.xT + JOIN, s * hy), self.wf))
         # the ring: two horizontal arms, two vertical
         polys.append(seg((self.xl, +hy), (self.xr, +hy), self.wah))

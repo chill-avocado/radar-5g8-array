@@ -19,11 +19,14 @@
 //============================================================================
 #pragma once
 
+// core.hpp uses std::memset in a member that this header instantiates, so the
+// declaration has to be in scope before it.
+#include <cstring>
+
 #include "radar/config.hpp"
 #include "radar/core.hpp"
 #include "radar/types.hpp"
 
-#include <cstring>
 #include <vector>
 
 namespace radar {

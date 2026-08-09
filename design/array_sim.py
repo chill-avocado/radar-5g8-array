@@ -63,7 +63,9 @@ PITCH = float(os.environ.get("PITCH_MM", 0)) or 299792458.0 / F0 / 2.0 * 1e3
 # neighbouring patch's radiating edge, which wrecks the axial ratio.
 MIRROR = os.environ.get("MIRROR", "1") == "1"
 ROUTE = os.environ.get("ROUTE")
-_rk = {"route": float(ROUTE)} if (ROUTE and TOPO == "diamond") else {}
+_rk = {"route": float(ROUTE),
+       "route_delta": float(os.environ.get("ROUTE_D", 0.0))} \
+    if (ROUTE and TOPO == "diamond") else {}
 el = Element(cfg, dLx=DLX, dLy=DLY, **_rk)
 DTM = os.environ.get("DIP_MIRROR")
 # The diamond has no dip and therefore no dip trim -- its two feeds match by
