@@ -47,7 +47,7 @@ struct Config {
     double   sweep_bw_hz   = 50.0e6;   ///< linear-FM sweep width
     int      n_sweep       = 3072;     ///< sweep length, radio clocks
     int      n_pri         = 3840;     ///< pulse repetition interval, clocks
-    int      n_chirp       = 256;      ///< chirps per transmitter per CPI
+    int      n_chirp       = 128;      ///< chirps per transmitter per CPI
     MimoMode mimo          = MimoMode::Tdm;
     bool     tx_enable     = true;
 
