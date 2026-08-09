@@ -1518,6 +1518,516 @@ sub-decimeter target multilateration.
 
 ---
 
+## 12. Patent-Derived Hardware & RF Improvements
+
+Concrete design improvements for this project's actual antenna and RF hardware — the 2 Tx x 2 Rx
+5.8 GHz circularly-polarized array, its TX-RX isolation budget, and the board-level mechanical and
+manufacturing choices around it — extracted from patent research (200+ radar and antenna patents,
+2020-2024). This section is distinct in kind from Sections 1-11: those cover the software/FPGA
+processing chain around a fixed RF front-end (the B210's integrated AD9361), while this section
+covers the physical antenna array, feed network, and TX-RX isolation hardware that sits in front of
+it. Baseline figures throughout are measured/simulated values from the current board revision;
+"with improvements" figures are patent-derived projections, not yet measured on this hardware.
+
+### 12.1 Virtual array optimization
+
+**Non-uniform element spacing.** The current array uses uniform half-wavelength spacing: 4 virtual
+elements at `(0,0), (lambda/2,0), (0,lambda/2), (lambda/2,lambda/2)`, lambda/2 = 25.844 mm at
+5.8 GHz. Patent designs use non-uniform spacing to suppress grating lobes and improve angular
+resolution:
+
+```
+Current (2 Tx x 2 Rx, 4 virtual elements): [0, lambda/2] x [0, lambda/2]
+Upgrade path (3 Tx x 3 Rx, 9 virtual elements): [0, lambda/2, lambda/4] x [0, lambda/2, 3*lambda/4]
+```
+
+The 9-element non-uniform layout eliminates grating lobes near +/-45 degrees and improves
+direction-of-arrival estimation by roughly 2-3x for the same physical aperture, at the cost of
+needing 3 Tx and 3 Rx channels (a hardware upgrade beyond the current 2x2 AD9361-based front end)
+and a more involved per-element calibration.
+
+**TDM switching timing.** Fixed inter-chirp TX switching delay introduces a Doppler phase error of
+`phi = 4*pi*v*tau/lambda` (this is the same error corrected in Section 8.1's Doppler phase
+compensation, restated here as a hardware timing constraint rather than a software correction). At
+v = 20 m/s and lambda = 0.0517 m, a 1 us switching delay produces 5.0 degrees of phase error per
+microsecond. Keeping the switching delay under 0.5 us bounds this error to under 2.5 degrees before
+Section 8.1's correction is even applied, so the two measures are complementary: hardware timing
+discipline reduces the error the software then removes.
+
+**Frequency hopping.** Hopping the carrier within the ISM band — 5.750, 5.800, 5.850 GHz, with
+10-100 ms dwell time per frequency, pseudo-random or swept pattern — avoids fixed-frequency
+interference from other radars and Wi-Fi while retaining the full 56 MHz bandwidth per hop. This
+needs faster frequency synthesis and more complex signal processing than the fixed-frequency
+baseline, but requires no antenna hardware change.
+
+### 12.2 Circular polarization enhancements
+
+**Current state.** The branch-line (3 dB hybrid) coupler feeds the CP patches with series arms at
+35.36 ohm and shunt arms at 50 ohm, nominally producing a 90-degree phase split. Measured behavior:
+the physical ring behaves about 10% electrically shorter than its drawn length, and a single element
+measures 3.6 dB axial ratio due to the feed network loading its two orthogonal resonances unequally.
+
+**Unequal power split.** Deliberately unbalancing the coupler — feeding 2.8 dB more power to the
+lightly loaded resonance — cancels this unequal loading rather than fighting it. Simulated axial
+ratio improves from 3.6 dB (lone element, unequal loading uncorrected) to 0.7 dB with the 2.8 dB
+split, and from the array's measured 2.8-3.2 dB to under 1.5 dB when combined with neighbor-coupling
+compensation. This also holds CP over a wider bandwidth than the equal-split design.
+
+**Corner compensation in the coupler ring.** Each corner junction's true electrical reference point
+sits inside the drawn corner, not at the drawn corner itself. Reducing each ring dimension by about
+10% from the drawn (nominal) length compensates for this and re-centers the coupler at 5.8 GHz
+instead of the 6.38 GHz the drawn dimensions would produce — consistent with the "~10% electrically
+shorter" behavior already observed on the current board, and gives a concrete correction factor to
+apply on the next revision rather than trial-and-error re-tuning.
+
+**Dual circular polarization.** Adding a second input port to the coupler, with port selection
+choosing RHCP or LHCP output, gives polarization flexibility for testing and for any future
+bidirectional-communication use of the array. This is a feed-network addition, not a patch change.
+
+### 12.3 TX-RX isolation and RF-domain leakage cancellation
+
+This is the highest-priority hardware improvement in this document: it gates how much transmit power
+the system can safely run, which in turn gates detection range more than any other single change
+covered here.
+
+**Current isolation budget.** Measured TX-RX leakage is -40.3 dB (worst case). The B210's RX
+compression point is -15 dBm and its maximum safe input is 0 dBm. At +30 dBm TX power, -40.3 dB
+isolation puts -30.3 dBm at the RX input (safe); at +33 dBm TX, that becomes -27.3 dBm (into
+compression risk). This isolation figure is therefore the binding constraint on transmit power, not
+the B210's own output rating.
+
+**RF-domain leakage cancellation circuit.** The technique: sample the TX signal, generate an
+amplitude- and phase-adjustable replica of the leakage path, and subtract that replica from the RX
+signal in the RF domain before it reaches the LNA — rather than trying to remove leakage
+digitally after the fact, where it has already consumed ADC dynamic range.
+
+```
+TX Path:
+  Chirp Generator -> TX IQ Mixer -> PA -> TX Antenna
+                          |
+                     Reference Signal (sampled)
+                          |
+RX Path:
+  RX Antenna -> Combiner (subtractor) -> LNA -> B210 RX
+                     ^
+              Replica IQ Mixer <- Reference Signal
+              (amplitude/phase set by DAC, polarity-inverted)
+```
+
+Block diagram, drawn as signal flow:
+
+```
++----------------+     +----------------+     +----------------+
+|  Chirp         |     |  TX IQ Mixer   |     |     PA         |
+|  Generator     |---->|  (frequency    |---->|                |----> TX Antenna
+|                |     |   offset)      |     |                |
++----------------+     +----------------+     +----------------+
+                       | reference signal
+                       v
++----------------+     +----------------+
+|  Replica IQ    |<----|  DAC (ampl.    |
+|  Mixer         |     |  & phase)      |
+|  (inverted)    |     +----------------+
++----------------+
+      |
+      v
++----------------+     +----------------+
+|  Combiner      |<----|  RX Antenna    |
+|  (subtractor)  |     +----------------+
++----------------+
+      |
+      v
++----------------+     +----------------+
+|  LNA           |---->|  B210 RX       |
++----------------+     +----------------+
+```
+
+Component specifications:
+
+| Component | Part / spec | Function |
+|---|---|---|
+| TX IQ mixer | HMC506 or equivalent, 5-6 GHz | Frequency-offsets the sampled TX reference for coherent replica generation |
+| Replica IQ mixer | HMC506 or equivalent, 5-6 GHz | Produces the polarity-inverted leakage replica from the reference signal |
+| DAC | 12- to 16-bit, 100 MS/s (e.g. AD5686-class) | Sets replica amplitude and phase |
+| Combiner | HMC322 or equivalent, 90-degree hybrid | Subtracts the replica from the RX antenna signal ahead of the LNA |
+| Control | FPGA or microcontroller | Drives the DAC from the calibration/tracking loop |
+
+Calibration procedure:
+
+1. Transmit a known signal with no target present (open range or absorber-terminated test setup).
+2. Measure the residual leakage at the RX input.
+3. Adjust the replica IQ mixer's amplitude and phase (via the DAC) to minimize the leakage FFT bin.
+4. Fine-tune phase for correct polarity inversion (180 degrees relative to the true leakage path).
+
+Expected performance: 40-50 dB cancellation depth, over the full 56 MHz bandwidth the B210 already
+uses, with under 1 dB variation over temperature. Implementation footprint is small: two IQ mixers
+plus a DAC and control logic, roughly 20x20 mm of additional PCB area, under 100 mW power, and
+roughly $20-50 in components.
+
+Circuit sketch for the next board revision (component/connection list, not a full schematic):
+
+```
+# Components
+IQ_Mixer_TX:       HMC506
+IQ_Mixer_Replica:  HMC506
+Combiner:          HMC322
+DAC:               AD5686 (16-bit, 100 MS/s)
+
+# Connections
+TX_Chirp -> IQ_Mixer_TX.IN
+IQ_Mixer_TX.OUT -> PA.IN
+PA.OUT -> TX_Antenna
+
+TX_Chirp -> IQ_Mixer_Replica.IN
+DAC.A -> IQ_Mixer_Replica.I
+DAC.B -> IQ_Mixer_Replica.Q
+IQ_Mixer_Replica.OUT -> Combiner.IN2
+
+RX_Antenna -> Combiner.IN1
+Combiner.OUT -> LNA.IN
+```
+
+Calibration code (`calibrate_leakage_cancellation`, Python) — cross-correlates the sampled TX
+reference against the RX signal to find the leakage path delay, then estimates the amplitude ratio
+and phase offset the replica mixer needs:
+
+```python
+import numpy as np
+from scipy import signal
+
+def calibrate_leakage_cancellation(tx_signal, rx_signal, fs=61.44e6):
+    """
+    Calibrate leakage cancellation parameters from a no-target TX/RX capture.
+    """
+    # Cross-correlate to find delay
+    corr = signal.correlate(rx_signal, tx_signal, mode='full')
+    delay_samples = np.argmax(np.abs(corr)) - len(tx_signal)
+    delay_sec = delay_samples / fs
+
+    # Estimate amplitude and phase via analytic-signal cross term
+    tx_analytic = signal.hilbert(tx_signal)
+    rx_analytic = signal.hilbert(rx_signal)
+    tx_aligned = np.roll(tx_analytic, -delay_samples)
+
+    amplitude_ratio = np.abs(np.mean(rx_analytic * np.conj(tx_aligned)))
+    phase_offset = np.angle(np.mean(rx_analytic * np.conj(tx_aligned)))
+
+    return {'delay': delay_sec, 'amplitude': amplitude_ratio, 'phase': phase_offset}
+```
+
+**Adaptive leakage tracking.** A continuous variant of the same loop re-estimates the leakage from
+the DC bin of the live RX spectrum and updates the replica DAC outputs in real time, compensating for
+temperature drift and component aging without a full recalibration cycle:
+
+```python
+# Continuous adaptive control loop
+leakage_estimate = fft(rx_signal)[0]              # DC bin
+replica_amplitude = abs(leakage_estimate)
+replica_phase = angle(leakage_estimate) + 180      # invert
+
+dac_amplitude.write(replica_amplitude)
+dac_phase.write(replica_phase)
+```
+
+Expected tracking performance: under 100 us update latency, under 0.1 dB / 1 degree steady-state
+accuracy, and 30 dB of dynamic range over which the loop can keep the cancellation locked. This is a
+higher-complexity addition than the static calibration above and is worth deferring until the static
+version is proven on hardware.
+
+**Orthogonal feeding for additional isolation.** The array's existing polarization scheme is RHCP
+TX / LHCP RX (circular orthogonal). Adding linear-polarization orthogonality on top — TX elements fed
+vertically, RX elements fed horizontally, in addition to the existing CP sense — is a simple
+feed-orientation change that adds an estimated 10-15 dB of isolation, for a combined total above
+50 dB when stacked with the CP isolation already in place. The trade-off is a somewhat more complex
+feed network and the need to re-verify polarization purity after the change.
+
+### 12.4 Antenna array and mechanical improvements
+
+**Ground plane extension.** Currently 25 mm past the patch edge (lambda/4 at 5.8 GHz), measured at
+2.74 dB axial ratio versus 7.61 dB at a 6 mm extension — confirming that ground-plane extension is a
+major axial-ratio lever on this design. Patent data indicates 25 mm is the minimum useful extension
+and 30-40 mm is closer to optimal, trading off against board size. Recommended action: verify axial
+ratio at the field edges with the current 25 mm extension, and extend to 30 mm if it measures above
+3 dB there; a tapered ground plane is worth considering if board area is tight.
+
+**Mutual coupling mitigation.** At the array's lambda/2 spacing (25.844 mm), neighbor coupling
+degrades a single element's 0.7 dB axial ratio to 3-7 dB in the array context (the second element is
+already mirrored to partially compensate). Two further techniques from the patent literature:
+
+- **Electromagnetic bandgap (EBG) structures** — a periodic pattern (square patches with gaps,
+  roughly lambda/10 = 5.17 mm dimensions and spacing) added to the ground plane between elements,
+  suppressing the surface waves that carry mutual coupling. Reduces mutual coupling by an estimated
+  5-10 dB with minimal impact on the radiation pattern, at the cost of a more complex ground plane
+  and slightly larger board area.
+- **Defected ground structure (DGS)** — dumbbell-shaped slots (roughly 10x2 mm, 1 mm gap) etched
+  into the ground plane between elements, creating a stopband that suppresses coupling specifically
+  at 5.8 GHz and can also improve bandwidth.
+
+**TX-RX mechanical separation.** Currently 250 mm, giving 25.8 dB of free-space path loss between
+the TX and RX apertures. Patent-derived analysis puts the useful range at 220-280 mm (24.6 dB to
+26.8 dB loss), with diminishing returns above 300 mm (under 0.5 dB gained per additional 10 mm). The
+current 250 mm is within the optimal range; keeping the mechanical design adjustable across
+220-280 mm preserves flexibility, but no change is needed on the current board.
+
+### 12.5 Beamforming and direction-of-arrival improvements
+
+**Multi-point calibration.** The current calibration is single-point (boresight only). Measuring
+phase and amplitude for all 4 virtual elements at multiple angles across the field of view —
+-45, -30, -15, 0, 15, 30, 45 degrees, with a corner reflector — and storing the result for use in the
+processing chain corrects an observed 8.5-degree phase error at +/-20 degrees and a 10.5-degree phase
+error at +/-45 degrees, improving angle accuracy from roughly +/-5 degrees to +/-2 degrees. This
+needs no new hardware — only the existing calibration setup, one to two hours of measurement, and a
+day or two of software to consume the resulting per-angle calibration table (e.g. stored as a JSON
+file keyed by angle, one entry per steering direction with phase/amplitude per virtual element):
+
+```python
+import json
+
+def multi_point_calibration(angles, measurements):
+    """
+    Build a per-angle calibration table from corner-reflector measurements.
+    measurements[i]: dict with 'phases' and 'amplitudes' for each virtual element.
+    """
+    calibration = {}
+    for angle, measurement in zip(angles, measurements):
+        calibration[str(angle)] = {
+            'phases': measurement['phases'],
+            'amplitudes': measurement['amplitudes'],
+            'timestamp': measurement.get('timestamp', ''),
+        }
+    with open('calibration_data.json', 'w') as f:
+        json.dump(calibration, f, indent=2)
+    return calibration
+```
+
+**Capon beamformer.** Section 8.2 already covers the Capon/MVDR formulation in full —
+`P_Capon(theta) = 1/(a^H(theta) * R_xx^{-1} * a(theta))`, with diagonal loading `R_dl = R_xx +
+gamma*I` — as one of the four AoA options for this array, alongside phase monopulse, Bartlett, and
+2D MUSIC, and gives its complexity and resolution trade-offs against those alternatives (Section 8.2
+trade-off table). The patent research reaches the same technique from the antenna-array-improvement
+side and adds a steering vector specific to this board's actual geometry (the 250 mm TX-RX
+separation, not just an abstract half-wavelength spacing) worth keeping alongside Section 8.2's more
+general derivation:
+
+```python
+import numpy as np
+
+def capon_beamformer(R, a, theta_scan):
+    """
+    Capon (MVDR) beamformer for DoA estimation — see Section 8.2 for the general
+    formulation and its comparison against phase monopulse / Bartlett / 2D MUSIC.
+
+    R : ndarray (4,4) - sample covariance matrix
+    a : callable      - steering vector function of angle
+    theta_scan : ndarray - scan angles
+    """
+    P = np.zeros(len(theta_scan))
+    w = np.zeros(4, dtype=complex)
+    for i, theta in enumerate(theta_scan):
+        a_theta = a(theta)
+        R_inv = np.linalg.inv(R)
+        w = R_inv @ a_theta / (a_theta.conj().T @ R_inv @ a_theta)
+        P[i] = 1 / (a_theta.conj().T @ R_inv @ a_theta)
+    return P, w
+
+def steering_vector(theta):
+    """Steering vector for this board's 2x2 virtual array (250 mm TX-RX separation)."""
+    lambda_ = 0.0517   # wavelength at 5.8 GHz
+    d = 0.25           # TX-RX separation (250 mm, this board)
+    x = np.array([0, 0, d, d])
+    y = np.array([0, d, 0, d])
+    return np.exp(1j * 2 * np.pi / lambda_ * (x * np.sin(theta) + y * np.cos(theta)))
+```
+
+Measured against this array's current FFT-based estimator (6-degree resolution, -13 dB sidelobes),
+Capon is expected to deliver 2-3-degree resolution and -20 dB sidelobes at roughly 10x the
+computation — consistent with Section 8.2's "medium" complexity rating for Capon versus FFT/Bartlett.
+
+**Nested array (future upgrade).** Moving to 3 Tx / 3 Rx with non-uniform positions —
+`[0, lambda/2, lambda/4]` for Tx, `[0, lambda/2, 3*lambda/4]` for Rx — produces 9 virtual elements
+(2.25x the current 4) with non-uniform spacing, giving 1.5-2x better resolution and eliminating
+grating lobes (this is the same array geometry described in Section 12.1). This requires a hardware
+upgrade beyond the current 2x2 AD9361 front end and more involved calibration, so it belongs after
+the isolation and calibration work above rather than before it.
+
+### 12.6 Drone-detection signal processing
+
+**Micro-Doppler classification.** Rotor blades produce periodic Doppler modulation distinct from a
+drone's bulk-motion Doppler shift. Section 11.2 already covers the general micro-Doppler CNN
+classification pipeline for this system (STFT spectrogram plus a lightweight CNN, Drone/Human/Vehicle
+classes). The patent-derived addition here is a concrete drone-specific frequency table to seed that
+classifier's target classes, and a feature-extraction routine that reads directly off the STFT rather
+than requiring a full CNN forward pass for a coarse rotor-frequency classification:
+
+| Drone type | Rotor frequency (Hz) | Blade count | Micro-Doppler bandwidth (Hz) | Signature |
+|---|---|---|---|---|
+| DJI Mavic Air-class quadcopter | 25-35 | 4 | 100-140 | Strong 4th harmonic |
+| DJI Phantom 4-class quadcopter | 20-30 | 4 | 80-120 | Symmetric pattern |
+| DJI Inspire 2-class quadcopter | 15-25 | 4 | 60-100 | Dual frequency (front/rear rotor pairs) |
+| Fixed-wing | 5-15 | 2 | 20-60 | Weak modulation |
+| Racing drone | 40-60 | 4 | 160-240 | High frequency |
+| Helicopter | 5-10 | 2-4 | 20-80 | Complex, asymmetric |
+
+```python
+def extract_micro_doppler_features(signal, fs=61.44e6):
+    """
+    Extract micro-Doppler features from an FMCW radar signal for coarse rotor
+    classification, ahead of / alongside the CNN classifier in Section 11.2.
+    """
+    f, t, Zxx = scipy.signal.stft(signal, fs, nperseg=1024)
+
+    features = {}
+    features['fundamental'] = detect_fundamental(Zxx, f)
+    features['harmonics'] = detect_harmonics(Zxx, f)
+    features['modulation_depth'] = calculate_modulation_depth(Zxx)
+    features['symmetry'] = calculate_symmetry(Zxx)
+    return features
+```
+
+Classification accuracy above 90% and a 50-80% reduction in false alarms are the reported figures
+for micro-Doppler-based classification versus range-Doppler detection alone.
+
+**Multi-band detection.** Monitoring 2.4 GHz (drone control link) alongside the existing 5.8 GHz
+band (drone video link) — via a second B210 or by frequency-hopping a single one — raises detection
+probability from roughly 70% (5.8 GHz alone) to above 95%, and additionally distinguishes control
+from video transmission as a classification feature:
+
+| Band | Purpose | Typical power | Modulation | Detection range |
+|---|---|---|---|---|
+| 2.4 GHz | Control | 10-100 mW | FHSS, DSSS | 500-1000 m |
+| 5.8 GHz | Video | 25-1000 mW | OFDM | 1000-3000 m |
+
+**Clutter suppression.** Two techniques, both implementable directly in the existing range-Doppler
+processing chain without new hardware:
+
+- **Ground clutter mitigation** — estimate the static-clutter floor via a median filter across
+  time on the range profile, then subtract it from the current profile. Reported clutter suppression
+  is 30-40 dB, extending usable detection down toward 0-degree elevation for low-altitude drones.
+- **Moving target indication (MTI)** — a Doppler-domain velocity threshold (e.g. 1 m/s) masks out
+  near-zero-velocity bins, rejecting stationary returns by over 40 dB while preserving sensitivity to
+  moving targets. This is the simplest of the two to add to the existing pipeline.
+
+### 12.7 Materials and manufacturing
+
+**Substrate surface finish.** Current board uses ZYF300CA-P (er = 3.00, tan-delta = 0.0018) and
+RO4350B (er = 3.48, tan-delta = 0.0037) with an immersion-silver finish.
+
+| Finish | Skin depth at 5.8 GHz | Resistance ratio | Range impact | Cost |
+|---|---|---|---|---|
+| Bare copper | N/A | 1.0x | Baseline | Low |
+| ENIG (nickel) | 3 um | 2.7x | -4.3% range | Medium |
+| Immersion silver (current) | <0.1 um | 1.0x | 0% range | Medium |
+| Immersion gold | <0.1 um | 1.0x | 0% range | High |
+
+The current immersion-silver finish is already the correct choice on RF-loss grounds; ENIG carries a
+4.3% range penalty from its higher skin-effect resistance and should be avoided on this design.
+Immersion gold is worth considering only if harsh-environment durability becomes a requirement, since
+it offers no RF advantage over silver.
+
+**Copper roughness.** Standard FR-4-grade copper (Ra 1.5-3.0 um) adds 10-20% conductor loss; low
+profile copper (Ra under 0.5 um) keeps that under 5%; reverse-treat foil (Ra under 0.2 um) keeps it
+under 2%. Specifying reverse-treat foil or low-profile copper on the next board revision is estimated
+to be worth a 5-10% range extension for no design change beyond the fab spec.
+
+**Etching tolerance.** Standard etching tolerance (+/-0.05 mm) produces +/-2-3 ohm variation on a
+50 ohm line and +/-5 degrees of phase error on coupler dimensions — directly relevant to the
+branch-line coupler tuning in Section 12.2. Tightening the tolerance to +/-0.02 mm on the coupler
+ring, patch size, and feed line widths is estimated to be worth about 0.5 dB of axial ratio
+improvement.
+
+**Dielectric constant tolerance.** ZYF300CA-P is specified at er = 3.00 +/- 0.05, which translates to
++/-0.85% variation in wavelength and therefore in patch size. Designing for the upper bound (er =
+3.05) and verifying at the lower bound (er = 2.95) is estimated to be worth about 0.3 dB of match
+improvement over designing to the nominal value alone.
+
+### 12.8 Power and range enhancements
+
+**Transmit power scaling.** The isolation figure from Section 12.3 is the direct limiter on safe TX
+power: `isolation required > P_TX - P_RX_max`. With B210 P_RX_max = -15 dBm and the current -40.3 dB
+isolation, the maximum LNA gain that keeps the RX chain safe is 25.3 dB (40.3 - 15). Each isolation
+improvement raises how much TX power and LNA gain the system can run simultaneously:
+
+| Configuration | Isolation gain | Max TX power | Detection range (0.01 sq m target) |
+|---|---|---|---|
+| Baseline | 0 dB | +10 dBm | 173 m |
+| + RF cancellation (Section 12.3) | +20 dB | +30 dBm | 771 m |
+| + RF cancellation + LNA (15 dB) | +20 dB | +30 dBm | 915 m |
+| + RF cancellation + orthogonal feeding (Section 12.3) | +25 dB | +35 dBm | 1.2 km |
+
+Implementation order follows directly from this table: RF cancellation first (771 m at +30 dBm),
+then add the LNA (915 m), then orthogonal feeding if the extra isolation and TX headroom are needed
+(1.2 km).
+
+**LNA placement.** Moving the LNA as close to the antenna as practical — shortening the
+antenna-to-LNA cable from roughly 0.5 m to 0.1 m, at the cost of a longer LNA-to-B210 run — improves
+system noise figure from 1.54 dB to 1.45 dB, worth an estimated 2-3 m of additional range. Small on
+its own, but free: it costs cable rearrangement, not new components.
+
+**LNA gain selection.** With 15-20 dB LNA gain (safe margin under the 25.3 dB ceiling derived above),
+range improves from 173 m to 250-350 m at the current isolation. Once RF cancellation (Section 12.3)
+adds its 20 dB of isolation headroom, LNA gain up to 35-40 dB becomes viable, and the range moves
+into the 350-400 m range at that intermediate power level, before the larger TX-power increases in
+the table above are even applied.
+
+### 12.9 Mechanical and thermal design
+
+**PA thermal design (for a future PA board).** A 10x10 via grid under the PA die — 0.3 mm via
+diameter, 1.0 mm pitch, 2 oz (70 um) copper, with a 5x5 mm heat sink pad under the PA — brings
+thermal resistance down from about 5 C/W to 2 C/W, raising the sustainable continuous PA power from
+1 W to 2 W and improving long-term reliability.
+
+**Connector thermal relief.** Replacing a direct solder connection from SMA connector pads to the
+ground plane with a thermal-relief pattern (four 0.5 mm spokes per pad) makes soldering easier to get
+right (fewer cold joints) and reduces thermal-cycling stress on the connector over its service life.
+
+**Board edge protection.** The current design already uses 3 mm rounded corners. Adding a 1 mm,
+45-degree chamfer to the board edges on top of that is estimated to roughly double mechanical
+edge strength and reduce chipping during assembly handling.
+
+**Fiducial design.** Increasing fiducial marks from 1 mm copper in a 2 mm mask opening to 1.5 mm
+copper in a 3 mm opening (with 1 mm clearance from other features) is estimated to improve
+pick-and-place placement accuracy from +/-0.05 mm to +/-0.02 mm, which also feeds directly into the
+etching-tolerance improvement in Section 12.7.
+
+### 12.10 Performance summary: baseline versus with improvements
+
+| Metric | Baseline (current board) | With all improvements in this section | Change | Primary driver |
+|---|---|---|---|---|
+| TX-RX isolation | -40.3 dB | -65 dB | +25 dB | RF cancellation (12.3) + orthogonal feeding (12.3) |
+| TX power | +10 dBm | +35 dBm | +25 dB | Isolation headroom from the above |
+| RX noise figure | 8.0 dB (B210 alone) | 1.4 dB | -6.6 dB | LNA + optimized placement (12.8) |
+| Detection range (0.01 sq m target) | 173 m | 1.2 km | 7x | All RF power/isolation improvements combined |
+| DoA resolution | ~6 degrees (FFT) | ~2 degrees | 3x | Capon beamformer + multi-point calibration (12.5) |
+| Axial ratio | 2.8-3.2 dB | <1.5 dB | -1.5 dB | Unequal coupler split + calibration (12.2) |
+| Drone classification accuracy | Not implemented | >90% | New capability | Micro-Doppler analysis (12.6) |
+| False alarm rate | Baseline (FFT detection only) | <10% | -80% relative | Multi-band detection + classification (12.6) |
+
+### 12.11 RF hardware improvement roadmap
+
+This roadmap covers the antenna, feed network, isolation, and mechanical work in this section. It
+runs in parallel with, and is largely independent of, the software/FPGA roadmap in Section 16 — the
+two touch different parts of the system (RF hardware upstream of the AD9361 versus the FPGA/host
+processing chain downstream of it) and can proceed on separate tracks.
+
+**Phase 1 — measurement and low-risk software (1-2 weeks).** Multi-point calibration across the
+field of view (Section 12.5, software only, no hardware change). Ground plane axial-ratio
+verification at the current 25 mm extension, extending to 30 mm only if measurement shows it's
+needed (Section 12.4). LNA placement optimization (Section 12.8, cable rearrangement only).
+
+**Phase 2 — RF hardware and beamforming software (1-2 months).** RF-domain leakage cancellation
+circuit (Section 12.3) — the highest-priority item in this section, since it gates every subsequent
+power/range improvement. Capon beamformer software (Section 12.5, builds on the existing Section 8.2
+AoA framework). Micro-Doppler classification (Section 12.6, extends the Section 11.2 CNN pipeline).
+
+**Phase 3 — adaptive and multi-hardware extensions (3-6 months).** Adaptive leakage tracking
+(Section 12.3), which turns the Phase 2 static calibration into a continuously-adjusting loop.
+Dual-band detection (Section 12.6), which needs a second B210 or a frequency-hopping single-radio
+scheme. Nested-array upgrade to 3x3 (Sections 12.1, 12.5), which is the only item in this roadmap
+that requires a new antenna board revision rather than a firmware/software change to the existing
+hardware.
+
+---
+
 ## 13. FPGA Device Note
 
 The B210's FPGA is fixed by the board — this is not a component-selection decision the way it would
