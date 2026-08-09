@@ -619,11 +619,11 @@ def build():
     # out along the board first and only then turns for the header.
     lanes = [("EN", en_src, 45.0, 17.0), ("DETC", ch["C"]["det"], 44.4, None),
              ("IMONA", pa["imon"], 43.8, None),
-             ("TEMPA", (X_TEMP, 10.6), 43.2, None),
+             ("TEMPA", (X_TEMP, Y_TX1 + 3.6), 43.2, None),
              ("DETA", ch["A"]["det"], 42.6, 79.0),
              ("DETD", ch["D"]["det"], 55.0, None),
              ("IMONB", pb["imon"], 55.6, None),
-             ("TEMPB", (X_TEMP, 89.4), 56.2, None),
+             ("TEMPB", (X_TEMP, Y_TX2 - 3.6), 56.2, None),
              ("DETB", ch["B"]["det"], 56.8, 79.0)]
     for net, src, lane, turn in lanes:
         pin = hdr[net]
