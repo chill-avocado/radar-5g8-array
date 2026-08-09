@@ -362,12 +362,12 @@ blocks:
 
 - **CASPER** (casper.berkeley.edu, GPL/BSD): astronomy-proven DSP cores — FFT, FIR, DDS,
   packetizers, memory controllers, 10G Ethernet. 15+ years mature, Kintex-7 supported.
-- **OpenXC7** (github.com/openXC7, MIT/BSD): Kintex-7-specific PCIe Gen2 x8, DDR3 controller, 10G
-  Ethernet, AXI infrastructure, DSP accelerators. Actively developed, 3+ years.
+- **OpenXC7** (github.com/openXC7, MIT/BSD): Kintex-7-specific DDR3 controller, AXI infrastructure,
+  DSP accelerators. Actively developed, 3+ years.
 - **Radar-specific open cores**: pulse compression, CFAR detection, and beamforming IP exist as
   smaller community projects (search GitHub topics `fpga-radar`, `cfar-fpga`, `mimo-beamforming`) —
   verify maintenance status before depending on any single one.
-- **LibreCores**: USB 3.0, PCIe, and other general-purpose interface cores.
+- **LibreCores**: USB 3.0 and other general-purpose interface cores.
 - **`alexforencich/verilog-axis`** and **`pulp-platform/fpga-fft`** (see Section 2): vendor-neutral
   AXI4-Stream building blocks and streaming FFT/CORDIC cores, MIT/Apache licensed.
 
@@ -378,8 +378,6 @@ blocks:
 | FFT (1024-pt) | 3,500 | 20 | 256 KB | 200 MHz | 100+ MSPS |
 | FIR (128 taps) | 2,000 | 8 | 16 KB | 200 MHz | 100+ MSPS |
 | DDS (2 ch) | 1,500 | 4 | 8 KB | 250 MHz | 200+ MSPS |
-| PCIe Gen2 x8 | 5,000 | 0 | 64 KB | 150 MHz | 4 GB/s |
-| 10G Ethernet | 3,000 | 0 | 32 KB | 156.25 MHz | 10 Gbps |
 
 ### 5.4 Open-source FFT core comparison
 
