@@ -279,6 +279,7 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # this board has almost no room that is not a radiating face.  Move them
     # all under, and drop any that would run off an edge.
     moved = []
+    CLAMP_LABELS = True
     for lb in b.labels:
         x, y, txt, size = lb[0], lb[1], lb[2], lb[3]
         if 4.0 < x < W - 4.0 and 4.0 < y < H - 4.0:
@@ -319,7 +320,7 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # Use as many lines as the clear band will take, dropping the least
     # important first.  A short board simply carries a shorter legend.
     got = None
-    for n in (5, 4, 3, 2, 1):
+    for n in (7, 6, 5, 4, 3, 2, 1):
         got = fit(n)
         if got:
             break
@@ -413,7 +414,11 @@ if __name__ == "__main__":
         json.dump(d, open(os.path.join(HERE, f"board_{name}.json"), "w"))
         out[name] = (W, H)
     tw, th = out["transmit"]; rw, rh = out["receive"]
-    print(f"\n  panelised side by side: {tw+rw:.2f} x {max(th, rh):.2f} mm"
-          f"   {'FITS the 100 x 100 base price' if tw+rw <= 100 else 'OVER'}")
+    # Rotate the receive board back and STACK them: they are the same
+    # rectangle in two orientations, so side by side was always the wrong
+    # way to fold it and made the docstring's own claim look false.
+    pw, ph = max(tw, rh), th + rw + 2.0
+    print(f"\n  panelised stacked, 2 mm score: {pw:.2f} x {ph:.2f} mm"
+          f"   {'FITS the 100 x 100 base price' if max(pw, ph) <= 100 else 'OVER'}")
     print(f"  total copper area {tw*th + rw*rh:.0f} mm2 against 13224 before "
           f"({100*(1-(tw*th+rw*rh)/13224):.0f} % less)")

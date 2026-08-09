@@ -49,7 +49,7 @@ MOUNT_D, MOUNT_PAD = 3.20, 6.00        # M3 clearance hole
 # footprint, so a part placed at 90 degrees can never match its own
 # library entry.  Square pads make the question disappear and are well
 # inside normal 0402 practice.
-R0402 = dict(w=0.62, h=0.62, gap=0.55)
+R0402 = dict(w=1.30, h=1.00, gap=0.80)
 PROT_X = 7.00          # protection site, as close to the connector as the
                        # launch ground pads allow
 PROT_STUB = 0.50       # stub width: narrow, so an unfitted site adds almost
