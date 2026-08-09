@@ -1237,28 +1237,28 @@ usrp->clear_command_time();
 ```
 
 High-throughput driver optimizations:
-- **DPDK / `packet_mmap` drivers** bypass the Linux kernel network stack, streaming network DMA
-  packets directly into user-space host ring buffers at >10 Gbps.
+- **UHD's asynchronous USB 3.0 transport** streams bulk-transfer packets directly into user-space
+  host ring buffers, avoiding an extra memory copy through a generic OS socket layer.
 - **Overflow handling**: single-producer single-consumer (SPSC) lock-free ring queues
   (`boost::lockfree::spsc_queue` or a custom cache-padded implementation, Section 10.1) prevent
   ring-buffer overflow (`O`) drops.
 - **RFNoC 4.0 graph assembly**: the host builds dynamic FPGA processing graphs
   (`uhd::rfnoc::rfnoc_graph`), wiring DDC and FFT blocks with `graph->connect()`. Offloading 1D
-  range FFTs to the FPGA reduces host network traffic from raw complex-IQ gigabytes down to sparse
-  point-cloud megabytes.
+  range FFTs to the FPGA reduces host-bound traffic from raw complex-IQ streams down to sparse
+  point-cloud data, keeping well within USB 3.0's throughput budget.
 
-A production zero-copy driver wraps `uhd::usrp::multi_usrp` and `uhd::rx_streamer` with DPDK
-kernel-bypass (`use_dpdk=1`), pins the ingestion thread to an isolated CPU core with `SCHED_FIFO`
-real-time priority, and allocates 64-byte cache-aligned frame structures:
+A production zero-copy driver wraps `uhd::usrp::multi_usrp` and `uhd::rx_streamer` over UHD's USB 3.0
+transport, pins the ingestion thread to an isolated CPU core with `SCHED_FIFO` real-time priority, and
+allocates 64-byte cache-aligned frame structures:
 
 ```cpp
 struct DriverConfig {
-    std::string device_args = "mgmt_addr=192.168.10.2,use_dpdk=1";
-    std::string subdev = "A:0 A:1 B:0 B:1";
+    std::string device_args = "type=b200"; // USRP B210, USB 3.0
+    std::string subdev = "A:A A:B";        // single AD9361, 2x2 (2 TX, 2 RX)
     std::string clock_source = "external", time_source = "external";
-    double center_freq_hz = 24.0e9, sample_rate_hz = 100.0e6, master_clock_rate = 200.0e6;
+    double center_freq_hz = 24.0e9, sample_rate_hz = 20.0e6, master_clock_rate = 56.0e6;
     double gain_db = 30.0;
-    std::vector<size_t> rx_channels = {0, 1, 2, 3};
+    std::vector<size_t> rx_channels = {0, 1};
     size_t samples_per_buffer = 4096, cpu_core_id = 2;
     bool enable_simulation = false; // falls back to a synthetic FMCW generator if hardware is absent
 };
