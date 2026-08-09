@@ -1154,18 +1154,12 @@ void SimSource::do_chirps(int begin, int end) {
                     // at, so the eight-wide kernel starts in the right place.
                     const double th = ph0 + 2.0 * kPi * fast * double(p.n0) / fs;
                     const double aa = amp * sign;
-                    p.ar = float(aa * std::cos(th));
-                    p.ai = float(aa * std::sin(th));
+                    p.ar    = float(aa * std::cos(th));
+                    p.ai    = float(aa * std::sin(th));
                     const double w = 2.0 * kPi * fast / fs;
-                    p.cr = float(std::cos(w));
-                    p.ci = float(std::sin(w));
-                    // Kept in double for the kernel's group rotation.
-                    sc.order[std::size_t(np)] = i;
-                    reinterpret_cast<double*>(&p)[0] = reinterpret_cast<double*>(&p)[0]; // no-op
+                    p.rot_r = std::cos(w);
+                    p.rot_i = std::sin(w);
                     ++np;
-                    // Stash the exact rotation angle alongside; recomputed below.
-                    sc.rng.s0 ^= 0;   // keeps the compiler from reordering; harmless
-                    (void)w;
                 }
             }
 
