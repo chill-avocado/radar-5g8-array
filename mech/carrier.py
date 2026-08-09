@@ -45,7 +45,14 @@ DESIGN = os.path.join(os.path.dirname(HERE), "design")
 # ---------------------------------------------------------------- constants
 MARGIN = 25.0          # metal wanted past every patch edge
 PLATE_T = 1.5          # aluminium thickness
-SEP = 250.0            # between array centres
+BASE = 250.0           # what the two halves reach on their own
+SEP = 400.0            # between array centres, with the extension fitted.
+                       # Chosen from the leak budget, not from taste: at 250
+                       # the radio has 1.8 dB in hand against compression, at
+                       # 400 it has 4.1, and past about 450 the front-end
+                       # board's own path across its laminate becomes the
+                       # floor so more distance buys nothing.  Far field is
+                       # 8.5 m, which a 1000 m radar never notices.
 STEP = 10.0            # lap-joint hole pitch, so separation is adjustable
 
 WALL = 3.0             # tray side wall
@@ -320,6 +327,7 @@ def scad(tx, rx):
 
     T = tray_box2(tx, 0.0, 0.0)
     R = tray_box2(rx, 0.0, -SEP)
+    EXT = SEP - BASE                    # what the extension has to bridge
     # The gap the spine lives in, between the two trays.
     gap_hi, gap_lo = T[1], R[3]
     x_split = 0.0                       # tx takes x<0, rx takes x>0
@@ -333,13 +341,15 @@ def scad(tx, rx):
     # the midpoint of the gap: the trays are different heights, so the gap's
     # middle made the receive half 219 mm -- past what a 220 mm bed holds
     # once the skirt is counted.
-    mid = (T[3] + R[1]) / 2.0
+    mid = (T[3] + R[1] + EXT) / 2.0     # tx arm end, as if the pair were
+    mid_r = mid - EXT                   # at BASE; rx arm end likewise
     n_hole = int((LAP_L - STEP) // STEP)
     lap_hi, lap_lo = mid + LAP_L / 2.0, mid - LAP_L / 2.0
+    rlap_hi, rlap_lo = mid_r + LAP_L / 2.0, mid_r - LAP_L / 2.0
     tx_holes = [lap_lo + STEP * (i + 1) for i in range(n_hole)]
-    rx_holes = [lap_hi - STEP * (i + 1) for i in range(n_hole)]
+    rx_holes = [rlap_hi - STEP * (i + 1) for i in range(n_hole)]
     pad_tx = lap_hi + 25.0
-    pad_rx = lap_lo - 25.0
+    pad_rx = rlap_lo - 25.0
     # and the collision check slides the RECEIVE half along y now
 
 
@@ -438,7 +448,7 @@ module arm_{tag}() {{{{
                ('pad', bar_x0 - (PAD_D - HALF), pad_tx - PAD_L / 2,
                 bar_x0, pad_tx + PAD_L / 2)],
         'rx': [('tray', R[0], R[1], R[2], R[3]),
-               ('arm', x_split, R[3] - OVL, bar_x1, lap_hi),
+               ('arm', x_split, R[3] - OVL, bar_x1, rlap_lo),
                ('pad', bar_x1, pad_rx - PAD_L / 2,
                 bar_x1 + (PAD_D - HALF), pad_rx + PAD_L / 2)],
         'holes': (tx_holes, rx_holes),
@@ -459,7 +469,7 @@ $fn = 48;
 {tray(tx, T, 'tx')}
 {tray(rx, R, 'rx')}
 {arm('tx', T[1] + OVL, lap_lo, True, tx_holes, pad_tx)}
-{arm('rx', R[3] - OVL, lap_hi, False, rx_holes, pad_rx)}
+{arm('rx', R[3] - OVL, rlap_lo, False, rx_holes, pad_rx)}
 
 module half_tx() {{
   difference() {{
