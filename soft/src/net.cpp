@@ -684,13 +684,21 @@ struct WebServer::Impl {
                 break;
             }
         }
+        // A request head is a few hundred bytes.  Anything beyond this is
+        // either broken or probing, and either way it will not be parsed.
+        constexpr std::size_t kMaxHead = 16384;
         if (end == std::string::npos) {
-            if (avail > 16384) {
+            if (avail > kMaxHead) {
                 respond(c, 431, "Request Header Fields Too Large", "text/plain",
                         "header block too large\n");
-                return;
             }
-            return;   // wait for more
+            return;   // wait for the rest of the head
+        }
+        if (end > kMaxHead) {
+            c.in_pos += end;
+            respond(c, 431, "Request Header Fields Too Large", "text/plain",
+                    "header block too large\n");
+            return;
         }
 
         const std::string block(reinterpret_cast<const char*>(base), end);
