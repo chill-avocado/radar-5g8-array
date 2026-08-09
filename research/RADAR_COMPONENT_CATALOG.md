@@ -1200,22 +1200,19 @@ EKF loop: (1) state predict `x_hat = F * x_hat_prev`; (2) covariance predict
 
 ## 9. FPGA-Host Interface Solutions
 
-### 9.1 Comparison matrix
+### 9.1 USB 3.0 host interface
 
-| Solution | Type | Max throughput | Latency | Kintex-7 support | Notes |
-|---|---|---|---|---|---|
-| Xilinx PCIe Gen3 x8 (`pcie_7x`) | PCIe | 8 GB/s | <1 us | XC7K410T+ | Free with Vivado; Gen1/2/3, x1/x4/x8, AXI4, DMA + interrupts |
-| Xilinx PCIe Gen2 x8 (`pcie_7x`) | PCIe | 4 GB/s | <1 us | XC7K325T+ | Free with Vivado; production-proven |
-| OpenXC7 PCIe | PCIe | 4 GB/s | <500 ns | All Kintex-7 | MIT/BSD; AXI4, DMA engine, interrupt controller |
-| HiTech Global HTG-K7-PCIE | PCIe | 4 GB/s | <200 ns | XC7K325T+ | Commercial board with open-source drivers; RapidDMA IP, scatter-gather DMA |
-| Xilinx 10G Ethernet (`temac`/`gtemac`) | Ethernet | 10 Gbps | <5 us | XC7K325T+ | Free with Vivado |
-| HiTech Global Ethernet | Ethernet | 10G/1G | — | — | FMC modules, UDP/IP offload |
-| Opal Kelly XEM7360 | USB 3.0 | 400+ MB/s | <100 us | XC7K160T, XC7K410T | Development-board form factor |
+The B210 is a USB 3.0-only device — no PCIe or Ethernet host interface is present, so the host link
+is fixed rather than a design choice.
 
-Recommendation: **PCIe Gen2 x8** is the sweet spot for a medium-scale system (4 GB/s, sub-microsecond
-latency, free Xilinx IP, mature drivers). Move to **PCIe Gen3 x8 + 10G Ethernet hybrid** only once
-channel count or bandwidth genuinely demands it; **USB 3.0** (Opal Kelly) is a reasonable
-lower-cost/lower-throughput option for small-scale prototypes.
+| Solution | Type | Max throughput | Latency | Notes |
+|---|---|---|---|---|
+| Opal Kelly XEM7360 | USB 3.0 | 400+ MB/s | <100 us | Development-board form factor; representative of the class of USB 3.0 FPGA-host bridge the B210 uses |
+
+USB 3.0's ~400+ MB/s sustained throughput comfortably covers the B210's actual streaming needs: at
+its native 2x2 channel count and AD9361 sample rates (up to ~56/61.44 MSps), raw or lightly-decimated
+IQ traffic sits well under this ceiling, and FPGA-side decimation/FFT offload (Section 4-5) reduces it
+further before it ever reaches the host link.
 
 ### 9.2 UHD C++ streaming setup
 
