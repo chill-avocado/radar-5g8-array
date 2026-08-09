@@ -106,7 +106,8 @@ XR_TAP, XR_PAD, XR_CLAMP, XR_C4 = 39.5, 34.0, 27.5, 24.0
 Y_PWR_A, Y_PWR_B = 28.0, 72.0
 Y_DEC_OFF = 1.6                         # decoupling row, off a feed's end
 Y_DET_OFF = 3.5                         # detector row, off the sampling line
-X_V12_IN = 50.0                         # where the buried twelve volts lands
+X_V12_IN = 48.6                         # where the buried twelve volts lands
+X_V12_MID = 51.5                        # and where it crosses the middle
 X_V5_BR = 23.5                          # the receive amplifiers' supply branch
 # The one clear corridor between the transmit final's ring of holes and the
 # receive amplifier's: 2.5 mm wide, and the thermistor and its run share it.
@@ -310,8 +311,10 @@ def rx_channel(b, s, tag, y, y_j, inward, rail):
     b.line(PULLBACK, y_j, X_JOG, y_j, n_o)
     b.sma_launch(f"{tag}_RADIO", (0.0, y_j), "left")
 
-    b.line(far[0], far[1], far[0], far[1] + inward * 1.6, n_cpl, w=0.50)
-    b.shunt_0402(f"R{s}F", far[0], far[1] + inward * 1.6, "51R", n_cpl,
+    b.line(far[0] - 2.5, far[1], far[0], far[1], n_cpl, w=0.50)
+    b.line(far[0] - 2.5, far[1], far[0] - 2.5, far[1] + inward * 1.6, n_cpl,
+           w=0.50)
+    b.shunt_0402(f"R{s}F", far[0] - 2.5, far[1] + inward * 1.6, "51R", n_cpl,
                  -1, axis="x", note="loads the far end of the sampling line")
     return dict(near=near, far=far, n_under=n_under, n_ring=n_ring,
                 nets=(n_in, n_lo, n_t, n_p, n_o))
@@ -611,9 +614,12 @@ def build():
     # runs above it is referenced to the plane immediately below the surface.
     b.dc("V12", [(16.0, 19.0), (16.0, 12.0), (X_V12_IN, 12.0),
                  (X_V12_IN, Y_PWR_A)], w=0.90, n_via=2)
-    b.line(X_V12_IN, Y_PWR_A, X_V12_IN, Y_PWR_A + 2.2, "V12", w=0.90)
-    b.hop("V12", (X_V12_IN, Y_PWR_A + 2.2), (X_V12_IN, Y_PWR_B - 2.2), w=1.20)
-    b.line(X_V12_IN, Y_PWR_B - 2.2, X_V12_IN, Y_PWR_B, "V12", w=0.90)
+    for yb in (Y_PWR_A, Y_PWR_B):
+        b.line(X_V12_IN, yb, X_V12_MID, yb, "V12", w=0.90)
+    b.line(X_V12_MID, Y_PWR_A, X_V12_MID, Y_PWR_A + 2.2, "V12", w=0.90)
+    b.hop("V12", (X_V12_MID, Y_PWR_A + 2.2), (X_V12_MID, Y_PWR_B - 2.2),
+          w=1.20)
+    b.line(X_V12_MID, Y_PWR_B - 2.2, X_V12_MID, Y_PWR_B, "V12", w=0.90)
 
     # A lane's height falls as its source moves right, and its header pin
     # moves right as its source does.  Those two rules together are what let
@@ -643,7 +649,7 @@ def build():
     # ----------------------------------------------------------- mechanical
     # Four of the eight bolts sit as close to the four amplifiers as the
     # copper allows, because that is where the heat has to leave the board.
-    for x, y in ((X_PA, Y_TX1 + 8.8), (X_PA, Y_TX2 - 8.8),
+    for x, y in ((X_PA + 2.0, Y_TX1 + 8.8), (X_PA + 2.0, Y_TX2 - 8.8),
                  (63.0, 29.0), (63.0, 71.0),
                  (95.5, 21.0), (95.5, 79.0), (10.0, 90.0), (30.0, 50.0)):
         b.mounts.append((x, y, MOUNT_D, MOUNT_PAD))

@@ -363,22 +363,26 @@ for x, y, drill, pad in D["mounts"]:
 # masked: solder resist is a good insulator and this is where four watts have
 # to leave.  Immersion silver tarnishes to a semiconductor that carries no
 # current, so bare silver stays bare silver as far as heat is concerned.
-for m in D.get("mask_bot", []):
+for i, m in enumerate(D.get("mask_bot", [])):
     x0, y0, x1, y1 = m
-    s = pcbnew.PCB_SHAPE(board, pcbnew.SHAPE_T_POLY)
-    v = pcbnew.VECTOR_VECTOR2I()
-    for px, py in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
-        v.append(P(px, py))
-    s.SetPolyPoints(v)
-    s.SetLayer(pcbnew.B_Mask)
-    s.SetFilled(True)
-    s.SetWidth(0)
-    # the opening belongs to the ground it exposes; left nameless it reads as
-    # an aperture bridging two nets over every stitching hole inside it
-    s.SetNet(net("GND"))
-    board.Add(s)
+    cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+    fp = fp_new(f"TP{i+1}", cx, cy, "thermal face", tht=False)
+    p = pcbnew.PAD(fp)
+    p.SetNumber("1")
+    p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    p.SetShape(pcbnew.PAD_SHAPE_RECT)
+    p.SetSize(pcbnew.VECTOR2I(MM(x1 - x0), MM(y1 - y0)))
+    ls = pcbnew.LSET()
+    ls.AddLayer(pcbnew.B_Cu)
+    ls.AddLayer(pcbnew.B_Mask)
+    p.SetLayerSet(ls)
+    fp.Add(p)
+    p.SetPosition(P(cx, cy))
+    p.SetNet(net("GND"))
+    p.SetLocalSolderMaskMargin(0)
+    fp.Reference().SetVisible(False)
+    fp.Value().SetVisible(False)
 
-# ------------------------------------------------------------------- silk
 for lb in D["labels"]:
     x, y, txt, size = lb[0], lb[1], lb[2], lb[3]
     t = pcbnew.PCB_TEXT(board)
