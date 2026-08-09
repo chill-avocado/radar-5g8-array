@@ -104,7 +104,7 @@ XR_TAP, XR_PAD, XR_CLAMP, XR_C4 = 39.5, 34.0, 27.5, 24.0
 # feed's decoupling always runs to the RIGHT of the feed, and a regulator's
 # output always leaves on a lane clear of the row rather than through it.
 Y_PWR_A, Y_PWR_B = 28.0, 72.0
-Y_DEC_OFF = 1.4                         # decoupling row, off a feed's end
+Y_DEC_OFF = 1.6                         # decoupling row, off a feed's end
 Y_DET_OFF = 3.5                         # detector row, off the sampling line
 X_V12_IN = 50.0                         # where the buried twelve volts lands
 X_V5_BR = 23.5                          # the receive amplifiers' supply branch
@@ -617,11 +617,11 @@ def build():
     lanes = [("EN", en_src, 45.0, 17.0), ("DETC", ch["C"]["det"], 44.4, None),
              ("IMONA", pa["imon"], 43.8, None),
              ("TEMPA", (X_TEMP, 10.6), 43.2, None),
-             ("DETA", ch["A"]["det"], 42.6, None),
+             ("DETA", ch["A"]["det"], 42.6, 79.0),
              ("DETD", ch["D"]["det"], 55.0, None),
              ("IMONB", pb["imon"], 55.6, None),
              ("TEMPB", (X_TEMP, 89.4), 56.2, None),
-             ("DETB", ch["B"]["det"], 56.8, None)]
+             ("DETB", ch["B"]["det"], 56.8, 79.0)]
     for net, src, lane, turn in lanes:
         pin = hdr[net]
         pts = [src]
@@ -638,8 +638,8 @@ def build():
     # Four of the eight bolts sit as close to the four amplifiers as the
     # copper allows, because that is where the heat has to leave the board.
     for x, y in ((X_PA, Y_TX1 + 8.8), (X_PA, Y_TX2 - 8.8),
-                 (XR_LNA + 4.0, Y_RX1 + 8.0), (XR_LNA + 4.0, Y_RX2 - 8.0),
-                 (95.5, 21.0), (95.5, 79.0), (5.0, 33.0), (5.0, 67.0)):
+                 (XR_LNA + 4.0, 43.0), (XR_LNA + 4.0, 57.0),
+                 (95.5, 21.0), (95.5, 79.0), (10.0, 90.0), (30.0, 50.0)):
         b.mounts.append((x, y, MOUNT_D, MOUNT_PAD))
 
     b.unify_nets()
