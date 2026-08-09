@@ -1640,7 +1640,7 @@ commissioning an equivalent commercial radar system.
 | Risk | Impact | Mitigation |
 |---|---|---|
 | FPGA resource limitations | High | Start with XC7K325T (Section 5.5 shows large surplus headroom); upgrade to XC7K410T if needed |
-| PCIe driver issues | Medium | Use the Xilinx official IP core with its provided drivers |
+| USB 3.0 throughput/driver issues | Medium | Use UHD's tested USB 3.0 transport; validate sustained throughput margin under real streaming load |
 | RFNoC learning curve | Medium | Follow Ettus Research tutorials and workshops before writing custom blocks |
 | Real-time performance shortfalls | High | Profile early; optimize the critical paths first (FFT, pulse compression, CFAR) |
 | Hardware compatibility gaps | High | Verify RF frontend specifications against the FPGA/ADC interface before integration |
