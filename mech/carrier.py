@@ -387,60 +387,46 @@ module tray_{tag}() {{
   }}
 }}"""
 
-    def arm(tag, xa, xb, hi, holes, pad_x):
-        """Half the bar's depth, the whole length.
+    def arm(tag, y_from, y_to, left, holes, pad_y):
+        """One half of the spine: a vertical bar between the two trays.
 
-        The two arms lie alongside each other rather than one stepping into
-        the other, so they slide past cleanly at every separation the lap
-        offers.  Stepped tongues fouled each other as soon as the arrays came
-        closer than the nominal 250 mm.
+        The two arms sit side by side across the spine's width rather than
+        one stepping into the other, so they slide past each other at every
+        separation the lap offers.  Each runs up into its own tray, so tray
+        and spine are one solid piece with no bridging joint to come apart --
+        the horizontal version needed a gusset for exactly that.
         """
-        ylo = y_split if hi else bar_bot
-        yhi = bar_top if hi else y_split
-        # The pad bulges away from the other arm, never into it, and the
-        # thread goes through the middle of arm-plus-pad -- not the middle of
-        # the pad alone, which put it in fresh air just outside the metal.
-        py = yhi if hi else ylo - (PAD_D - HALF)
-        pcy = ylo + PAD_D / 2.0 if hi else yhi - PAD_D / 2.0
+        xlo = bar_x0 if left else x_split
+        xhi = x_split if left else bar_x1
+        # the mounting pad bulges away from the other arm, never into it
+        px = xlo - (PAD_D - HALF) if left else xhi
+        pcx = xhi - PAD_D / 2.0 if left else xlo + PAD_D / 2.0
         hole_s = "\n".join(
-            f"    translate([{h:.3f}, {bar_bot-1:.3f}, {BAR_T/2:.2f}]) "
-            f"rotate([-90,0,0]) cylinder(d={M3:.2f}, h={BAR_D+2:.2f}, $fn=24);"
+            f"    translate([{bar_x0-1:.3f}, {h:.3f}, {BAR_T/2:.2f}]) "
+            f"rotate([0,90,0]) cylinder(d={M3:.2f}, h={BAR_D+2:.2f}, $fn=24);"
             for h in holes)
         return f"""
-module arm_{tag}() {{
-  difference() {{
-    union() {{
-      translate([{min(xa,xb):.3f}, {ylo:.3f}, 0])
-        cube([{abs(xb-xa):.3f}, {yhi-ylo:.3f}, {BAR_T:.2f}]);
+module arm_{tag}() {{{{
+  difference() {{{{
+    union() {{{{
+      translate([{xlo:.3f}, {min(y_from,y_to):.3f}, 0])
+        cube([{xhi-xlo:.3f}, {abs(y_to-y_from):.3f}, {BAR_T:.2f}]);
       // local pad, deep enough to swallow a 1/4-20 tripod nut
-      translate([{pad_x-PAD_L/2:.3f}, {py:.3f}, 0])
-        cube([{PAD_L:.2f}, {PAD_D-HALF:.2f}, {BAR_T:.2f}]);
-    }}
+      translate([{px:.3f}, {pad_y-PAD_L/2:.3f}, 0])
+        cube([{PAD_D-HALF:.2f}, {PAD_L:.2f}, {BAR_T:.2f}]);
+    }}}}
 {hole_s}
     // tripod thread, and two M4 for any flat bracket
-    translate([{pad_x:.3f}, {pcy:.3f}, -1])
+    translate([{pcx:.3f}, {pad_y:.3f}, -1])
       cylinder(d={UNC14:.2f}, h={BAR_T+2:.2f}, $fn=32);
-    translate([{pad_x:.3f}, {pcy:.3f}, -0.01])
+    translate([{pcx:.3f}, {pad_y:.3f}, -0.01])
       cylinder(d={UNC14_AF/math.cos(math.pi/6):.3f}, h={UNC14_T:.2f}, $fn=6);
-    translate([{pad_x-11:.3f}, {pcy:.3f}, -1])
+    translate([{pcx:.3f}, {pad_y-11:.3f}, -1])
       cylinder(d=4.5, h={BAR_T+2:.2f}, $fn=24);
-    translate([{pad_x+11:.3f}, {pcy:.3f}, -1])
+    translate([{pcx:.3f}, {pad_y+11:.3f}, -1])
       cylinder(d=4.5, h={BAR_T+2:.2f}, $fn=24);
-  }}
-}}"""
-
-    def gusset(box, tag):
-        """Bridges the tray down to its own arm.
-
-        It has to sit ON the arm and UNDER the tray over the same stretch of
-        x.  Butting it against the tray's end face instead touched along a
-        line, which is not a solid and would not slice.
-        """
-        x0, y0, x1, y1, ox, oy = box
-        gx = x1 - OVL if tag == 'tx' else x0
-        top = bar_top if tag == 'tx' else y_split
-        return (f"    translate([{gx:.3f}, {top:.3f}, 0])\n"
-                f"      cube([{OVL:.2f}, {y0-top:.3f}, {BAR_T:.2f}]);")
+  }}}}
+}}}}"""
 
     boxes = {
         'tx': [('tray', T[0], T[1], T[2], T[3]),
