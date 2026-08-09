@@ -225,11 +225,12 @@ def emit_shim(module_name, ports, roles, params, out_path):
 // the radar's output frame stream, one 32-bit word per sc16 sample, and the
 // transmit path is driven by the chirp generated in the fabric.
 //
-// Generated against {module_name} with {len(ports)} ports.
+// Generated against {module_name}: {len(ports)} ports, {len(params)} parameters,
+// all forwarded unchanged.
 //============================================================================
 `default_nettype none
 
-module radar_b200_shim (
+module radar_b200_shim{param_decls} (
 {port_decls}
 );
 
