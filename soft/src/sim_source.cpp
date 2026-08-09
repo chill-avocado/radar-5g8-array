@@ -643,8 +643,10 @@ void SimSource::fit_waveform() {
     if (fit_resid_ < 0.02) {                 // 20 mrad and 2 % of amplitude
         g_.mu      = mu_fit;
         g_.f_start = fs_fit;
-        mode_      = DelayMode::Exact;
+        mode_      = scene_.sinc_delay ? DelayMode::Sinc : DelayMode::Exact;
     } else {
+        // Not a straight ramp, so the closed form does not apply.  The
+        // interpolator does, and it is used without being asked.
         mode_ = DelayMode::Sinc;
     }
 }

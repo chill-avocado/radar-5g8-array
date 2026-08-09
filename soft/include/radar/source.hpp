@@ -178,6 +178,13 @@ struct SimScene {
     bool   phase_noise_on    = true;
     u32    seed              = 20250810u;
 
+    /// Force the windowed-sinc fractional-delay interpolator instead of the
+    /// closed-form delay the simulator normally uses for a linear-FM sweep.
+    /// The two are equivalent; this exists so the self test can prove it, and
+    /// so an experiment with a waveform that is not a straight ramp still gets
+    /// a correct sub-sample delay.
+    bool   sinc_delay        = false;
+
     /// Wall-clock rate to produce intervals at.  0 means as fast as possible,
     /// which is what the tests and the offline runs want.
     double play_rate_hz      = 0.0;
