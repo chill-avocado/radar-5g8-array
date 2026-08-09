@@ -481,12 +481,17 @@ for _fp in board.GetFootprints():
     if _nm in _seen:
         continue
     _seen.add(_nm)
-    _c = pcbnew.Cast_to_FOOTPRINT(_fp.Clone())
-    _c.SetOrientationDegrees(0)
-    _c.SetPosition(pcbnew.VECTOR2I(0, 0))
-    for _p in _c.Pads():
+    _ang, _pos = _fp.GetOrientationDegrees(), _fp.GetPosition()
+    _nets = [(_p, _p.GetNetCode()) for _p in _fp.Pads()]
+    _fp.SetOrientationDegrees(0)
+    _fp.SetPosition(pcbnew.VECTOR2I(0, 0))
+    for _p, _n in _nets:
         _p.SetNetCode(0)
-    pcbnew.FootprintSave(_lib, _c)
+    pcbnew.FootprintSave(_lib, _fp)
+    _fp.SetPosition(_pos)                       # and put it straight back
+    _fp.SetOrientationDegrees(_ang)
+    for _p, _n in _nets:
+        _p.SetNetCode(_n)
 print(f"  footprint library: {len(_seen)} canonical parts written from the board")
 
 print(f"  outline {BW} x {BH} mm, {len(D['top'])} signal polys, "
