@@ -40,6 +40,7 @@ UM_PER_MHZ = 2.43e-3        # mm of patch side per MHz of resonance shift
 TARGET = 5.800e9
 
 VARIANT = os.environ.get("VARIANT", "ZYF300CA")
+TAG = os.environ.get("TOPO", "square")
 STUB = 2.0                  # 50 ohm lead-in, so both ports refer to the same
                             # kind of plane as the coupler arm would
 
@@ -65,8 +66,12 @@ def build(drive):
     from CSXCAD import ContinuousStructure
     from openEMS import openEMS
     sys.path.insert(0, HERE)
-    from element2 import Element
     from geom import rect, hseg, vseg
+    TOPO = os.environ.get("TOPO", "square")
+    if TOPO == "diamond":
+        from element3 import Element
+    else:
+        from element2 import Element
 
     cfg = _cfg()
     ER, TAND = cfg["substrate"]["er"], cfg["substrate"]["tand"]
@@ -76,27 +81,45 @@ def build(drive):
     dLx = float(os.environ.get("DLX", cfg["tuned"].get("dLx", 0.0)))
     dLy = float(os.environ.get("DLY", cfg["tuned"].get("dLy", 0.0)))
     el = Element(cfg, dLx=dLx, dLy=dLy)
-    Lx2, Ly2, wq, lq = el.Lx2, el.Ly2, el.wq, el.lq
+    wq = el.wq
 
-    # one element: patch, two transformers, a 50 ohm lead on each
-    xA = -Lx2 - lq                      # transformer A meets the coupler here
-    yB = -Ly2 - lq
-    def one(sx):
-        """sx = +1 as drawn, -1 mirrored, exactly as the board has them."""
-        P = [rect(-Lx2, -Ly2, Lx2, Ly2),
-             hseg(xA, -Lx2, 0.0, wq),
-             vseg(yB, -Ly2, 0.0, wq),
-             hseg(xA - STUB, xA + 0.05, 0.0, WF),
-             vseg(yB - STUB, yB + 0.05, 0.0, WF)]
-        if sx < 0:
-            P = [[(-x, y) for (x, y) in p][::-1] for p in P]
-        return P
+    if TOPO == "diamond":
+        # Turned corner-up, both feeds come in horizontally from outboard at
+        # the same two heights, so both ports sit on the same side.
+        from geom45 import diamond as _dia, seg as _seg
+        hy, xT, ex = el.feed_y, el.xT, el.edge_x
 
-    polys = [list(p) for p in one(+1)] + \
-            [[(x + PITCH, y) for (x, y) in p] for p in one(-1)]
-    # port feet: (x, y, axis) -- axis is the direction the line runs
-    feet = [(xA - STUB, 0.0, "x"), (0.0, yB - STUB, "y"),
-            (PITCH - (xA - STUB), 0.0, "x"), (PITCH, yB - STUB, "y")]
+        def one(sx):
+            P = [_dia(0.0, 0.0, el.Lu)]
+            for s_ in (+1, -1):
+                P.append(_seg((xT, s_*hy), (ex + 0.05, s_*hy), wq))
+                P.append(_seg((xT - STUB, s_*hy), (xT + 0.05, s_*hy), WF))
+            if sx < 0:
+                P = [[(-x, y) for (x, y) in p][::-1] for p in P]
+            return P
+        polys = [list(p) for p in one(+1)] + \
+                [[(x + PITCH, y) for (x, y) in p] for p in one(-1)]
+        feet = [(xT - STUB, +hy, "x"), (xT - STUB, -hy, "x"),
+                (PITCH - (xT - STUB), +hy, "x"),
+                (PITCH - (xT - STUB), -hy, "x")]
+    else:
+        Lx2, Ly2, lq = el.Lx2, el.Ly2, el.lq
+        xA = -Lx2 - lq                  # transformer A meets the coupler here
+        yB = -Ly2 - lq
+
+        def one(sx):
+            P = [rect(-Lx2, -Ly2, Lx2, Ly2),
+                 hseg(xA, -Lx2, 0.0, wq),
+                 vseg(yB, -Ly2, 0.0, wq),
+                 hseg(xA - STUB, xA + 0.05, 0.0, WF),
+                 vseg(yB - STUB, yB + 0.05, 0.0, WF)]
+            if sx < 0:
+                P = [[(-x, y) for (x, y) in p][::-1] for p in P]
+            return P
+        polys = [list(p) for p in one(+1)] + \
+                [[(x + PITCH, y) for (x, y) in p] for p in one(-1)]
+        feet = [(xA - STUB, 0.0, "x"), (0.0, yB - STUB, "y"),
+                (PITCH - (xA - STUB), 0.0, "x"), (PITCH, yB - STUB, "y")]
 
     xs = [q[0] for p in polys for q in p]
     ys = [q[1] for p in polys for q in p]
@@ -147,6 +170,8 @@ def build(drive):
             yl += [q[1] - res_c / 3, q[1] + 2 * res_c / 3]
     for off in (0.0, PITCH):
         xl += list(np.linspace(off - wq / 2, off + wq / 2, 4))
+    for fy in {round(f[1], 4) for f in feet}:
+        yl += list(np.linspace(fy - wq / 2, fy + wq / 2, 4))
     yl += list(np.linspace(-wq / 2, wq / 2, 4))
     mesh.AddLine("x", clean(xl)); mesh.SmoothMeshLines("x", res_air, 1.35)
     mesh.AddLine("y", clean(yl)); mesh.SmoothMeshLines("y", res_air, 1.35)
@@ -206,7 +231,7 @@ def fit():
     for w in ("x", "y"):
         p = os.path.join(TUNING, f"modes_{w}.json")
         if not os.path.exists(p):
-            print(f"  modes_{w}.json missing -- run: python3 modes.py {w}")
+            print(f"  modes_{TAG}_{w}.json missing -- run: python3 modes.py {w}")
             return
         got[w] = json.load(open(p))
     cfg = _cfg()
