@@ -300,7 +300,11 @@ void Pipeline::Impl::back_end(RdFrame& f, double t0) {
         last_frame.noise_floor = f.noise_floor;
     }
     if (rec) rec->write(f);
-    if (cb)  cb(f, tracks, stats_snapshot());
+    if (cb) {
+        Stats snap;
+        { std::lock_guard<std::mutex> lk(sm); snap = st; }
+        cb(f, tracks, snap);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -503,7 +507,7 @@ const Calibration& Pipeline::calibration() const { return p_->cal; }
 //-- Recording ---------------------------------------------------------------
 bool Pipeline::record_start(const std::string& path, u64 max_bytes, std::string& err) {
     p_->rec = std::make_unique<FileRecorder>();
-    p_->rec->set_cap(max_bytes);
+    p_->rec->set_max_bytes(max_bytes);
     if (!p_->rec->open(p_->cfg, path)) {
         err = "could not open " + path + " for recording";
         p_->rec.reset();

@@ -122,9 +122,12 @@ struct RunOut {
     bool complete = false;
 };
 
+// gap_mod > 0 stalls the input by dropping in_valid on one clock in every
+// gap_mod, which must not change a single output bit.
 template <class DUT>
 RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
-              const std::vector<std::vector<ci>>& in_frames, int n_check) {
+              const std::vector<std::vector<ci>>& in_frames, int n_check,
+              int gap_mod = 0) {
     RunOut r;
 
     dut.rst       = 1;
