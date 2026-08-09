@@ -181,6 +181,9 @@ constexpr double kPhaseNoiseFloorDbc = -145.0;
 /// puts the resolution where the physics is.
 const double kPhaseClassTau[] = {0.0, 60e-9, 150e-9, 350e-9, 800e-9, 1.8e-6, 4.0e-6, 9.0e-6};
 constexpr int kPhaseClasses   = int(sizeof(kPhaseClassTau) / sizeof(kPhaseClassTau[0]));
+/// History kept in front of every chirp, comfortably past the longest class
+/// (9 us is 553 samples at 61.44 MSps).
+constexpr int kPhiPad = 1024;
 
 /// Fractional-delay interpolator, used by the Sinc path.
 constexpr int kFracSteps = 64;   ///< sub-sample positions, 1/64 sample = 3.8 cm
