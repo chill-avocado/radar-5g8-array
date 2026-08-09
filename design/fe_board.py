@@ -436,10 +436,9 @@ def rx_feed(b, s, y, y_bt, inward, src):
     r5, rail = f"V5{s}", f"V5R{s}"
     y_dec = y + inward * (BIAS["len_mm"] + Y_DEC_OFF)
     x0 = XR_BT - 12.0
-    b.dc(r5, [src, (src[0], y_dec - inward * 5.0), (x0 - 2.4, y_dec),
-              (x0 - 2.4, y_dec)][:3] + [(x0 - 2.4, y_dec)], w=0.45)
-    b.series_0402(f"FB{s}", x0 - 1.2, y_dec, "600R", r5, rail,
-                  mpn="BLM15HD601SN1", pkg="0402",
+    b.dc(r5, [src, (src[0], y_dec), (x0 - 2.4, y_dec)], w=0.45)
+    b.series_0402(f"FB{s}", x0 - 1.2, y_dec, "600R", r5, rail, kind="L",
+                  mpn="BLM15HD601SN1",
                   note="keeps the transmitter's supply noise out of the "
                        "receive amplifier")
     b.shunt_0402(f"C{s}80", XR_BT, y_bt + inward * 0.62, "100p", rail, +1,
