@@ -35,9 +35,15 @@ three gaps between them carry the power and the monitoring.  Nothing crosses
 anything on the surface; everything that is not radio crosses on a buried
 layer under a ground plane.
 
-The radio edge is cut into four fingers, one per connector, so that four rigid
-plugs in a row can meet four sockets in a row without any of them being
-levered.  That is the one mechanical thing a board like this has to get right.
+The radio edge is cut into four fingers, one per connector.  Four rigid
+coaxial joints in a row otherwise have to be perfect all at once; each finger
+bends out of the board's plane under a couple of newtons, so a board that does
+not sit exactly square to the radio's face flexes instead of levering the
+plugs, and tightening one nut does not strain the three beside it.  Along the
+row a finger is effectively rigid, and it does not need to be: the connectors
+are positioned at assembly.  Each one is slid along the board edge to match
+the radio's actual spacing before it is soldered, and its pads are four
+millimetres long, which is a great deal more adjustment than anyone needs.
 """
 
 import json
@@ -77,10 +83,11 @@ Y_J = (27.5, 42.5, 57.5, 72.5)          # TRX1, RX1, RX2, TRX2, bottom to top
 Y_TX1, Y_RX1, Y_RX2, Y_TX2 = 8.0, 36.0, 64.0, 92.0
 X_JOG = 18.0                            # where a chain steps to its own line
 
-# Four fingers on the radio edge.  Each connector then sits on its own tongue
-# of board and can take up a couple of tenths of a millimetre of pitch error
-# without any of the four being strained.  Without these, four rigid coaxial
-# joints in a line have to be perfect all at once, and they never are.
+# Four fingers on the radio edge.  Each connector sits on its own tongue, which
+# bends out of the board's plane under about two newtons: that is what absorbs
+# a board not sitting square to the radio's face, and what stops one nut being
+# tightened from straining its neighbours.  Fifteen millimetres deep is as far
+# as they can go before the receive lines step across at x = 18.
 SLOT_Y = (35.0, 50.0, 65.0)
 SLOT_DEPTH, SLOT_W = 15.0, 1.60
 

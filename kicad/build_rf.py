@@ -115,12 +115,11 @@ def seg(a, b):
 def outline():
     """The board edge, with a relief slot beside each radio connector.
 
-    Four coaxial plugs in a row have to meet four sockets in a row all at
-    once, and no two boards and no two panels agree to a tenth of a
-    millimetre.  Cutting the near edge into four tongues lets each connector
-    take up its own share of that: the board bends where it is asked to
-    instead of levering the plug.  Each slot ends in a half-circle because
-    that is the shape a router bit leaves.
+    Each slot leaves the connector beside it on its own tongue of board, free
+    to bend out of the plane under a couple of newtons.  That is what takes up
+    a board sitting a fraction out of square with the radio's face, and what
+    keeps one nut being tightened from straining the three next to it.  Each
+    slot ends in a half-circle, because that is the shape a router bit leaves.
     """
     r = CR
     for a, b in (((r, 0), (BW - r, 0)), ((BW, r), (BW, BH - r)),
