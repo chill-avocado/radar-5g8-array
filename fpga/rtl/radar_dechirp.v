@@ -66,7 +66,6 @@ module radar_dechirp #(
                                                     // of two products plus the
                                                     // rounding increment
     localparam integer SH_W   = 6;                  // holds 15..30
-    localparam [SH_W-1:0] BASE_SH_V = BASE_SH;
 
     localparam signed [ACC_W-1:0] SAT_HI =
         {{(ACC_W-DATA_W+1){1'b0}}, {(DATA_W-1){1'b1}}};   //  32767
@@ -98,7 +97,8 @@ module radar_dechirp #(
     reg        [SH_W-1:0]   sh_s1;
     reg                     v_s1;
 
-    wire [SH_W-1:0] sh_in = {{(SH_W-SHIFT_W){1'b0}}, shift} + BASE_SH_V;
+    wire [31:0]     sh_wide = {{(32-SHIFT_W){1'b0}}, shift} + BASE_SH;
+    wire [SH_W-1:0] sh_in   = sh_wide[SH_W-1:0];
 
     always @(posedge clk) begin
         a_i_s1 <= in_i;
