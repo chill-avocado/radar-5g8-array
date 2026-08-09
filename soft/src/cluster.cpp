@@ -86,17 +86,13 @@ struct Clusterer::Work {
     std::vector<Target> sorted;
 };
 
-namespace {
-/// One working set per thread, so one Clusterer can serve several worker
-/// threads on different frames without a lock and without allocating.
-Clusterer::Work& clusterer_tls() {
-    static thread_local Clusterer::Work w;
+Clusterer::Work& Clusterer::tls() {
+    static thread_local Work w;
     return w;
 }
-} // namespace
 
-Clusterer::Work& Clusterer::work(std::size_t n) const {
-    Work& w = clusterer_tls();
+Clusterer::Work& Clusterer::work(std::size_t n) {
+    Work& w = tls();
     w.s0.resize(n); w.s1.resize(n); w.s2.resize(n); w.s3.resize(n);
     w.has_angle.resize(n);
     w.c0.resize(n); w.c1.resize(n); w.c2.resize(n); w.c3.resize(n);
@@ -108,7 +104,7 @@ Clusterer::Work& Clusterer::work(std::size_t n) const {
     return w;
 }
 
-const std::vector<int>& Clusterer::last_labels() const { return clusterer_tls().labels; }
+const std::vector<int>& Clusterer::last_labels() const { return tls().labels; }
 
 //============================================================================
 Clusterer::Clusterer(const Config& cfg)

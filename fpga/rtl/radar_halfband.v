@@ -132,7 +132,7 @@ module radar_halfband #(
         end
     endfunction
 
-    integer ci, cm, cpar, csum, qv;
+    integer ci, cm, cpar, csum, qv, q_inner;
     real    pi_r, i0b, cr, xr, warg, hd_r, wk_r, scale_r;
 
     initial begin
@@ -141,6 +141,7 @@ module radar_halfband #(
         i0b     = bessel_i0(BETA);
         cr      = CENTRE;
         csum    = 0;
+        q_inner = 0;
         for (ci = 0; ci < NPAIR; ci = ci + 1) begin
             cm   = CENTRE - 2 * ci;                 // odd, positive
             cpar = ((cm - 1) / 2) % 2;
@@ -155,9 +156,11 @@ module radar_halfband #(
                                  : -$rtoi(-hd_r * scale_r + 0.5);
             coef[ci] = qv[COEF_W-1:0];
             csum     = csum + qv;
+            if (ci == (NPAIR - 1)) q_inner = qv;
         end
-        qv            = HALF_SIDE_I - csum;         // a couple of LSB at 2^-17
-        qv            = qv + coef[NPAIR-1];
+        // exact DC gain: the innermost side tap absorbs the quantisation
+        // residual, symmetrically, and the centre tap stays exactly 0.5
+        qv            = q_inner + (HALF_SIDE_I - csum);
         coef[NPAIR-1] = qv[COEF_W-1:0];
         qv            = CENTRE_Q_I;
         coef[NPAIR]   = qv[COEF_W-1:0];
