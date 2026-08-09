@@ -604,7 +604,10 @@ def fin_flat():
                ((x0 + 2 * wg + W, H), 2.0), ((x0, H), 2.0)]
     # a flange along the bottom of the centre panel, bent back to bolt down
     outline = [((x0, -fl if False else 0.0), 2.0)] + outline[1:]
-    holes = [(x, fl / 2.0, M4) for x in (-W / 4, 0.0, W / 4)]
+    # Four bolts onto the spine, which is only BAR_D wide -- the flange is
+    # 200 mm across but the thing it fastens to is 25 mm, so a hole pattern
+    # spanning the fin would have missed it entirely.
+    holes = [(x, y, M4) for x in (-8.0, 8.0) for y in (6.0, fl - 6.0)]
     bends = [(-W / 2, 0.0, -W / 2, H), (W / 2, 0.0, W / 2, H),
              (-W / 2, fl, W / 2, fl)]
     return outline, holes, bends
