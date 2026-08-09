@@ -58,7 +58,8 @@ JOIN = 0.05
 class Element:
     """The diamond element.  Mirroring it flips the handedness, nothing else."""
 
-    def __init__(self, cfg, dLx=None, dLy=None, mirror=False, launch_y=None):
+    def __init__(self, cfg, dLx=None, dLy=None, mirror=False, launch_y=None,
+                 route=None):
         t = cfg.get("tuned", {})
         self.mirror = mirror
         L = t.get("L", 14.0835)
@@ -66,6 +67,13 @@ class Element:
         dLy = t.get("dLy", 0.0) if dLy is None else dLy
         f, h = cfg["feed"], cfg["hybrid"]
         self.hsub = cfg["substrate"]["h_mm"]
+        # A run of 50 ohm line between the ring and the transformer.  The
+        # flat-on element has 18 mm of it and I had treated that as clutter
+        # the diamond was better off without.  A line near half a guided
+        # wavelength rotates the patch's impedance as frequency moves, in a
+        # direction that partly cancels the patch's own swing -- so those
+        # routes may be buying the flat-on element its bandwidth.
+        self.route = t.get("route_mm", 0.0) if route is None else route
         self.wq = t.get("wq", 0.3414)
         self.lq = t.get("lq", 8.5422)
         self.wf = f["w50_mm"]
@@ -104,8 +112,9 @@ class Element:
         self.edge_y = self.Dv / 4.0
         dy = self.edge_y - hy
         self.xT = self.edge_x - math.sqrt(max(self.lq ** 2 - dy ** 2, 0.01))
+        self.xR = self.xT - self.route      # ring sits back by the route
         self.feed_y = hy
-        self.xr = self.xT                       # ring's right edge
+        self.xr = self.xR                       # ring's right edge
         self.xl = self.xr - self.a
         # Ports are settled here, once.  build() used to flip them, which
         # meant calling it twice flipped them back.
@@ -124,6 +133,9 @@ class Element:
             polys.append(seg((self.xT - JOIN, s * hy),
                              (self.edge_x + JOIN * 0.7,
                               s * (self.edge_y - JOIN * 0.7)), wq))
+            if self.route > 0.01:
+                polys.append(seg((self.xR - JOIN, s * hy),
+                                 (self.xT + JOIN, s * hy), self.wf))
         # the ring: two horizontal arms, two vertical
         polys.append(seg((self.xl, +hy), (self.xr, +hy), self.wah))
         polys.append(seg((self.xl, -hy), (self.xr, -hy), self.wah))

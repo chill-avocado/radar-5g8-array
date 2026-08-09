@@ -62,14 +62,16 @@ PITCH = float(os.environ.get("PITCH_MM", 0)) or 299792458.0 / F0 / 2.0 * 1e3
 # board.  Without that, each element's route-A riser runs 3 mm from the
 # neighbouring patch's radiating edge, which wrecks the axial ratio.
 MIRROR = os.environ.get("MIRROR", "1") == "1"
-el = Element(cfg, dLx=DLX, dLy=DLY)
+ROUTE = os.environ.get("ROUTE")
+_rk = {"route": float(ROUTE)} if (ROUTE and TOPO == "diamond") else {}
+el = Element(cfg, dLx=DLX, dLy=DLY, **_rk)
 DTM = os.environ.get("DIP_MIRROR")
 # The diamond has no dip and therefore no dip trim -- its two feeds match by
 # shape, which is the whole reason for turning the patch.
 _kw = {} if TOPO == "diamond" else {
     "dip_trim_mirror": float(DTM) if DTM else None}
-e2 = (Element(cfg, mirror=True, dLx=DLX, dLy=DLY, **_kw)
-      if MIRROR else Element(cfg, dLx=DLX, dLy=DLY))
+e2 = (Element(cfg, mirror=True, dLx=DLX, dLy=DLY, **_kw, **_rk)
+      if MIRROR else Element(cfg, dLx=DLX, dLy=DLY, **_rk))
 base, base2 = el.build(), e2.build()
 bb0, bb1 = el.bbox(), e2.bbox()
 polys = [list(p) for p in base] + \
