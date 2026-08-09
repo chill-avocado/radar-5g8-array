@@ -98,7 +98,7 @@ module radar_dechirp #(
     reg        [SH_W-1:0]   sh_s1;
     reg                     v_s1;
 
-    wire [SH_W-1:0] sh_in = {{(SH_W-SHIFT_W){1'b0}}, shift} + BASE_SH[SH_W-1:0];
+    wire [SH_W-1:0] sh_in = {{(SH_W-SHIFT_W){1'b0}}, shift} + BASE_SH_V;
 
     always @(posedge clk) begin
         a_i_s1 <= in_i;
