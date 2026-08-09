@@ -400,7 +400,7 @@ for lb in D["labels"]:
 for n, x, y, side in D["ports"]:
     t = pcbnew.PCB_TEXT(board)
     t.SetText(n)
-    dx, dy = {"left": (14.0, 3.2), "right": (-14.0, 3.2),
+    dx, dy = {"left": (14.0, 4.8), "right": (-14.0, 4.8),
               "top": (0.0, -2.6), "bottom": (0.0, 2.6)}[side]
     if n.endswith("_FWD") or n.endswith("_INJ"):
         # the sample connector's label goes on whichever side of its line the

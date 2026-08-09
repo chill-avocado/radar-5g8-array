@@ -684,8 +684,8 @@ def build():
     for x, y in ((6.0, 97.0), (94.0, 97.0), (60.0, 3.2)):
         b.fiducial(x, y)
     b.labels += [
-        (69.0, 97.5, "5.8 GHz RADAR FRONT END", 1.2, "silk"),
-        (69.0, 95.0, "TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A", 0.8,
+        (69.0, 98.3, "5.8 GHz RADAR FRONT END", 1.2, "silk"),
+        (69.0, 96.1, "TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A", 0.8,
          "silk"),
         (70.0, 45.0, "J5  enable + monitors", 0.8, "silk"),
         (24.0, 13.5, "TX1  0.75 W", 1.0, "silk"),
