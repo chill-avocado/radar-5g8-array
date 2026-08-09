@@ -824,8 +824,10 @@ def report(b, ch):
 # ======================================================================== main
 def emit(b):
     return dict(
-        name="radar_5g8_frontend", outline=[BW, BH],
-        slots=b.slots, stack=STACK, w50=W50, launch_gap=LAUNCH_GAP,
+        name="radar_5g8_frontend", outline=[BW, BH], layers=4,
+        slots=b.slots, w50=W50, launch_gap=LAUNCH_GAP,
+        stack=dict(name=SUB.name, h_mm=SUB.h * 1e3, er=SUB.er, tand=SUB.tand,
+                   finish="immersion silver", copper_oz=1, **STACK),
         top=b.top, top_net=b.nets, pad_idx=sorted(b.pads),
         gnd_top=b.gnd_top, inner=b.inner, inner_net=b.inner_net,
         bot=b.bot, bot_net=b.bot_net, mask_bot=b.mask_bot,

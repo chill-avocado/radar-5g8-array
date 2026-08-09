@@ -86,6 +86,7 @@ nc.SetClearance(MM(0.15))
 NETNAMES = sorted({"GND", "?", "sig", "NC"}
                   | set(D.get("top_net", []))
                   | set(D.get("inner_net", []))
+                  | set(D.get("bot_net", []))
                   | set(D.get("via_net", []))
                   | {p[5] for prt in D["parts"] for p in prt.get("pads", [])
                      if len(p) > 5}
@@ -192,6 +193,11 @@ for p in D["gnd_top"]:
     add_poly(p, pcbnew.F_Cu, net("GND"))
 for p, nm in zip(D["inner"], D["inner_net"]):
     add_poly(p, pcbnew.In2_Cu, net(nm))
+# The underside is a ground plane except where a supply was given a stretch of
+# it to cross under something.  Those pieces go down first and the ground zone
+# fills around them, exactly as it does around a track on any other layer.
+for p, nm in zip(D.get("bot", []), D.get("bot_net", [])):
+    add_poly(p, pcbnew.B_Cu, net(nm))
 
 
 def ground_zone(layer):
