@@ -67,7 +67,7 @@ module radar_window #(
 );
 
     localparam integer PROD_W = DATA_W + COEF_W;        // 32
-    localparam [IDX_W-1:0] DEPTH_V = DEPTH[IDX_W-1:0];
+    localparam [IDX_W-1:0] DEPTH_V = DEPTH;
 
     localparam signed [PROD_W-1:0] SAT_HI =
         {{(PROD_W-DATA_W+1){1'b0}}, {(DATA_W-1){1'b1}}};
