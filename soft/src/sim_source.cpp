@@ -1090,7 +1090,7 @@ void SimSource::do_chirps(int begin, int end) {
 
     for (int k = begin; k < end; ++k) {
         const double tk = t_sim_ + double(k) * g_.t_pri;
-        const std::size_t phi_base = std::size_t(k) * std::size_t(g_.n_pri) + 512;
+        const std::size_t phi_base = std::size_t(k) * std::size_t(g_.n_pri) + kPhiPad;
 
         for (int rx = 0; rx < g_.n_rx; ++rx) {
             std::fill(sc.outr.begin(), sc.outr.end(), 0.0f);
