@@ -72,23 +72,24 @@ FrameDecoder::FrameDecoder(const Config& c) {
     max_range_   = std::max(1, c.n_range);
     max_dopp_    = std::max(1, c.n_doppler);
     max_hits_    = std::max(1, c.max_hits);
-    range_bin_m_ = c.d.range_bin_m > 0
-                       ? c.d.range_bin_m
-                       : phys::c0 * c.decim / (2.0 * c.sweep_bw_hz / (c.n_sweep / c.sample_rate_hz) *
-                                               c.n_range_fft / c.sample_rate_hz * c.decim);
-    // The expression above is the range bin spacing written out longhand; when
-    // derive() has run it is simply taken from the config.
+    // Range and velocity scales.  Taken from the config when derive() has run,
+    // and worked out from the primitive fields when it has not, so a decoder
+    // built from a hand-assembled Config still reports metres and metres per
+    // second rather than bare bin numbers.
+    range_bin_m_ = c.d.range_bin_m;
     if (!(range_bin_m_ > 0) || !std::isfinite(range_bin_m_)) {
-        const double t_sweep = c.n_sweep / c.sample_rate_hz;
-        const double mu      = c.sweep_bw_hz / t_sweep;
-        const double bin_hz  = (c.sample_rate_hz / c.decim) / c.n_range_fft;
-        range_bin_m_         = bin_hz * phys::c0 / (2.0 * mu);
+        const double mu     = c.sweep_bw_hz / (c.n_sweep / c.sample_rate_hz);
+        const double bin_hz = (c.sample_rate_hz / std::max(1, c.decim)) / std::max(1, c.n_range_fft);
+        range_bin_m_        = bin_hz * phys::c0 / (2.0 * mu);
     }
-    vel_res_ms_ = c.d.vel_res_ms > 0
-                      ? c.d.vel_res_ms
-                      : (phys::c0 / c.centre_freq_hz) /
-                            (2.0 * std::max(1, c.n_doppler) * (c.n_pri / c.sample_rate_hz) *
-                             (c.mimo == MimoMode::Tdm ? 2.0 : 1.0));
+    vel_res_ms_ = c.d.vel_res_ms;
+    if (!(vel_res_ms_ > 0) || !std::isfinite(vel_res_ms_)) {
+        // One Doppler bin is lambda / (2 * coherent interval); in time-division
+        // multiplexing each transmitter is only heard every other interval, so
+        // its effective repetition period is twice as long.
+        const double pri  = (c.n_pri / c.sample_rate_hz) * (c.mimo == MimoMode::Tdm ? 2.0 : 1.0);
+        vel_res_ms_       = (phys::c0 / c.centre_freq_hz) / (2.0 * std::max(1, c.n_doppler) * pri);
+    }
     range_zero_ = c.range_zero_bin;
 
     buf_.assign(std::size_t(kHdrWords) + std::size_t(max_range_) * max_dopp_ +
