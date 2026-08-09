@@ -240,34 +240,40 @@ std::string Calibration::check(const RdFrame& f) const {
 
 //----------------------------------------------------------------------------
 bool Calibration::load(const std::string& path, std::string* err) {
-    std::string perr;
-    Json        j = Json::parse_file(path, &perr);
-    if (j.is_null()) {
-        if (err) *err = perr.empty() ? ("could not read " + path) : perr;
+    const std::string text = read_file(path);
+    if (text.empty()) {
+        if (err) *err = "could not read " + path;
+        return false;
+    }
+    Json j;
+    try {
+        j = Json::parse(text);
+    } catch (const std::exception& e) {
+        if (err) *err = std::string("bad calibration file: ") + e.what();
         return false;
     }
 
     const Json& fx = j["fixed"];
     if (fx.size() == 4) {
         for (int i = 0; i < 4; ++i) {
-            fixed_[i] = cf32(float(fx[std::size_t(i)]["re"].num(1.0)),
-                             float(fx[std::size_t(i)]["im"].num(0.0)));
+            fixed_[i] = cf32(float(fx[std::size_t(i)]["re"].as_double(1.0)),
+                             float(fx[std::size_t(i)]["im"].as_double(0.0)));
         }
     }
-    range_zero_bin_  = j["range_zero_bin"].integer(0);
-    range_zero_frac_ = j["range_zero_frac"].num(0.0);
-    leak_power_      = j["leak_power"].num(0.0);
+    range_zero_bin_  = int(j["range_zero_bin"].as_int(0));
+    range_zero_frac_ = j["range_zero_frac"].as_double(0.0);
+    leak_power_      = j["leak_power"].as_double(0.0);
 
     points_.clear();
     const Json& pts = j["field_points"];
     for (std::size_t p = 0; p < pts.size(); ++p) {
         FieldPoint fp;
-        fp.az_deg = pts[p]["az_deg"].num();
-        fp.el_deg = pts[p]["el_deg"].num();
+        fp.az_deg = pts[p]["az_deg"].as_double();
+        fp.el_deg = pts[p]["el_deg"].as_double();
         const Json& cc = pts[p]["correction"];
         for (int i = 0; i < 4 && i < int(cc.size()); ++i) {
-            fp.correction[i] = cf32(float(cc[std::size_t(i)]["re"].num(1.0)),
-                                    float(cc[std::size_t(i)]["im"].num(0.0)));
+            fp.correction[i] = cf32(float(cc[std::size_t(i)]["re"].as_double(1.0)),
+                                    float(cc[std::size_t(i)]["im"].as_double(0.0)));
         }
         points_.push_back(fp);
     }
