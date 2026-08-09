@@ -1,0 +1,84 @@
+Ref,Value,Package,Manufacturer part,Note
+CA1,100p,0402,GRM1555C1H101JA01D,blocking capacitor; the limiter must not see any direct voltage that arrives on the cable
+DAL,SMP1330-085LF,QFN 3-pin 2x2,SMP1330-085LF,invisible until something large arrives
+LDAL,10n,0402,0402HP-10NXGRW,the limiter's return path; the same trick the amplifier's own bias choke uses
+CA2,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+UA1,PMA3-83LN+,QFN12 3x3,PMA3-83LN+,the sensitivity; matched to fifty ohms inside the package
+CA3,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+RAP1,120R,0402,,
+RAP2,51R,0402,,
+RAP3,120R,0402,,
+DAC1,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+DAC2,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+CA4,100p,0402,GRM1555C1H101JA01D,blocking capacitor; nothing direct-current reaches the radio from this board
+RAJ,51R,0402,,terminates the injection port; REMOVE IT when a canceller goes on that connector
+CB1,100p,0402,GRM1555C1H101JA01D,blocking capacitor; the limiter must not see any direct voltage that arrives on the cable
+DBL,SMP1330-085LF,QFN 3-pin 2x2,SMP1330-085LF,invisible until something large arrives
+LDBL,10n,0402,0402HP-10NXGRW,the limiter's return path; the same trick the amplifier's own bias choke uses
+CB2,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+UB1,PMA3-83LN+,QFN12 3x3,PMA3-83LN+,the sensitivity; matched to fifty ohms inside the package
+CB3,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+RBP1,120R,0402,,
+RBP2,51R,0402,,
+RBP3,120R,0402,,
+DBC1,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+DBC2,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+CB4,100p,0402,GRM1555C1H101JA01D,blocking capacitor; nothing direct-current reaches the radio from this board
+RBJ,51R,0402,,terminates the injection port; REMOVE IT when a canceller goes on that connector
+RAS,1R0,2512,,reads the amplifier's supply current
+RAV,82R,2512,,takes most of the regulator's heat off it
+UA2,AMS1117-5.0,SOT-223,AMS1117-5.0,"five volts, the same regulator the transmit board uses"
+CA5,10u,0805,,
+UA3,INA181A2IDBVR,SOT-23-6,INA181A2IDBVR,turns the shunt's sixty millivolts into three volts
+CA6,10u,1210,,
+CA7,100n,0402,,
+CA80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against
+CA81,1n,0402,,
+CA82,100n,0402,,
+CA83,10u,1210,,
+RBS,1R0,2512,,reads the amplifier's supply current
+RBV,82R,2512,,takes most of the regulator's heat off it
+UB2,AMS1117-5.0,SOT-223,AMS1117-5.0,"five volts, the same regulator the transmit board uses"
+CB5,10u,0805,,
+UB3,INA181A2IDBVR,SOT-23-6,INA181A2IDBVR,turns the shunt's sixty millivolts into three volts
+CB6,10u,1210,,
+CB7,100n,0402,,
+CB80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against
+CB81,1n,0402,,
+CB82,100n,0402,,
+CB83,10u,1210,,
+J5,2x7 header,2.54 mm,,
+J1,2-way,5.08 mm screw terminal,,"twelve volts in, a quarter of an amp"
+F1,1.0 A,1210,MF-MSMF100,resettable fuse
+D5,SMBJ15A,SMB,SMBJ15A,clamps whatever the supply lead picks up
+Q3,AO3401A,SOT-23,AO3401A,blocks a reversed supply and switches the board
+C20,22u,1210,,
+C21,100n,0402,,
+R1,100k,0402,,holds the switch on
+C1,100n,0402,,brings the switch up over ten milliseconds
+D6,10V,0402,BZX84C10,keeps the transistor's gate inside its rating
+Q4,2N7002,SOT-23,2N7002,holds the switch on; the enable line lets go of it
+R2,100k,0402,,
+R3,47k,0402,,
+RAT,51R,0402,,the sampling line's own load
+DA1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CAD0,100p,0402,,
+RAD1,10k,0402,,
+CAD2,10n,0402,,
+RAO,1k,0402,,keeps the reading off the radio-frequency side
+RBT,51R,0402,,the sampling line's own load
+DB1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CBD0,100p,0402,,
+RBD1,10k,0402,,
+CBD2,10n,0402,,
+RBO,1k,0402,,keeps the reading off the radio-frequency side
+RTA,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
+RTB,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
+RX1_IN,142-0701-801,SMA end launch,Cinch 142-0701-801,"left edge, 0.062 in board"
+RX1_OUT,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+RX1_INJ,142-0701-801,SMA end launch,Cinch 142-0701-801,"top edge, 0.062 in board"
+RX2_IN,142-0701-801,SMA end launch,Cinch 142-0701-801,"left edge, 0.062 in board"
+RX2_OUT,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+RX2_INJ,142-0701-801,SMA end launch,Cinch 142-0701-801,"bottom edge, 0.062 in board"
+H1-H6,M3 x 6 pan head and washer,M3,,the two middle ones sit beside the amplifiers
+TIM,"thermal pad 0.5 mm, 3 W/mK",10 x 10 mm,,"under each amplifier, between the bare underside and the chassis"

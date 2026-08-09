@@ -1,0 +1,247 @@
+{
+  "RO4350B": {
+    "substrate": {
+      "name": "RO4350B",
+      "er": 3.66,
+      "h_mm": 0.762,
+      "t_um": 35.0,
+      "tand": 0.0037
+    },
+    "f0_hz": 5800000000.0,
+    "lambda0_mm": 51.6883548275862,
+    "spacing_mm": 25.8441774137931,
+    "patch": {
+      "L": 13.193558027409894,
+      "W": 13.193558027409894,
+      "eeff": 3.4523488993024594,
+      "dL": 0.35787258109190134,
+      "Leff": 13.909303189593698,
+      "G1": 0.000694006354528162,
+      "G12": 0.00015772023975226882,
+      "Rin_edge": 587.0428413972654,
+      "lam0": 51.6883548275862,
+      "bw_pct": 1.1036289342662078
+    },
+    "feed": {
+      "w50_mm": 1.611004085128211,
+      "lam_g50_mm": 30.177571234573346,
+      "eeff50": 2.933707770892684,
+      "zq_ohm": 171.32466859697487,
+      "wq_mm": 0.024961977982093684,
+      "lq_mm": 7.806793569699913,
+      "loss_db_per_m": 5.176808893319439
+    },
+    "hybrid": {
+      "z_series": 35.35533905932737,
+      "w_series_mm": 2.7490933334920986,
+      "l_series_mm": 7.382029517788246,
+      "z_shunt": 50.0,
+      "w_shunt_mm": 1.611004085128211,
+      "l_shunt_mm": 7.5443928086433365,
+      "ring_x_mm": 7.382029517788246,
+      "ring_y_mm": 7.5443928086433365
+    },
+    "launch": {
+      "w_mm": 1.611004085128211,
+      "gap_mm": 0.891072868110141
+    }
+  },
+  "FR4": {
+    "substrate": {
+      "name": "FR-4 1.0mm",
+      "er": 4.35,
+      "h_mm": 1.0,
+      "t_um": 35.0,
+      "tand": 0.022
+    },
+    "f0_hz": 5800000000.0,
+    "lambda0_mm": 51.6883548275862,
+    "spacing_mm": 25.8441774137931,
+    "patch": {
+      "L": 11.961243889412762,
+      "W": 11.961243889412762,
+      "eeff": 4.034147641068842,
+      "dL": 0.4530190596292412,
+      "Leff": 12.867282008671244,
+      "G1": 0.0005746655097707077,
+      "G12": 0.00010493078855604693,
+      "Rin_edge": 735.7309055847691,
+      "lam0": 51.6883548275862,
+      "bw_pct": 1.2912636751892912
+    },
+    "feed": {
+      "w50_mm": 1.8777500673337861,
+      "lam_g50_mm": 27.952438766189793,
+      "eeff50": 3.419369308192419,
+      "zq_ohm": 191.7981889362839,
+      "wq_mm": 0.006905119601156773,
+      "lq_mm": 7.219639463747632,
+      "loss_db_per_m": 21.570021102437256
+    },
+    "hybrid": {
+      "z_series": 35.35533905932737,
+      "w_series_mm": 3.247030178997923,
+      "l_series_mm": 6.816103595077605,
+      "z_shunt": 50.0,
+      "w_shunt_mm": 1.8777500673337861,
+      "l_shunt_mm": 6.988109691547448,
+      "ring_x_mm": 6.816103595077605,
+      "ring_y_mm": 6.988109691547448
+    },
+    "launch": {
+      "w_mm": 1.8777500673337861,
+      "gap_mm": 1.2510050653290168
+    }
+  },
+  "FRONTEND": {
+    "stack": {
+      "layers": 4,
+      "total_mm": 1.578,
+      "finish": "ENIG",
+      "dielectric_mm": [
+        0.762,
+        0.338,
+        0.338
+      ],
+      "material": "Rogers RO4350B",
+      "er": 3.66,
+      "tand": 0.0037,
+      "buried_w_mm": 0.2917,
+      "buried_b_mm": 0.676,
+      "buried_loss_db_per_m": 7.01,
+      "connector": "Cinch 142-0701-801 (0.062 in)"
+    }
+  },
+  "S7136H": {
+    "substrate": {
+      "name": "Shengyi S7136H",
+      "er": 3.61,
+      "tand": 0.003,
+      "h_mm": 0.76
+    },
+    "f0_hz": 5800000000.0,
+    "lambda0_mm": 51.6883548275862,
+    "spacing_mm": 25.8441774137931,
+    "patch": {
+      "L": 13.193558027409894,
+      "W": 13.193558027409894,
+      "eeff": 3.4523488993024594,
+      "dL": 0.35787258109190134,
+      "Leff": 13.909303189593698,
+      "G1": 0.000694006354528162,
+      "G12": 0.00015772023975226882,
+      "Rin_edge": 587.0428413972654,
+      "lam0": 51.6883548275862,
+      "bw_pct": 1.1036289342662078
+    },
+    "feed": {
+      "w50_mm": 1.62298,
+      "lam_g50_mm": 30.177571234573346,
+      "eeff50": 2.933707770892684,
+      "zq_ohm": 171.32466859697487,
+      "wq_mm": 0.024961977982093684,
+      "lq_mm": 7.806793569699913,
+      "loss_db_per_m": 5.176808893319439
+    },
+    "hybrid": {
+      "z_series": 35.35533905932737,
+      "w_series_mm": 2.7490933334920986,
+      "l_series_mm": 7.382029517788246,
+      "z_shunt": 50.0,
+      "w_shunt_mm": 1.611004085128211,
+      "l_shunt_mm": 7.5443928086433365,
+      "ring_x_mm": 7.382029517788246,
+      "ring_y_mm": 7.5443928086433365
+    },
+    "launch": {
+      "w_mm": 1.611004085128211,
+      "gap_mm": 0.891072868110141
+    },
+    "tuned": {
+      "L": 12.91214,
+      "wq": 0.26428,
+      "lq": 7.91113,
+      "arm_series": 8.23398,
+      "arm_shunt": 8.51658,
+      "dip_trim": 0.36824,
+      "dLx": 0.0,
+      "dLy": 0.0,
+      "zq_ohm": 110.0,
+      "source": "openEMS-tuned IN THE ARRAY. Mirror-symmetric pair, networks facing outward. Element 2 is fed from the opposite hybrid corner, which restores the handedness the reflection would flip. Its axial ratio is set by mutual coupling, not by its own phase trim: a 9 degree change in route length moves it by 0.01 dB, so the trims are kept symmetric at +/-0.3659.",
+      "w_arm_v": 2.26279,
+      "w_arm_h": 0.89077,
+      "z_arm_v": 40.5234,
+      "z_arm_h": 69.1783,
+      "dip_trim_mirror": -0.36824
+    }
+  },
+  "ZYF300CA": {
+    "substrate": {
+      "name": "ZYF300CA-P PTFE",
+      "er": 3.0,
+      "tand": 0.0018,
+      "h_mm": 0.76
+    },
+    "f0_hz": 5800000000.0,
+    "lambda0_mm": 51.6883548275862,
+    "spacing_mm": 25.8441774137931,
+    "patch": {
+      "L": 13.193558027409894,
+      "W": 13.193558027409894,
+      "eeff": 3.4523488993024594,
+      "dL": 0.35787258109190134,
+      "Leff": 13.909303189593698,
+      "G1": 0.000694006354528162,
+      "G12": 0.00015772023975226882,
+      "Rin_edge": 587.0428413972654,
+      "lam0": 51.6883548275862,
+      "bw_pct": 1.1036289342662078
+    },
+    "feed": {
+      "w50_mm": 1.853528,
+      "lam_g50_mm": 32.849368,
+      "eeff50": 2.449068,
+      "loss_db_per_m": 3.19917,
+      "wq_mm": 0.024961977982093684,
+      "lq_mm": 7.806793569699913,
+      "zq_ohm": 171.32466859697487
+    },
+    "hybrid": {
+      "z_series": 35.35533905932737,
+      "w_series_mm": 3.113032,
+      "l_series_mm": 8.056264,
+      "z_shunt": 50.0,
+      "w_shunt_mm": 1.853528,
+      "l_shunt_mm": 8.212342,
+      "ring_x_mm": 8.056264,
+      "ring_y_mm": 8.212342
+    },
+    "launch": {
+      "gap_mm": 0.9699
+    },
+    "tuned": {
+      "L": 14.0835,
+      "wq": 0.341374,
+      "lq": 8.54223,
+      "arm_series": 8.844984,
+      "arm_shunt": 8.998231,
+      "dip_trim": 0.4129,
+      "dLx": 0.03,
+      "dLy": 0.03,
+      "zq_ohm": 110.0,
+      "source": "Arms synthesised on ZYF300CA for a LEVEL split: 34.11 ohm vertical, 46.65 ohm horizontal, measured at -0.22/-0.09/+0.02 dB imbalance across the band; lengths 1.100 x the quarter wave for each arm's own impedance. dip_trim makes up the coupler's 9.05 deg quadrature shortfall, which is all that is left once the two patch modes are degenerate. dLx=dLy: modes.py drove each patch edge alone and found the two directions 0.3 MHz apart -- already even-handed -- but 24.5 MHz high, so both dimensions grow together and there is no differential trim to make. The bare patch wanted +0.060; the full network loads it further, so the array was run at 0.000 / +0.030 / +0.060 and +0.030 won on both counts: worst axial ratio 3.35 dB against 3.63 and 3.82, worst match -10.7 dB against -9.5 and -8.1.",
+      "z_arm_v": 34.11,
+      "w_arm_v": 3.272726,
+      "z_arm_h": 46.65,
+      "w_arm_h": 2.068457
+    },
+    "stack": {
+      "name": "ZYF300CA-P PTFE",
+      "h_mm": 0.76,
+      "er": 3.0,
+      "tand": 0.0018,
+      "finish": "Immersion silver",
+      "layers": 2
+    }
+  }
+}

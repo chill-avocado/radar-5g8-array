@@ -1,0 +1,31 @@
+[p2] mesh 286x172x26 = 1.28 Mcells   ground 108.6 x 60.0 mm   pitch 25.8442 mm
+openEMS - fixed number of threads: 8
+ ---------------------------------------------------------------------- 
+ | openEMS 64bit -- version v0.37.0-rc1-2-g7b051bb
+ | (C) 2010-2026 Thorsten Liebig <thorsten.liebig@gmx.de>  GPL license
+ ---------------------------------------------------------------------- 
+	Used external libraries:
+		CSXCAD -- Version: v0.7.0-rc1-1-g5115701
+		hdf5   -- Version: 2.2.0
+		          compiled against: HDF5 library version: 2.2.0
+		tinyxml -- compiled against: 2.6.2
+		fparser
+		boost  -- compiled against: 1_90
+		vtk -- disabled in this build
+
+Create FDTD operator (compressed SSE + multi-threading)
+FDTD simulation size: 286x172x26 --> 1.27899e+06 FDTD cells 
+FDTD timestep is: 1.64436e-13 s; Nyquist rate: 457 timesteps @6.6536e+09 Hz
+Excitation signal length is: 20497 timesteps (3.37045e-09s)
+Max. number of timesteps: 140000 ( --> 6.83027 * Excitation signal length)
+Create FDTD engine (compressed SSE + multi-threading)
+Running FDTD engine... this may take a while... grab a cup of coffee?!?
+[@        5s] Timestep:          342 || Speed:   82.1 MC/s (1.557e-02 s/TS) || Energy: ~5.98e-21 (- 0.00dB)
+[@       10s] Timestep:          684 || Speed:   89.2 MC/s (1.433e-02 s/TS) || Energy: ~1.43e-20 (- 0.00dB)
+[@       15s] Timestep:         1026 || Speed:   88.4 MC/s (1.447e-02 s/TS) || Energy: ~7.29e-20 (- 0.00dB)
+[@       20s] Timestep:         1368 || Speed:   81.0 MC/s (1.578e-02 s/TS) || Energy: ~2.05e-19 (- 0.00dB)
+[@       25s] Timestep:         1710 || Speed:   81.1 MC/s (1.576e-02 s/TS) || Energy: ~4.76e-19 (- 0.00dB)
+
+     freq       S11   S21 coupling   AR embedded      Dmax
+   5.800G   -20.05dB        -86.29dB         3.17dB     5.86dBi
+[@       31s] Timestep:         2052 || Speed:   77.1 MC/s (1.658e-02 s/TS) || Energy: ~1.84e-18 (- 0.00dB)

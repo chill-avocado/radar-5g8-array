@@ -1,0 +1,93 @@
+openEMS - verbose level 1
+ ---------------------------------------------------------------------- 
+ | openEMS 64bit -- version v0.37.0-rc1-2-g7b051bb
+ | (C) 2010-2026 Thorsten Liebig <thorsten.liebig@gmx.de>  GPL license
+ ---------------------------------------------------------------------- 
+	Used external libraries:
+		CSXCAD -- Version: v0.7.0-rc1-1-g5115701
+		hdf5   -- Version: 2.2.0
+		          compiled against: HDF5 library version: 2.2.0
+		tinyxml -- compiled against: 2.6.2
+		fparser
+		boost  -- compiled against: 1_90
+		vtk -- disabled in this build
+
+Create FDTD operator (compressed SSE + multi-threading)
+Multithreaded operator using 8 threads.
+Compressing the FDTD operator... this may take a while...
+------- Stat: FDTD Operator -------
+Dimensions		: 128x128x18 = 294912 Cells (0.294912 MCells)
+Size of Operator	: 14155776 Byte (13.5 MiB) 
+Size of Field-Data	: 7077888 Byte (6.75 MiB) 
+-----------------------------------
+Background materials (epsR/mueR/kappa/sigma): 1/1/0/0
+-----------------------------------
+Number of PEC edges	: 8792
+in x direction		: 4396
+in y direction		: 4396
+in z direction		: 0
+-----------------------------------
+Timestep (s)		: 2.43491e-13
+Timestep method name	: Rennings_2
+Nyquist criteria (TS)	: 293
+Nyquist criteria (s)	: 7.13427e-11
+-----------------------------------
+SSE compression enabled	: yes
+Unique SSE operators	: 7957
+-----------------------------------
+-----------------------------------
+--- Excitation Extension ---
+Voltage excitations	: 28	 (0, 0, 28)
+Current excitations	: 0	 (0, 0, 0)
+Excitation Length (TS)	: 9805
+Excitation Length (s)	: 2.38742e-09
+--- Mur ABC Extension ---
+ Active direction	: x at line: 127
+--- Mur ABC Extension ---
+ Active direction	: y at line: 127
+--- Mur ABC Extension ---
+ Active direction	: z at line: 17
+--- Uniaxial PML Extension ---
+ PML range		: [0,0,0] to [8,127,17]
+ Grading function	: " -log(1e-6)*log(2.5)/(2*dl*Z*(pow(2.5,W/dl)-1)) * pow(2.5, D/dl) "
+--- Uniaxial PML Extension ---
+ PML range		: [9,0,0] to [127,8,17]
+ Grading function	: " -log(1e-6)*log(2.5)/(2*dl*Z*(pow(2.5,W/dl)-1)) * pow(2.5, D/dl) "
+-----------------------------------
+Creation time for operator: 1.59614 s
+FDTD simulation size: 128x128x18 --> 294912 FDTD cells 
+FDTD timestep is: 2.43491e-13 s; Nyquist rate: 293 timesteps @7.00842e+09 Hz
+Excitation signal length is: 9805 timesteps (2.38742e-09s)
+Max. number of timesteps: 60000 ( --> 6.11933 * Excitation signal length)
+Create FDTD engine (compressed SSE + multi-threading)
+Multithreaded engine using 1 threads. Utilization: (128)
+Setting up processing...
+Running FDTD engine... this may take a while... grab a cup of coffee?!?
+[@        4s] Timestep:          657 || Speed:   44.4 MC/s (6.644e-03 s/TS) || Energy: ~1.41e-20 (- 0.00dB)
+Multithreaded engine using 2 threads. Utilization: (64;64)
+[@        8s] Timestep:         1679 || Speed:   70.7 MC/s (4.168e-03 s/TS) || Energy: ~3.78e-18 (- 0.00dB)
+Multithreaded engine using 3 threads. Utilization: (43;43;42)
+[@       12s] Timestep:         2920 || Speed:   87.9 MC/s (3.357e-03 s/TS) || Energy: ~8.10e-16 (- 0.00dB)
+Multithreaded engine using 4 threads. Utilization: (32;32;32;32)
+[@       16s] Timestep:         4015 || Speed:   77.4 MC/s (3.809e-03 s/TS) || Energy: ~1.26e-14 (- 0.00dB)
+Multithreaded engine using 3 threads. Utilization: (43;43;42)
+Multithreaded Engine: Best performance found using 3 threads.
+[@       20s] Timestep:         4891 || Speed:   64.3 MC/s (4.588e-03 s/TS) || Energy: ~3.50e-14 (- 0.00dB)
+[@       25s] Timestep:         5767 || Speed:   63.6 MC/s (4.639e-03 s/TS) || Energy: ~8.38e-14 (- 0.00dB)
+[@       29s] Timestep:         6570 || Speed:   58.2 MC/s (5.070e-03 s/TS) || Energy: ~1.02e-13 (- 0.00dB)
+[@       33s] Timestep:         7300 || Speed:   52.1 MC/s (5.661e-03 s/TS) || Energy: ~6.73e-14 (- 1.82dB)
+[@       37s] Timestep:         8103 || Speed:   54.9 MC/s (5.373e-03 s/TS) || Energy: ~1.77e-14 (- 7.61dB)
+[@       41s] Timestep:         9052 || Speed:   67.0 MC/s (4.402e-03 s/TS) || Energy: ~1.33e-14 (- 8.87dB)
+[@       45s] Timestep:        10001 || Speed:   66.5 MC/s (4.433e-03 s/TS) || Energy: ~3.09e-15 (-15.19dB)
+[@       50s] Timestep:        10950 || Speed:   67.8 MC/s (4.351e-03 s/TS) || Energy: ~7.25e-16 (-21.49dB)
+[@       54s] Timestep:        11899 || Speed:   67.4 MC/s (4.378e-03 s/TS) || Energy: ~4.49e-16 (-23.58dB)
+[@       58s] Timestep:        12848 || Speed:   67.3 MC/s (4.383e-03 s/TS) || Energy: ~1.17e-16 (-29.41dB)
+[@     1m02s] Timestep:        13943 || Speed:   77.8 MC/s (3.793e-03 s/TS) || Energy: ~3.81e-17 (-34.29dB)
+[@     1m06s] Timestep:        14892 || Speed:   68.8 MC/s (4.287e-03 s/TS) || Energy: ~7.21e-18 (-41.52dB)
+Time for 14892 iterations with 294912.00 cells : 66.61 sec
+Speed: 65.93 MCells/s 
+[patch2p:shallow] mesh 128 x 128 x 18 = 0.29 Mcells
+  resonance      : 5.7840 GHz  |S11| = -2.92 dB
+  Zin at resonance: 9.5 +18.4j ohm
+  at 5.800 GHz    : S11 = -2.92 dB, Zin = 9.9 +21.4j, S21 = -32.86 dB
+  wrote /Users/lucasnaylor/radar-5g8-array/sim/patch2p_shallow.json

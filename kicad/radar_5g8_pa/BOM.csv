@@ -1,0 +1,85 @@
+Ref,Value,Package,Manufacturer part,Note
+RAP1,150R,0402,,
+RAP2,36R,0402,,
+RAP3,150R,0402,,
+CA1,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UA1,PHA-1H+,SOT-89,PHA-1H+,0.05-6 GHz driver
+CA2,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UA2,PMA3-73-1W+,QFN12 3x3,PMA3-73-1W+,the watt; matched to fifty ohms inside the package
+CA3,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+RAF,51R,0402,,terminates the sample port; REMOVE IT when a cable goes on that connector
+RBP1,150R,0402,,
+RBP2,36R,0402,,
+RBP3,150R,0402,,
+CB1,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UB1,PHA-1H+,SOT-89,PHA-1H+,0.05-6 GHz driver
+CB2,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UB2,PMA3-73-1W+,QFN12 3x3,PMA3-73-1W+,the watt; matched to fifty ohms inside the package
+CB3,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+RBF,51R,0402,,terminates the sample port; REMOVE IT when a cable goes on that connector
+RAS,0R1,2512,,reads the final amplifier's supply current
+RAV,27R,2512,,takes most of the regulator's heat off it
+UA3,AMS1117-5.0,SOT-223,AMS1117-5.0,five volts for the driver
+CA5,10u,0805,,16 V part; ten microfarads does not come in an 0402
+UA4,INA181A2IDBVR,SOT-23-6,INA181A2IDBVR,turns the shunt's forty millivolts into two volts
+CA6,10u,1210,,
+CA7,100n,0402,,
+CA80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against; keep its ground via short
+CA81,1n,0402,,
+CA82,100n,0402,,
+CA83,10u,1210,,25 V part on the twelve-volt rail
+CA90,100p,0402,,the same job on the driver's feed
+CA91,1n,0402,,
+CA92,100n,0402,,
+CA93,10u,1210,,
+RBS,0R1,2512,,reads the final amplifier's supply current
+RBV,27R,2512,,takes most of the regulator's heat off it
+UB3,AMS1117-5.0,SOT-223,AMS1117-5.0,five volts for the driver
+CB5,10u,0805,,16 V part; ten microfarads does not come in an 0402
+UB4,INA181A2IDBVR,SOT-23-6,INA181A2IDBVR,turns the shunt's forty millivolts into two volts
+CB6,10u,1210,,
+CB7,100n,0402,,
+CB80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against; keep its ground via short
+CB81,1n,0402,,
+CB82,100n,0402,,
+CB83,10u,1210,,25 V part on the twelve-volt rail
+CB90,100p,0402,,the same job on the driver's feed
+CB91,1n,0402,,
+CB92,100n,0402,,
+CB93,10u,1210,,
+J5,2x7 header,2.54 mm,,
+J1,2-way,5.08 mm screw terminal,,"twelve volts in, one and a quarter amps"
+F1,1.5 A,1210,MF-MSMF150,resettable fuse
+D5,SMBJ15A,SMB,SMBJ15A,clamps whatever the supply lead picks up
+Q3,AO3401A,SOT-23,AO3401A,blocks a reversed supply and switches the board
+C20,22u,1210,,
+C21,22u,1210,,
+C22,100n,0402,,
+R1,100k,0402,,holds the switch on
+C1,100n,0402,,brings the switch up over ten milliseconds
+D6,10V,0402,BZX84C10,keeps the transistor's gate inside its rating
+Q4,2N7002,SOT-23,2N7002,holds the switch on; the enable line lets go of it
+R2,100k,0402,,
+R3,47k,0402,,
+RAT,51R,0402,,the sampling line's own load; without it the coupler is a pair of reflections
+DA1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CAD0,100p,0402,,
+RAD1,10k,0402,,
+CAD2,10n,0402,,
+RAO,1k,0402,,keeps the reading off the radio-frequency side
+RBT,51R,0402,,the sampling line's own load; without it the coupler is a pair of reflections
+DB1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CBD0,100p,0402,,
+RBD1,10k,0402,,
+CBD2,10n,0402,,
+RBO,1k,0402,,keeps the reading off the radio-frequency side
+RTA,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
+RTB,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
+TX1_IN,142-0701-801,SMA end launch,Cinch 142-0701-801,"left edge, 0.062 in board"
+TX1_OUT,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+TX1_FWD,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+TX2_IN,142-0701-801,SMA end launch,Cinch 142-0701-801,"left edge, 0.062 in board"
+TX2_OUT,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+TX2_FWD,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+H1-H6,M3 x 6 pan head and washer,M3,,two of the six sit beside the amplifiers and carry their heat
+TIM,"thermal pad 0.5 mm, 3 W/mK",10 x 10 mm,,"under each amplifier, between the bare underside and the chassis"

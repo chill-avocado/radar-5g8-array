@@ -1,0 +1,73 @@
+[fr4d] mesh 148x166x24 = 0.59 Mcells   board 72.0 x 59.0 mm  (L=12.1764 dip_trim=0.3447)
+openEMS - fixed number of threads: 8
+ ---------------------------------------------------------------------- 
+ | openEMS 64bit -- version v0.37.0-rc1-2-g7b051bb
+ | (C) 2010-2026 Thorsten Liebig <thorsten.liebig@gmx.de>  GPL license
+ ---------------------------------------------------------------------- 
+	Used external libraries:
+		CSXCAD -- Version: v0.7.0-rc1-1-g5115701
+		hdf5   -- Version: 2.2.0
+		          compiled against: HDF5 library version: 2.2.0
+		tinyxml -- compiled against: 2.6.2
+		fparser
+		boost  -- compiled against: 1_90
+		vtk -- disabled in this build
+
+Create FDTD operator (compressed SSE + multi-threading)
+FDTD simulation size: 148x166x24 --> 589632 FDTD cells 
+FDTD timestep is: 2.07847e-13 s; Nyquist rate: 361 timesteps @6.66376e+09 Hz
+Excitation signal length is: 16216 timesteps (3.37045e-09s)
+Max. number of timesteps: 45000 ( --> 2.77504 * Excitation signal length)
+openEMS::SetupFDTD: Warning, max. number of timesteps is smaller than three times the excitation. 
+	You may want to choose a higher number of max. timesteps... 
+Create FDTD engine (compressed SSE + multi-threading)
+Running FDTD engine... this may take a while... grab a cup of coffee?!?
+[@        4s] Timestep:          990 || Speed:  141.9 MC/s (4.156e-03 s/TS) || Energy: ~1.16e-19 (- 0.00dB)
+[@        8s] Timestep:         1890 || Speed:  122.0 MC/s (4.833e-03 s/TS) || Energy: ~4.78e-18 (- 0.00dB)
+[@       12s] Timestep:         2790 || Speed:  126.9 MC/s (4.646e-03 s/TS) || Energy: ~1.09e-16 (- 0.00dB)
+[@       16s] Timestep:         3690 || Speed:  124.7 MC/s (4.727e-03 s/TS) || Energy: ~1.37e-15 (- 0.00dB)
+[@       20s] Timestep:         4590 || Speed:  129.7 MC/s (4.547e-03 s/TS) || Energy: ~1.05e-14 (- 0.00dB)
+[@       25s] Timestep:         5490 || Speed:  123.5 MC/s (4.773e-03 s/TS) || Energy: ~5.50e-14 (- 0.00dB)
+[@       29s] Timestep:         6300 || Speed:  114.7 MC/s (5.142e-03 s/TS) || Energy: ~1.97e-13 (- 0.00dB)
+[@       33s] Timestep:         7110 || Speed:  106.9 MC/s (5.517e-03 s/TS) || Energy: ~5.01e-13 (- 0.00dB)
+[@       38s] Timestep:         7830 || Speed:  100.7 MC/s (5.854e-03 s/TS) || Energy: ~7.64e-13 (- 0.00dB)
+[@       42s] Timestep:         8550 || Speed:   99.3 MC/s (5.936e-03 s/TS) || Energy: ~9.46e-13 (- 0.00dB)
+[@       46s] Timestep:         9270 || Speed:  101.6 MC/s (5.806e-03 s/TS) || Energy: ~1.21e-12 (- 0.00dB)
+[@       50s] Timestep:         9900 || Speed:   91.2 MC/s (6.468e-03 s/TS) || Energy: ~1.09e-12 (- 0.47dB)
+[@       54s] Timestep:        10620 || Speed:   99.3 MC/s (5.936e-03 s/TS) || Energy: ~8.90e-13 (- 1.33dB)
+[@       58s] Timestep:        11340 || Speed:  105.6 MC/s (5.586e-03 s/TS) || Energy: ~6.10e-13 (- 2.97dB)
+[@     1m02s] Timestep:        12060 || Speed:  106.1 MC/s (5.557e-03 s/TS) || Energy: ~5.74e-13 (- 3.24dB)
+[@     1m07s] Timestep:        12870 || Speed:  107.9 MC/s (5.464e-03 s/TS) || Energy: ~4.88e-13 (- 3.95dB)
+[@     1m11s] Timestep:        13680 || Speed:  107.9 MC/s (5.462e-03 s/TS) || Energy: ~3.97e-13 (- 4.85dB)
+[@     1m15s] Timestep:        14400 || Speed:  104.1 MC/s (5.663e-03 s/TS) || Energy: ~2.14e-13 (- 7.52dB)
+[@     1m20s] Timestep:        15162 || Speed:  107.9 MC/s (5.464e-03 s/TS) || Energy: ~1.25e-13 (- 9.86dB)
+[@     1m24s] Timestep:        15930 || Speed:  106.3 MC/s (5.545e-03 s/TS) || Energy: ~1.20e-13 (-10.05dB)
+[@     1m28s] Timestep:        16740 || Speed:  107.4 MC/s (5.491e-03 s/TS) || Energy: ~1.04e-13 (-10.66dB)
+[@     1m33s] Timestep:        17550 || Speed:  109.1 MC/s (5.402e-03 s/TS) || Energy: ~8.68e-14 (-11.45dB)
+[@     1m37s] Timestep:        18270 || Speed:  104.6 MC/s (5.639e-03 s/TS) || Energy: ~6.45e-14 (-12.74dB)
+[@     1m41s] Timestep:        19080 || Speed:  111.5 MC/s (5.290e-03 s/TS) || Energy: ~3.93e-14 (-14.88dB)
+[@     1m45s] Timestep:        19855 || Speed:  113.5 MC/s (5.194e-03 s/TS) || Energy: ~2.12e-14 (-17.56dB)
+[@     1m49s] Timestep:        20700 || Speed:  118.0 MC/s (4.996e-03 s/TS) || Energy: ~1.49e-14 (-19.09dB)
+[@     1m54s] Timestep:        21510 || Speed:  109.0 MC/s (5.410e-03 s/TS) || Energy: ~1.08e-14 (-20.48dB)
+[@     1m58s] Timestep:        22230 || Speed:  104.8 MC/s (5.625e-03 s/TS) || Energy: ~1.25e-14 (-19.85dB)
+[@     2m02s] Timestep:        22950 || Speed:  101.4 MC/s (5.817e-03 s/TS) || Energy: ~8.60e-15 (-21.49dB)
+[@     2m06s] Timestep:        23670 || Speed:  105.1 MC/s (5.612e-03 s/TS) || Energy: ~4.23e-15 (-24.56dB)
+[@     2m10s] Timestep:        24390 || Speed:  103.6 MC/s (5.691e-03 s/TS) || Energy: ~4.64e-15 (-24.16dB)
+[@     2m14s] Timestep:        25200 || Speed:  110.0 MC/s (5.361e-03 s/TS) || Energy: ~3.63e-15 (-25.23dB)
+[@     2m18s] Timestep:        25992 || Speed:  113.3 MC/s (5.204e-03 s/TS) || Energy: ~2.62e-15 (-26.64dB)
+[@     2m23s] Timestep:        26820 || Speed:  111.2 MC/s (5.300e-03 s/TS) || Energy: ~1.74e-15 (-28.41dB)
+[@     2m27s] Timestep:        27630 || Speed:  113.4 MC/s (5.198e-03 s/TS) || Energy: ~1.06e-15 (-30.57dB)
+[@     2m31s] Timestep:        28440 || Speed:  108.4 MC/s (5.439e-03 s/TS) || Energy: ~6.05e-16 (-33.01dB)
+[@     2m36s] Timestep:        29160 || Speed:  101.9 MC/s (5.785e-03 s/TS) || Energy: ~3.66e-16 (-35.19dB)
+[@     2m40s] Timestep:        29963 || Speed:  113.3 MC/s (5.206e-03 s/TS) || Energy: ~3.23e-16 (-35.73dB)
+[@     2m44s] Timestep:        30780 || Speed:  109.3 MC/s (5.394e-03 s/TS) || Energy: ~2.66e-16 (-36.59dB)
+[@     2m48s] Timestep:        31590 || Speed:  116.2 MC/s (5.074e-03 s/TS) || Energy: ~2.13e-16 (-37.54dB)
+[@     2m53s] Timestep:        32400 || Speed:  109.7 MC/s (5.376e-03 s/TS) || Energy: ~1.57e-16 (-38.88dB)
+[@     2m57s] Timestep:        33210 || Speed:  116.2 MC/s (5.073e-03 s/TS) || Energy: ~1.05e-16 (-40.63dB)
+Time for 33210 iterations with 589632.00 cells : 177.28 sec
+Speed: 110.45 MCells/s 
+Traceback (most recent call last):
+  File "/Users/lucasnaylor/radar-5g8-array/sim/full_element.py", line 180, in <module>
+    arr = (mag(ER[0][i0]) + mag(EL[0][i0])) / \
+               ~~~~~^^^^
+IndexError: index 90 is out of bounds for axis 0 with size 2
