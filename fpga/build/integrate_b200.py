@@ -254,18 +254,22 @@ def rename_instantiations(tree, module_name, revert=False):
             path = os.path.join(root, fn)
             with open(path, "r", errors="replace") as fh:
                 src = fh.read()
-            # An instantiation is `name  instname (` and is never preceded by
-            # the keyword `module`.
-            pat = re.compile(r"(?<!module )(?<!module\n)\b" + re.escape(old) + r"\b(\s+\w+\s*\()")
+            # An instantiation is
+            #     module_name [#( .PARAM(x), ... )]  instance_name (
+            # The optional parameter override is why a naive `name\s+\w+\s*\(`
+            # misses real UHD code -- every radio in b200_core.v is
+            # instantiated with #(.RADIO_NUM(0)).  One level of nesting inside
+            # the override is enough for parameter values like (0) or (1<<2).
+            pat = re.compile(
+                r"\b" + re.escape(old) +
+                r"\b(\s*#\s*\((?:[^()]|\([^()]*\))*\))?(\s+\w+\s*\()")
             if not pat.search(src):
                 continue
-            if re.search(r"\bmodule\s+" + re.escape(old) + r"\b", src) and not revert:
-                # This is the file that DEFINES it; only rename instantiations,
-                # which for the definition file means none.
-                defs = re.search(r"\bmodule\s+" + re.escape(old) + r"\b", src)
-                if defs:
-                    continue
-            new_src, n = pat.subn(new + r"\1", src)
+            if not revert and re.search(r"\bmodule\s+" + re.escape(old) + r"\b", src):
+                # This file DEFINES the module. Leave it entirely alone -- the
+                # original must keep its name for the shim to instantiate it.
+                continue
+            new_src, n = pat.subn(new + r"\1\2", src)
             if n:
                 backup = path + ".radar_backup"
                 if not revert and not os.path.exists(backup):
