@@ -199,7 +199,31 @@ module radar_halfband #(
     end
 
     //------------------------------------------------------------------------
-    // Pre-add and multiply.  Vivado maps the pre-add into the DSP48E1.
+    // Symmetric pre-add.  Vivado maps this into the DSP48E1 pre-adder.
+    //------------------------------------------------------------------------
+    localparam integer SUM_W = DATA_W + 1;
+
+    wire signed [SUM_W-1:0] psum_i [0:NPAIR];
+    wire signed [SUM_W-1:0] psum_q [0:NPAIR];
+
+    genvar gp;
+    generate
+        for (gp = 0; gp < NPAIR; gp = gp + 1) begin : g_pair
+            assign psum_i[gp] =
+                  $signed({dl_i[2*gp][DATA_W-1],         dl_i[2*gp]})
+                + $signed({dl_i[NTAPS-1-2*gp][DATA_W-1], dl_i[NTAPS-1-2*gp]});
+            assign psum_q[gp] =
+                  $signed({dl_q[2*gp][DATA_W-1],         dl_q[2*gp]})
+                + $signed({dl_q[NTAPS-1-2*gp][DATA_W-1], dl_q[NTAPS-1-2*gp]});
+        end
+    endgenerate
+
+    // the centre tap has no partner
+    assign psum_i[NPAIR] = $signed({dl_i[CENTRE][DATA_W-1], dl_i[CENTRE]});
+    assign psum_q[NPAIR] = $signed({dl_q[CENTRE][DATA_W-1], dl_q[CENTRE]});
+
+    //------------------------------------------------------------------------
+    // Multiply -- one DSP48E1 per tap group per arm.
     //------------------------------------------------------------------------
     reg signed [PROD_W-1:0] pi_s2 [0:NMULT-1];
     reg signed [PROD_W-1:0] pq_s2 [0:NMULT-1];
@@ -208,16 +232,10 @@ module radar_halfband #(
     integer j;
 
     always @(posedge clk) begin
-        for (j = 0; j < NPAIR; j = j + 1) begin
-            pi_s2[j] <= ($signed({dl_i[2*j][DATA_W-1],           dl_i[2*j]}) +
-                         $signed({dl_i[NTAPS-1-2*j][DATA_W-1],   dl_i[NTAPS-1-2*j]}))
-                        * coef[j];
-            pq_s2[j] <= ($signed({dl_q[2*j][DATA_W-1],           dl_q[2*j]}) +
-                         $signed({dl_q[NTAPS-1-2*j][DATA_W-1],   dl_q[NTAPS-1-2*j]}))
-                        * coef[j];
+        for (j = 0; j < NMULT; j = j + 1) begin
+            pi_s2[j] <= psum_i[j] * coef[j];
+            pq_s2[j] <= psum_q[j] * coef[j];
         end
-        pi_s2[NPAIR] <= dl_i[CENTRE] * coef[NPAIR];
-        pq_s2[NPAIR] <= dl_q[CENTRE] * coef[NPAIR];
         if (rst) v_s2 <= 1'b0;
         else     v_s2 <= due_s1;
     end

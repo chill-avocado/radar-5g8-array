@@ -299,13 +299,13 @@ void Clusterer::cluster(const std::vector<Hit>& hits, std::vector<Target>& out) 
 
     // Strongest first.  The tracker associates greedily, so a deterministic
     // and meaningful order makes its behaviour repeatable frame to frame.
-    std::vector<int> order(std::size_t(cid));
+    std::vector<int>& order = w.order; order.resize(std::size_t(cid));
     for (int i = 0; i < cid; ++i) order[std::size_t(i)] = i;
     std::sort(order.begin(), order.end(), [&](int a, int b) {
         return out[std::size_t(a)].snr_db > out[std::size_t(b)].snr_db;
     });
-    std::vector<Target> sorted(std::size_t(cid));
-    std::vector<int>    remap(std::size_t(cid));
+    std::vector<Target>& sorted = w.sorted; sorted.assign(std::size_t(cid), Target{});
+    std::vector<int>&    remap  = w.remap;  remap.resize(std::size_t(cid));
     for (int i = 0; i < cid; ++i) {
         sorted[std::size_t(i)] = out[std::size_t(order[std::size_t(i)])];
         remap[std::size_t(order[std::size_t(i)])] = i;
