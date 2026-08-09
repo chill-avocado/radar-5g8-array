@@ -1623,11 +1623,10 @@ Total: 9-12 months for a complete system, following this phased approach.
 |---|---|---|
 | Kintex-7 FPGA board (XC7K325T) | $200-$500 | Commercial board |
 | Development kit | $1,000-$3,000 | Includes FPGA, memory, interfaces |
-| RF frontend | $500-$5,000 | Depends on frequency and channel count |
-| ADC/DAC | $200-$2,000 | 14-16 bit, 100+ MSps |
+| RF frontend (integrated AD9361 transceiver on the B210: RF + ADC/DAC in one chip) | $500-$5,000 | Depends on frequency; B210-class boards already integrate this |
 | Host PC | $1,000-$3,000 | High-performance workstation |
 | Software tools | $0-$5,000 | Vivado free; MATLAB optional |
-| **Total (estimate)** | **$3,000-$15,000** | Varies by configuration |
+| **Total (estimate)** | **$2,700-$13,500** | Varies by configuration |
 
 Open-source savings: SDR frameworks (GNU Radio, srsRAN, LimeSuite), DSP libraries (KFR, FFTW,
 Armadillo), IP cores (Xilinx official + open-source alternatives), RFNoC (bundled with UHD), and
