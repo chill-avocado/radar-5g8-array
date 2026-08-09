@@ -1517,7 +1517,7 @@ sub-decimeter target multilateration.
 
 ---
 
-## 12. FPGA Device Note
+## 13. FPGA Device Note
 
 The B210's FPGA is fixed by the board — this is not a component-selection decision the way it would
 be when designing a custom FPGA carrier. The confirmed hardware is a Kintex-7 device, which is why
@@ -1528,7 +1528,7 @@ Kintex-7 fabric for the radar IP described here.
 
 ---
 
-## 13. Processing Allocation Matrix
+## 14. Processing Allocation Matrix
 
 Every processing stage mapped to its execution target, with the reasoning behind the split.
 
@@ -1556,7 +1556,7 @@ Every processing stage mapped to its execution target, with the reasoning behind
 
 ---
 
-## 14. System Performance Specifications
+## 15. System Performance Specifications
 
 Representative full-system numbers for the 2x2 TDM-MIMO baseline described throughout this catalog:
 
@@ -1586,7 +1586,7 @@ Intel MKL, PyTorch 2.0+, ONNX Runtime 1.15+, TensorRT 8.6+ for host DSP/ML; Pyth
 
 ---
 
-## 15. Implementation Roadmap
+## 16. Implementation Roadmap
 
 **Phase 1 — System design & simulation (months 1-2)**
 Define radar specifications (frequency, bandwidth, range, resolution); size FFT/filter/resource
@@ -1617,7 +1617,7 @@ Total: 9-12 months for a complete system, following this phased approach.
 
 ---
 
-## 16. Cost Estimates
+## 17. Cost Estimates
 
 | Item | Cost range | Notes |
 |---|---|---|
@@ -1635,7 +1635,7 @@ commissioning an equivalent commercial radar system.
 
 ---
 
-## 17. Risks & Mitigations
+## 18. Risks & Mitigations
 
 | Risk | Impact | Mitigation |
 |---|---|---|
@@ -1650,7 +1650,7 @@ commissioning an equivalent commercial radar system.
 
 ---
 
-## 18. Symbol Glossary
+## 19. Symbol Glossary
 
 - `f0`: FMCW RF carrier center frequency (Hz)
 - `B`: chirp linear-FM bandwidth (Hz)
@@ -1670,7 +1670,7 @@ commissioning an equivalent commercial radar system.
 
 ---
 
-## 19. References
+## 20. References
 
 Official documentation:
 - Xilinx Kintex-7 FPGA Data Sheet (DS182)
