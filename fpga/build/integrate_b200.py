@@ -95,6 +95,33 @@ def find_module(tree, names):
     return None, None, None
 
 
+def parse_parameters(module_src, module_name):
+    """Parameters declared in the module header, as (name, default) pairs.
+
+    The shim has to redeclare and forward every one of them.  b200_core.v
+    instantiates the radio twice with different RADIO_NUM values, so a shim
+    that silently dropped the override would give both channels the same
+    number and the second receive chain would misbehave in a way that looks
+    like an RF fault.
+    """
+    m = re.search(r"\bmodule\s+" + re.escape(module_name) + r"\b\s*(#\s*\((.*?)\))?\s*\(",
+                  module_src, re.S)
+    if not m or not m.group(2):
+        # Non-ANSI style: parameters declared in the body.
+        body = module_src[m.end():] if m else ""
+        out = []
+        for pm in re.finditer(r"\bparameter\b\s+(?:integer\s+|signed\s+)?(\w+)\s*=\s*([^,;]+)[,;]",
+                              body[:4000]):
+            out.append((pm.group(1), pm.group(2).strip()))
+        return out
+    out = []
+    for chunk in re.split(r",(?![^(\[]*[)\]])", m.group(2)):
+        pm = re.search(r"(?:parameter\s+)?(?:integer\s+|signed\s+)?(\w+)\s*=\s*(.+)", chunk.strip(), re.S)
+        if pm:
+            out.append((pm.group(1), pm.group(2).strip()))
+    return out
+
+
 def parse_ports(module_src, module_name):
     """Parse an ANSI or non-ANSI Verilog port list into Port objects."""
     m = re.search(r"\bmodule\s+" + re.escape(module_name) + r"\b(.*?);", module_src, re.S)
