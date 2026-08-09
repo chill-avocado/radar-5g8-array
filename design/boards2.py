@@ -256,8 +256,9 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # thing.  Either edge satisfies both, and the receive board's connector
     # edge is full of launches, loads and limiter sites.
     far = (H if kind == "TX" else W)
-    for stand in (6.0, 7.5, 9.0, 10.5, 12.0,
-                  far - 6.0, far - 7.5, far - 9.0, far - 10.5, far - 12.0):
+    stands = [3.5, 4.0, 5.0, 6.0, 7.5, 9.0, 10.5, 12.0]
+    stands += [far - v for v in stands]
+    for stand in stands:
         for off in [x / 2.0 for x in range(52, 23, -1)]:
             pair = [(mid - off, stand), (mid + off, stand)] if kind == "TX" \
                 else [(stand, mid - off), (stand, mid + off)]
