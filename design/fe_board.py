@@ -107,6 +107,7 @@ Y_PWR_A, Y_PWR_B = 28.0, 72.0
 Y_DEC_OFF = 1.4                         # decoupling row, off a feed's end
 Y_DET_OFF = 6.0                         # detector row, off a chain's line
 X_V12_IN = 50.0                         # where the buried twelve volts lands
+X_V5_BR = 23.5                          # the receive amplifiers' supply branch
 
 # One regulator per side, feeding that side's transmit driver AND the receive
 # amplifier next to it.  A hundred and ninety milliamps is small enough that
@@ -344,7 +345,7 @@ def detector(b, s, tag, port, inward):
 
 
 # -------------------------------------------------------------- the supplies
-def tx_power_block(b, s, yb, y_bt, inward, y_bt_rx):
+def tx_power_block(b, s, yb, y_bt, inward):
     """One side's supply, in a single row, with nothing crossing anything.
 
     Twelve volts arrives from the buried layer at the right-hand end, passes
@@ -352,8 +353,8 @@ def tx_power_block(b, s, yb, y_bt, inward, y_bt_rx):
     final amplifier and carries on left into the dropper and the regulator
     that make five volts.  Every part sits on one line, so the only things
     that have to leave the row are the regulator's output and the amplifier's
-    twelve volts -- and both leave on lanes clear of it rather than through
-    it, which is what makes a row like this route at all.
+    twelve volts -- and both leave on lanes clear of the row rather than
+    through it, which is what makes a row like this route at all.
     """
     r12, r5, n_i = f"V12{s}", f"V5{s}", f"V5{s}_I"
     up = inward                       # away from this side's transmit chain
@@ -366,27 +367,31 @@ def tx_power_block(b, s, yb, y_bt, inward, y_bt_rx):
                value="27R", note="takes most of the regulator's heat off it")
     b.line(39.3, yb, 41.7, yb, r12, w=0.90)
     b.line(46.3, yb, X_V12_IN, yb, "V12", w=0.90)
-    b.smd_part(f"U{s}3", 30.5, yb - up * 3.15, _sot223((r5, r5, n_i)),
+    # its pins land on the row and its metal tab -- which is the output --
+    # faces the chain, where the five volts is wanted
+    b.smd_part(f"U{s}3", 30.5, yb - up * 3.15, _sot223(("GND", r5, n_i)),
                mpn="AMS1117-5.0", pkg="SOT-223", flip_y=(up > 0),
                note="five volts for this side's driver and receive amplifier")
     b.line(33.55, yb, 34.7, yb, n_i, w=0.90)
-    b.shunt_0402(f"C{s}5", 28.2, yb, "10u", r5, up, pkg="0805",
-                 note="16 V part; ten microfarads does not come in an 0402")
+    y_tab = yb - up * 6.30
+    b.shunt_0402(f"C{s}5", 34.5, y_tab, "10u", r5, up, pkg="0805",
+                 note="the regulator's own output capacitor; 16 V part")
+    b.line(32.4, y_tab, 34.5, y_tab, r5, w=0.60)
 
     # ---- the current monitor, directly across the row from its own shunt so
     # that the two wires measuring sixty millivolts are as short as they get
     y_ina = yb - up * 4.5
     b.smd_part(f"U{s}4", 44.0, y_ina,
                _sot23_6((f"IMON{s}", "GND", "V12", r12, "GND", r5)),
-               mpn="INA181A2IDBVR", pkg="SOT-23-6", flip_y=(up > 0),
+               mpn="INA181A2IDBVR", pkg="SOT-23-6", flip_y=(up < 0),
                note="turns the shunt's sixty millivolts into three volts")
     b.line(42.86, y_ina + up * 0.95, 42.86, yb, r12, w=0.45)
     b.line(45.14, y_ina + up * 0.95, 45.14, yb, "V12", w=0.45)
     # five volts to the monitor, on a lane clear of the row
     y_lane5 = yb - up * 5.5
-    b.line(32.4, y_lane5, 42.86, y_lane5, r5, w=0.45)
+    b.line(34.5, y_lane5, 42.86, y_lane5, r5, w=0.45)
     b.line(42.86, y_lane5, 42.86, y_ina - up * 0.95, r5, w=0.45)
-    b.line(32.4, y_lane5, 32.4, yb - up * 4.15, r5, w=0.45)
+    b.line(34.5, y_lane5, 34.5, y_tab, r5, w=0.45)
 
     # ---- twelve volts up to the final amplifier's printed feed, on a lane
     # clear of the row the other way
@@ -400,7 +405,7 @@ def tx_power_block(b, s, yb, y_bt, inward, y_bt_rx):
     # into an open circuit at the amplifier's pin, so it sits on the end of
     # the feed with its own hole to ground; the slower ones follow along.
     # Both rows run to the RIGHT of their feed, into board that is otherwise
-    # empty, which is what keeps them off the supply row above.
+    # empty, which is what keeps them clear of the supply row.
     b.shunt_0402(f"C{s}80", X_BT2, y_bt + up * 0.62, "100p", r12, +1,
                  axis="x",
                  note="makes the radio-frequency short the quarter-wave feed "
@@ -418,26 +423,40 @@ def tx_power_block(b, s, yb, y_bt, inward, y_bt_rx):
         b.shunt_0402(f"C{s}9{k}", X_BT1 + 1.7 + (k - 1) * 1.7, y_dec, val, r5,
                      up)
     b.shunt_0402(f"C{s}93", X_BT1 + 10.0, y_dec, "10u", r5, up, pkg="1210")
-    # the regulator's own output, down to the feed row it supplies
-    b.line(32.0, y_dec, X_BT1, y_dec, r5, w=0.50)
-    b.line(32.0, y_dec, 32.0, yb - up * 2.15, r5, w=0.50)
-    return dict(v5_at=(32.0, y_dec), imon=(45.14, y_ina - up * 0.95))
+    # the regulator's output down to the feed row, and out to the left where
+    # the receive amplifier's own branch picks it up
+    b.line(36.0, y_dec, X_BT1, y_dec, r5, w=0.50)
+    b.line(36.0, y_dec, 36.0, y_tab, r5, w=0.50)
+    b.line(X_V5_BR, y_tab, 32.4, y_tab, r5, w=0.50)
+    return dict(v5_at=(X_V5_BR, y_tab), imon=(45.14, y_ina - up * 0.95))
 
 
-def rx_feed(b, s, y, y_bt, inward, src):
+def rx_feed(b, s, y, y_bt, inward, src, src_rail):
     """Five volts across to one receive amplifier, and its decoupling.
 
-    It comes from the transmit side's regulator, which means it has to cross
-    that side's whole supply row and the receive line itself -- so it crosses
-    underneath, on the layer set aside for direct current, and surfaces beside
-    the amplifier it feeds.  A ferrite bead where it surfaces keeps the
-    transmitter's supply noise out of the receiver.
+    It comes from the transmit side's regulator, so it has to get past that
+    side's whole supply row and then past the receive line itself.  It walks
+    round the end of the row on the surface, and ducks under the receive line
+    on a short stretch of the underside -- which costs nothing, because the
+    line's own reference is the plane immediately below it, not that one.  A
+    ferrite bead where it comes back up keeps the transmitter's supply noise
+    out of the receiver.
     """
-    r5, rail = f"V5{s}", f"V5R{s}"
+    rail = f"V5R{s}"
     y_dec = y + inward * (BIAS["len_mm"] + Y_DEC_OFF)
     x0 = XR_BT - 12.0
-    b.dc(r5, [src, (src[0], y_dec), (x0 - 2.4, y_dec)], w=0.45)
-    b.series_0402(f"FB{s}", x0 - 1.2, y_dec, "600R", r5, rail, kind="L",
+    b.line(X_V5_BR, min(src[1], y - inward * 2.0),
+           X_V5_BR, max(src[1], y - inward * 2.0), src_rail, w=0.50)
+    b.hop(src_rail, (X_V5_BR, y - inward * 2.0), (X_V5_BR, y + inward * 2.0),
+          w=0.80)
+    b.line(X_V5_BR, y + inward * 2.0, X_V5_BR, y_dec - inward * 2.2,
+           src_rail, w=0.50)
+    b.corner(X_V5_BR, y_dec - inward * 2.2, src_rail, w=0.50)
+    b.line(X_V5_BR, y_dec - inward * 2.2, x0 - 2.4, y_dec - inward * 2.2,
+           src_rail, w=0.50)
+    b.corner(x0 - 2.4, y_dec - inward * 2.2, src_rail, w=0.50)
+    b.line(x0 - 2.4, y_dec - inward * 2.2, x0 - 2.4, y_dec, src_rail, w=0.50)
+    b.series_0402(f"FB{s}", x0 - 1.2, y_dec, "600R", src_rail, rail, kind="L",
                   mpn="BLM15HD601SN1",
                   note="keeps the transmitter's supply noise out of the "
                        "receive amplifier")
