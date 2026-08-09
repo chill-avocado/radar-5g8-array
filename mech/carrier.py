@@ -519,7 +519,9 @@ else {{
 """
 
 
-FIN_W, FIN_H, FIN_WING, FIN_FLANGE = 200.0, 100.0, 60.0, 25.0
+# 100 mm returns, not 60: the leak goes round the fin's sides, not over
+# its tip, and folding the edges is worth more than making it wider.
+FIN_W, FIN_H, FIN_WING, FIN_FLANGE = 200.0, 100.0, 100.0, 25.0
 
 
 def fin_flat():
@@ -716,14 +718,22 @@ def main():
         return (a[1] < b[3] and b[1] < a[3] and
                 a[2] < b[4] + dy and b[2] + dy < a[4])
     print()
+    # The two arms no longer meet each other -- a pair of extenders bridges
+    # them -- so check each arm against the extender it actually laps.
+    ext_holes_top = [boxes['tx_end'] + LAP_L - STEP * (i + 1)
+                     for i in range(int((LAP_L - STEP) // STEP))]
+    ext_holes_bot = [boxes['rx_end'] - LAP_L + STEP * (i + 1)
+                     for i in range(int((LAP_L - STEP) // STEP))]
     for d in (-3 * STEP, -2 * STEP, -STEP, 0.0, STEP, 2 * STEP, 3 * STEP):
         bad = [f"{p[0]}/{q[0]}" for p in boxes['tx'] for q in boxes['rx']
                if hit(p, q, d)]
-        common = len({round(h, 3) for h in boxes['holes'][0]} &
-                     {round(h - d, 3) for h in boxes['holes'][1]})
+        a = len({round(h, 3) for h in boxes['holes'][0]} &
+                {round(h, 3) for h in ext_holes_top})
+        b = len({round(h - d, 3) for h in boxes['holes'][1]} &
+                {round(h - d, 3) for h in ext_holes_bot})
         print(f"  separation {SEP + d:5.0f} mm   "
               f"{'clear' if not bad else 'FOULS ' + ','.join(bad):22} "
-              f"{common} bolts line up")
+              f"{a} bolts into the transmit arm, {b} into the receive arm")
 
     osc = "/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD"
     if os.path.exists(osc):
