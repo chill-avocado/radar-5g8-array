@@ -49,9 +49,8 @@ write_checkpoint -force   $outdir/radar_core_synth.dcp
 # Fail loudly rather than leaving a passing-looking log behind.
 #-----------------------------------------------------------------------------
 set wns [get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]]
-set luts [get_property USED [get_report_property -quiet]]
 
-set slice_luts [expr {[llength [get_cells -hier -filter {PRIMITIVE_GROUP == LUT}]}]
+set slice_luts [llength [get_cells -hier -filter {PRIMITIVE_GROUP == LUT}]]
 set bram36     [llength [get_cells -hier -filter {REF_NAME =~ RAMB36*}]]
 set bram18     [llength [get_cells -hier -filter {REF_NAME =~ RAMB18*}]]
 set dsp        [llength [get_cells -hier -filter {REF_NAME =~ DSP48*}]]
