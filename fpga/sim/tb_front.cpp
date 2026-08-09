@@ -855,9 +855,9 @@ void test_window()
             dut->in_valid = 0;
         }
         tick(dut);
-        if (measured_lat < 0 && dut->out_valid) measured_lat = n;
+        if (measured_lat < 0 && dut->out_valid) measured_lat = n + 1;
 
-        const int k = n - LAT;
+        const int k = n + 1 - LAT;
         if (k >= 0 && k < NSTREAM) {
             int16_t ei, eq;
             if (k < DEPTH) {
