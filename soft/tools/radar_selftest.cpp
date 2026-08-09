@@ -372,38 +372,39 @@ static void test_refmodel() {
     check(std::abs(dc - (1 << 17)) <= 1, "halfband filter has unit DC gain",
           "sum = %lld, want %d", dc, 1 << 17);
 
-    // A single point target, placed at a range and velocity that are exactly
-    // on bin centres, must come out on those bins.
-    const int want_range_bin = 40;
-    const int want_dopp_bin  = 12;
+    // One point target at a known range and velocity. The received signal is
+    // built the honest way -- the transmitted chirp, delayed and phase shifted
+    // -- so the model's own de-chirp has to produce the beat. Anything that
+    // shortcuts to a beat tone would not test the de-chirp at all.
+    const int    want_range_bin = 40;
+    const int    want_dopp_bin  = 12;
     const double R = wf.range_of_bin(want_range_bin);
     const double V = wf.velocity_of_bin(want_dopp_bin);
 
-    const int    nsw = c.n_sweep, nct = c.d.n_chirp_total;
-    const double slope = c.d.chirp_slope_hz_s, fs = c.sample_rate_hz;
-    const double lam = c.d.lambda_m;
+    const int    nsw   = c.n_sweep;
+    const int    nct   = c.d.n_chirp_total;
+    const double slope = c.d.chirp_slope_hz_s;
+    const double fs    = c.sample_rate_hz;
+    const double lam   = c.d.lambda_m;
+    const double f_lo  = -c.sweep_bw_hz / 2.0;   // baseband sweep starts low
+    const double amp   = 0.25;
 
     std::vector<std::vector<ci16>> rx(2, std::vector<ci16>(std::size_t(nct) * nsw));
     for (int ch = 0; ch < nct; ++ch) {
-        const double t0 = ch * c.d.t_pri_s;
-        const double Rc = R - V * t0;                    // approaching is positive
+        // Positive velocity means approaching, so the range shrinks with time.
+        const double Rc  = R - V * (ch * c.d.t_pri_s);
         const double tau = 2.0 * Rc / phys::c0;
+        // Baseband return = s(t - tau) * exp(-j 2 pi f_c tau).
+        const double carrier = -2.0 * kPi * (phys::c0 / lam) * tau;
         for (int n = 0; n < nsw; ++n) {
-            const double t = n / fs;
-            // Beat phase of a de-chirped return, written out directly rather
-            // than by delaying the chirp, because this is a check of the
-            // TRANSFORM chain; the simulator does the honest delayed version.
-            const double ph = 2.0 * kPi * (slope * tau * t + phys::c0 * tau / lam / phys::c0 * phys::c0 / lam * 0.0)
-                            + 2.0 * kPi * (2.0 * Rc / lam);
-            const double a  = 0.25;
-            const ci16 s(fx::to_q15(a * std::cos(ph)), fx::to_q15(a * std::sin(ph)));
-            for (int r = 0; r < 2; ++r) rx[r][std::size_t(ch) * nsw + n] = s;
+            const double td = n / fs - tau;
+            const double ph = 2.0 * kPi * (f_lo * td + 0.5 * slope * td * td) + carrier;
+            const ci16 s(fx::to_q15(amp * std::cos(ph)), fx::to_q15(amp * std::sin(ph)));
+            rx[0][std::size_t(ch) * nsw + n] = s;
+            rx[1][std::size_t(ch) * nsw + n] = s;
         }
     }
 
-    // The model is exercised through the source in the end-to-end check, which
-    // is the honest path. Here we only assert the model runs and produces a
-    // map of the right shape without tripping an internal assertion.
     RdFrame f;
     const ci16* ptrs[2] = {rx[0].data(), rx[1].data()};
     rm.process_cpi(ptrs, 2, nct, f);
@@ -414,8 +415,41 @@ static void test_refmodel() {
     for (int r = 1; r < f.n_range; ++r)
         for (int d = 0; d < f.n_doppler; ++d)
             if (f.at(r, d) > pmax) { pmax = f.at(r, d); pr = r; pd = d; }
-    check(pmax > 0, "model finds the injected target", "peak at range bin %d, Doppler bin %d", pr, pd);
-    (void)want_range_bin; (void)want_dopp_bin;
+
+    const int dopp_signed = pd - c.n_doppler / 2;
+    check(std::abs(pr - want_range_bin) <= 1, "target lands in the right range bin",
+          "got %d, wanted %d  (%.1f m)", pr, want_range_bin, R);
+    check(std::abs(dopp_signed - want_dopp_bin) <= 1, "target lands in the right Doppler bin",
+          "got %+d, wanted %+d  (%.2f m/s)", dopp_signed, want_dopp_bin, V);
+
+    // What the fixed-point arithmetic costs against the same chain in floats.
+    {
+        std::vector<std::vector<cf32>> rxf(2, std::vector<cf32>(std::size_t(nct) * nsw));
+        for (int r = 0; r < 2; ++r)
+            for (std::size_t i = 0; i < rxf[r].size(); ++i) rxf[r][i] = rx[r][i].to_float();
+        RdFrame ff;
+        const cf32* fptrs[2] = {rxf[0].data(), rxf[1].data()};
+        rm.process_cpi_float(fptrs, 2, nct, ff);
+
+        auto peak_to_floor = [](const RdFrame& fr) {
+            double pk = 0, sum = 0; int n = 0;
+            for (int r = 4; r < fr.n_range; ++r)
+                for (int d = 0; d < fr.n_doppler; ++d) {
+                    const double v = fr.at(r, d);
+                    pk = std::max(pk, v);
+                }
+            for (int r = 4; r < fr.n_range; ++r)
+                for (int d = 0; d < fr.n_doppler; ++d) {
+                    const double v = fr.at(r, d);
+                    if (v < pk * 1e-3) { sum += v; ++n; }
+                }
+            return n ? db(pk / (sum / n)) : 0.0;
+        };
+        const double fixed_db = peak_to_floor(f);
+        const double float_db = peak_to_floor(ff);
+        check(float_db - fixed_db < 12.0, "fixed point costs little against floating point",
+              "%.1f dB fixed vs %.1f dB float, loss %.1f dB", fixed_db, float_db, float_db - fixed_db);
+    }
 }
 
 //============================================================================
