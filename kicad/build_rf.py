@@ -47,6 +47,7 @@ NAME = sys.argv[1] if len(sys.argv) > 1 else "pa"
 D = json.load(open(os.path.join(DESIGN, f"{NAME}_board.json")))
 S = D["stack"]
 BW, BH = D["outline"]
+SLOTS = sorted(D.get("slots", []), key=lambda s: s["y"])
 CR = 3.0                                   # corner radius
 
 OUT = os.path.join(HERE, f"radar_5g8_{NAME}")
@@ -101,16 +102,43 @@ def net(n):
 
 
 # ------------------------------------------------------------------- outline
+def seg(a, b):
+    s = pcbnew.PCB_SHAPE(board, pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(P(*a))
+    s.SetEnd(P(*b))
+    s.SetLayer(pcbnew.Edge_Cuts)
+    s.SetWidth(MM(0.10))
+    board.Add(s)
+
+
 def outline():
+    """The board edge, with a relief slot beside each radio connector.
+
+    Four coaxial plugs in a row have to meet four sockets in a row all at
+    once, and no two boards and no two panels agree to a tenth of a
+    millimetre.  Cutting the near edge into four tongues lets each connector
+    take up its own share of that: the board bends where it is asked to
+    instead of levering the plug.  Each slot ends in a half-circle because
+    that is the shape a router bit leaves.
+    """
     r = CR
     for a, b in (((r, 0), (BW - r, 0)), ((BW, r), (BW, BH - r)),
-                 ((BW - r, BH), (r, BH)), ((0, BH - r), (0, r))):
-        s = pcbnew.PCB_SHAPE(board, pcbnew.SHAPE_T_SEGMENT)
-        s.SetStart(P(*a))
-        s.SetEnd(P(*b))
-        s.SetLayer(pcbnew.Edge_Cuts)
-        s.SetWidth(MM(0.10))
-        board.Add(s)
+                 ((BW - r, BH), (r, BH))):
+        seg(a, b)
+    # down the radio edge, stepping in and out around each slot
+    y = BH - r
+    for sl in sorted(SLOTS, key=lambda t: -t["y"]):
+        ys, L, w = sl["y"], sl["depth"], sl["width"] / 2.0
+        seg((0, y), (0, ys + w))
+        seg((0, ys + w), (L - w, ys + w))
+        a = pcbnew.PCB_SHAPE(board, pcbnew.SHAPE_T_ARC)
+        a.SetArcGeometry(P(L - w, ys + w), P(L, ys), P(L - w, ys - w))
+        a.SetLayer(pcbnew.Edge_Cuts)
+        a.SetWidth(MM(0.10))
+        board.Add(a)
+        seg((L - w, ys - w), (0, ys - w))
+        y = ys - w
+    seg((0, y), (0, r))
     for cx, cy, a0 in ((BW - r, r, 270), (BW - r, BH - r, 0),
                        (r, BH - r, 90), (r, r, 180)):
         a1 = a0 + 90
