@@ -1590,12 +1590,12 @@ Intel MKL, PyTorch 2.0+, ONNX Runtime 1.15+, TensorRT 8.6+ for host DSP/ML; Pyth
 
 **Phase 1 — System design & simulation (months 1-2)**
 Define radar specifications (frequency, bandwidth, range, resolution); size FFT/filter/resource
-needs and select the FPGA device (Section 12); choose the host interface (Section 9); model
-algorithms in MATLAB/Simulink or GNU Radio before committing to RTL.
+needs against the Kintex-7 budget (Section 5.5); confirm the USB 3.0 host interface (Section 9);
+model algorithms in MATLAB/Simulink or GNU Radio before committing to RTL.
 
 **Phase 2 — FPGA development (months 3-6)**
-Install Vivado 2023.1+, UHD 4.0, GNU Radio 3.10+. Build the base system (PCIe or 10GbE IP, DDR3
-controller, clocking/reset). Build UHD with RFNoC 4.0 support and validate the default FPGA image.
+Install Vivado 2023.1+, UHD 4.0, GNU Radio 3.10+. Build the base system (DDR3 controller,
+clocking/reset). Build UHD with RFNoC 4.0 support and validate the default FPGA image.
 Develop custom IP: pulse compression, CFAR (CA/GO), beamforming, and integrate with RFNoC blocks.
 
 **Phase 3 — Host software development (months 4-7, overlaps Phase 2)**
