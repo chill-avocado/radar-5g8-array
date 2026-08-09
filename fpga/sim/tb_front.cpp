@@ -1042,9 +1042,11 @@ void test_regs()
     wr(dut, 10, 0x000002FFu); chk("win_addr", dut->win_addr, 0x2FF);
     chk("win_we quiet on address write", dut->win_we, 0);
     wr(dut, 11, 0xDEADBEEFu);
-    chk("win_we pulse", dut->win_we, 1);
-    chk("win_data",     dut->win_data, 0xDEADBEEFL);
-    chk("win_addr held",dut->win_addr, 0x2FF);
+    chk("win_we pulse",  dut->win_we, 1);
+    chk("win_data",      dut->win_data, 0xDEADBEEFL);
+    chk("win_data_r",    (int16_t)dut->win_data_r, (int16_t)0xBEEF);
+    chk("win_data_d",    (int16_t)dut->win_data_d, (int16_t)0xDEAD);
+    chk("win_addr held", dut->win_addr, 0x2FF);
     tick(dut);
     chk("win_we cleared next clock", dut->win_we, 0);
 

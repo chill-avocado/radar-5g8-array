@@ -14,8 +14,10 @@
 //                    with bit 1 set.  Flushes every pipeline and buffer.
 //   win_we           one clock, whenever REG_WIN_WDATA is written.  The
 //                    address comes from the separately written REG_WIN_WADDR.
-//                    win_data[15:0] is the range window, win_data[31:16] the
-//                    Doppler window; radar_window takes one 16-bit slice.
+//                    One bus write loads both tables at that address:
+//                    win_data[15:0] is the range window and win_data[31:16]
+//                    the Doppler window, also presented split as win_data_r
+//                    and win_data_d so neither consumer has to slice.
 //   version_stb      one clock, whenever REG_VERSION is written.  Stamps the
 //                    build's version word into the next frame header.
 //

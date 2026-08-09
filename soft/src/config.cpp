@@ -256,7 +256,9 @@ std::string Config::validate() const {
                + fmti("%lld", n_range) + " by " + fmti("%lld", t.d.n_chirp_total) + " is not.";
     }
     if (n_range * t.d.n_chirp_total != kCornerTurnWords) {
-        const double mb = double(n_range) * double(t.d.n_chirp_total) * 2.0 * 4.0 * 2.0 / 1048576.0;
+        // Two receive channels, four bytes a word, two buffers so one interval
+        // can be read out while the next is written.
+        const double mb = double(n_range) * double(t.d.n_chirp_total) * 2.0 * 4.0 * 2.0 / 1.0e6;
         return fmti("%lld", n_range) + " range bins by " + fmti("%lld", t.d.n_chirp_total) +
                " chirps needs " + fmt("%.2f", mb) + " MB of on-chip memory to turn the corner, "
                "and the whole device has 2.05 MB. The product has to be exactly " +
