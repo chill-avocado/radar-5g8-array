@@ -233,10 +233,11 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # line of both patch edges, right between them.
     half = CFG["tuned"]["L"] / 2.0
     keep_p = MOUNT_PAD / 2 + 3.0
+    patch_keep = []
     for e in b.elements:
         cx, cy = e["centre"]
-        occupied.append((cx - half - keep_p, cy - half - keep_p,
-                         cx + half + keep_p, cy + half + keep_p))
+        patch_keep.append((cx - half - keep_p, cy - half - keep_p,
+                           cx + half + keep_p, cy + half + keep_p))
     # Two fiducials, both on the connector edge and placed symmetrically
     # about the board's centre line.  They used to sit on opposite corners,
     # which put one of them 9 mm from a radiating patch edge with nothing
@@ -246,7 +247,11 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # A fiducial's mask window is 2 mm across, wider than the dot, so it can
     # uncover a neighbouring track that the dot itself clears comfortably.
     # Place it against a keep-out grown to the window, not to the copper.
-    occ_f = [(a - 1.5, b_ - 1.5, c + 1.5, d + 1.5)
+    # 1.2 mm clears the 2 mm mask window with a little to spare.  The patch
+    # keep-out is deliberately NOT applied: it exists to stop a 3.2 mm bolt
+    # hole being punched through the ground beside a patch, and a 1 mm
+    # optical dot with a hair-thin tail is not that.
+    occ_f = [(a - 1.2, b_ - 1.2, c + 1.2, d + 1.2)
              for a, b_, c, d in occupied]
     mid = (W if kind == "TX" else H) / 2.0
     placed = False
@@ -293,7 +298,7 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
         xs = [q[0] for q in p]; ys = [q[1] for q in p]
         cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
         occ_m.append((cx - keep_f, cy - keep_f, cx + keep_f, cy + keep_f))
-    for x, y, d, pad in _mounts(W, H, occ_m):
+    for x, y, d, pad in _mounts(W, H, occ_m + patch_keep):
         b.mounts.append((x, y, d, pad))
     # Part labels come from the element builder marked for the top face, where
     # this board has almost no room that is not a radiating face.  Move them
