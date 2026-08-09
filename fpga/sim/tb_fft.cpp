@@ -142,27 +142,32 @@ RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
     std::vector<cd> cur;
     cur.reserve(N);
     uint32_t  exp_idx   = 0;
-    long long tick      = 0;
-    const long long max_ticks =
+    long long tick      = 0;   // clocks
+    long long si        = 0;   // input samples actually accepted
+    long long first_in  = -1;
+    long long max_ticks =
         static_cast<long long>(3 * NLOG2 + 2 * N) +
         static_cast<long long>(n_check + 3) * N + 256;
+    if (gap_mod > 0) max_ticks = max_ticks * (gap_mod + 1) / gap_mod + 256;
 
     while (static_cast<int>(r.frames.size()) < n_check && tick < max_ticks) {
-        const size_t f = static_cast<size_t>(tick / N);
-        const int    p = static_cast<int>(tick % N);
+        const bool   v = (gap_mod <= 0) || ((tick % gap_mod) != 0);
+        const size_t f = static_cast<size_t>(si / N);
+        const int    p = static_cast<int>(si % N);
         int16_t xi = 0, xq = 0;
         if (f < in_frames.size()) { xi = in_frames[f][p].first; xq = in_frames[f][p].second; }
 
-        dut.in_valid = 1;
+        dut.in_valid = v ? 1 : 0;
         dut.in_i     = static_cast<uint16_t>(xi);
         dut.in_q     = static_cast<uint16_t>(xq);
-        dut.in_last  = (p == N - 1);
+        dut.in_last  = (v && p == N - 1) ? 1 : 0;
+        if (v && first_in < 0) first_in = tick;
 
         dut.clk = 0; dut.eval();
         dut.clk = 1; dut.eval();
 
         if (dut.out_valid) {
-            if (r.latency < 0) r.latency = static_cast<int>(tick);
+            if (r.latency < 0) r.latency = static_cast<int>(tick - first_in);
             const uint32_t idx      = dut.out_idx;
             const bool     want_end = (exp_idx == static_cast<uint32_t>(N - 1));
             if (idx != exp_idx)                              r.idx_ok  = false;
