@@ -655,7 +655,8 @@ def build():
 
     # two corners the stitching grid cannot reach, tied by hand so no scrap of
     # ground is left floating between the connector and the board edge
-    for cx, cy in ((96.6, 1.8), (96.6, 98.2)):
+    for cx, cy in ((96.0, 1.7), (97.6, 1.9), (98.8, 2.4),
+                   (96.0, 98.3), (97.6, 98.1), (98.8, 97.6)):
         b._via(cx, cy, pcbgen.VIA_D, pcbgen.VIA_PAD, "GND")
     b.unify_nets()
     b.pour()
