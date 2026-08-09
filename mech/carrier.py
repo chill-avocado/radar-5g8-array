@@ -250,8 +250,11 @@ def dxf(path, outline, holes, csk=(), note=None):
     # diameter, so the chamfer is described rather than implied.
     for x, y, dia in list(holes) + list(csk):
         circle((x, y), dia / 2.0)
-    for x, y, dia in csk:
-        circle((x, y), CSK_D / 2.0, layer="COUNTERSINK")
+    # No countersinks.  Taking a 3.4 mm hole out to 6.4 mm at 90 degrees
+    # needs exactly 1.50 mm of depth and the plate IS 1.50 mm, so the cutter
+    # would break through.  A pan-head screw in a 3.4 mm hole stands 2 mm
+    # proud instead, and every one of these sits behind the board where
+    # nothing touches it.
     if note:
         g(0, "TEXT"); g(8, "NOTE")
         g(10, f"{note[1]:.3f}"); g(20, f"{note[2]:.3f}")
@@ -580,7 +583,7 @@ def main():
         dxf(os.path.join(HERE, f"plate_{p['name']}.dxf"),
             plate_outline(p),
             p["board_holes"],
-            csk=p["plate_holes"],
+            csk=(),
             note=(f"5.8 GHz RADAR GROUND PLATE - {p['name'].upper()} - "
                   f"{PLATE_T} mm AL",
                   2.0, p["PH"] + 4.0))
