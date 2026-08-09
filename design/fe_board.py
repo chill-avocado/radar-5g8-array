@@ -699,12 +699,14 @@ def leak_budget(pad_db=RX_PAD_DEFAULT_DB, sep_m=0.375):
     removes them; what matters is only that the radio is not driven into
     compression, which happens at fifteen microwatts.
     """
-    c = PA.chain()
-    pt = c["pout_dbm"]
+    c = PA.chain(TX_PAD_DEFAULT_DB)
+    pt = c["out_connector_dbm"]
     rx = LN.chain(pad_db)
     g = rx["gain_db"]
-    air_iso = (PA.MEASURED_ISO_DB if hasattr(PA, "MEASURED_ISO_DB")
-               else -42.17) - 20.0 * math.log10(sep_m / 0.0921)
+    # measured on the whole undivided array board: -42.17 dB at 92.1 mm
+    # between the transmit and receive blocks, thinning as the square of the
+    # distance once they are pulled apart
+    air_iso = -42.17 - 20.0 * math.log10(sep_m / 0.0921)
     air_in = pt + air_iso
     board = isolation()
     board_in = pt + board["iso_db"]
