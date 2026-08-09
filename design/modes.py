@@ -183,6 +183,17 @@ def build(drive):
     mesh.AddLine("z", clean([-AIR] + list(np.linspace(0, H, 4)) + [H + AIR]))
     mesh.SmoothMeshLines("z", res_air, 1.35)
 
+    # Force the y grid to be exactly mirror-symmetric about the centre line.
+    # Smoothing and line-merging both break symmetry by a few hundred microns,
+    # which is more than a cell -- and the two modes ARE reflections of each
+    # other, so an asymmetric grid splits them by pure numerics.  The first
+    # diamond run came out 65 MHz apart on a shape whose two diagonals are
+    # equal by construction; this is why.
+    _y = [v for v in mesh.GetLines(1) if v >= 0]
+    _y = sorted(set([round(v, 6) for v in _y]))
+    _sym = sorted(set([-v for v in _y] + _y))
+    mesh.SetLines("y", _sym)
+
     ports = []
     for n, (px, py, ax) in enumerate(feet):
         if ax == "x":
