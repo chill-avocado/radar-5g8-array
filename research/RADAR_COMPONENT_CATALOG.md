@@ -131,7 +131,7 @@ out-of-tree (OOT) modules, and specialized signal-processing libraries.
 
 | # | Repository | Category | Language | License | Status | URL | Relevance |
 |---|---|---|---|---|---|---|---|
-| 1 | `ettusresearch/uhd` | FPGA firmware & host SDR | SystemVerilog, C++, Python | GPLv3 / Commercial | Active | github.com/EttusResearch/uhd | Core USRP driver, RFNoC 4.0 infrastructure, CHDR packet router, C++ `uhd::rx_streamer`, DPDK zero-copy drivers |
+| 1 | `ettusresearch/uhd` | FPGA firmware & host SDR | SystemVerilog, C++, Python | GPLv3 / Commercial | Active | github.com/EttusResearch/uhd | Core USRP driver, RFNoC 4.0 infrastructure, CHDR packet router, C++ `uhd::rx_streamer`, USB 3.0 streaming transport |
 | 2 | `kit-cel/gr-radar` | Host SDR & DSP algorithms | C++, Python | GPLv3 | Maintenance (forks) | github.com/kit-cel/gr-radar | GNU Radio radar framework: FMCW/CW chirp generators, tagged-stream 1D/2D FFTs, peak finders, PyQtGraph sinks |
 | 3 | `alexforencich/verilog-axis` / `verilog-dsp` | FPGA firmware | Verilog, SystemVerilog | MIT | Active | github.com/alexforencich/verilog-axis | Vendor-neutral AXI4-Stream RTL: streaming FIFOs, NCO/DDS generators, CIC decimation, FIR filters, complex multipliers |
 | 4 | `analogdevicesinc/hdl` | FPGA firmware | Verilog, SystemVerilog | ADI BSD / GPL dual | Active | github.com/analogdevicesinc/hdl | Production SDR IP: digital downconverters, FIR decimation, AXI DMA controllers, Vivado IP Integrator TCL |
