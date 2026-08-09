@@ -659,15 +659,17 @@ def main():
 
     # Prove the halves never foul each other anywhere in the slide range,
     # and that bolts still line up at each end of it.
-    def hit(a, b, dx):
-        return (a[1] < b[3] + dx and b[1] + dx < a[3] and
-                a[2] < b[4] and b[2] < a[4])
+    def hit(a, b, dy):
+        # the receive half now slides along Y: the pair is stacked, not
+        # side by side
+        return (a[1] < b[3] and b[1] < a[3] and
+                a[2] < b[4] + dy and b[2] + dy < a[4])
     print()
     for d in (-3 * STEP, -2 * STEP, -STEP, 0.0, STEP, 2 * STEP, 3 * STEP):
         bad = [f"{p[0]}/{q[0]}" for p in boxes['tx'] for q in boxes['rx']
                if hit(p, q, d)]
         common = len({round(h, 3) for h in boxes['holes'][0]} &
-                     {round(h + d, 3) for h in boxes['holes'][1]})
+                     {round(h - d, 3) for h in boxes['holes'][1]})
         print(f"  separation {SEP + d:5.0f} mm   "
               f"{'clear' if not bad else 'FOULS ' + ','.join(bad):22} "
               f"{common} bolts line up")
