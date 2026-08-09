@@ -1432,6 +1432,7 @@ bool parse_scene(const std::string& text, SimScene& out, std::string& err) {
         s.noise_on        = r["noise"].boolean(true);
         s.leakage_on      = r["leakage"].boolean(true);
         s.phase_noise_on  = r["phase_noise"].boolean(true);
+        s.sinc_delay      = r["sinc_delay"].boolean(false);
         s.seed            = u32(r["seed"].num(double(s.seed)));
     }
     if (j.has("play_rate_hz")) s.play_rate_hz = j["play_rate_hz"].num(0.0);
