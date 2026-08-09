@@ -1,0 +1,73 @@
+(footprint "R_0402_50R"
+	(version 20240108)
+	(generator "build_pcb.py")
+		(layer "F.Cu")
+	(at 0 0)
+		(property "Reference" "R1"
+			(at 0 0 90)
+			(layer "F.SilkS")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "50R"
+			(at 0 0 90)
+			(layer "F.Fab")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 90)
+			(layer "F.Fab")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 90)
+			(layer "F.Fab")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr smd)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start 1.609999 -0.56)
+			(end -1.609999 0.56)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+		)
+		(pad "1" smd rect
+			(at 1.049999 0 90)
+			(size 0.62 0.62)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "TX1")
+			(thermal_bridge_angle 45)
+		)
+		(pad "2" smd rect
+			(at -1.049999 0 90)
+			(size 0.62 0.62)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "GND")
+			(thermal_bridge_angle 45)
+		)
+		(embedded_fonts no)
+	)

@@ -1,0 +1,79 @@
+(footprint "SMA_EndLaunch_50R_BottomEdge"
+	(version 20240108)
+	(generator "build_pcb.py")
+		(layer "F.Cu")
+	(at 0 0)
+		(property "Reference" "TX1"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SMA-EDGE-50R"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start -4.946664 -3.3)
+			(end 4.946664 0.1)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+		)
+		(pad "1" smd rect
+			(at 0 -1.3)
+			(size 1.853528 2.3)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "TX1")
+			(thermal_bridge_angle 45)
+		)
+		(pad "2" smd rect
+			(at -3.396664 -1.6)
+			(size 2.6 2.9)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "GND")
+			(thermal_bridge_angle 45)
+		)
+		(pad "3" smd rect
+			(at 3.396664 -1.6)
+			(size 2.6 2.9)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "GND")
+			(thermal_bridge_angle 45)
+		)
+		(embedded_fonts no)
+	)
