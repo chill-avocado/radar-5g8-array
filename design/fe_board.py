@@ -196,13 +196,13 @@ def tx_channel(b, s, tag, y, y_j, inward):
     b.amplifier(f"U{s}2", kind, X_PA, y, thermal=False)
     b._bom(f"U{s}2", FINAL["mpn"], "QFN12 3x3", FINAL["mpn"],
            "the watt; matched to fifty ohms inside the package")
-    y_iadj = y - inward * (FINAL["land_half"] + 1.20)
-    b.line(X_PA - FINAL["pitch"], y - inward * FINAL["land_half"],
+    # The current-setting pin is number twelve, which is on the package's top
+    # row whichever way this chain faces, so its stub always goes up.
+    y_iadj = y + FINAL["land_half"] + 1.20
+    b.line(X_PA - FINAL["pitch"], y + FINAL["land_half"],
            X_PA - FINAL["pitch"], y_iadj, f"{tag}_IADJ", w=0.30)
-    ia = (("GND", f"{tag}_IADJ") if inward > 0
-          else (f"{tag}_IADJ", "GND"))
-    b.smd_part(f"R{s}I", X_PA - FINAL["pitch"], y_iadj - inward * 0.585,
-               _chip((0.62, 0.62, 0.585), *ia, horiz=False),
+    b.smd_part(f"R{s}I", X_PA - FINAL["pitch"], y_iadj + 0.585,
+               _chip((0.62, 0.62, 0.585), f"{tag}_IADJ", "GND", horiz=False),
                pkg="0402", value="DNP", dnp=True)
     b.line(X_C2 + 0.585, y, X_PA - FINAL["land_half"] - 2.4, y, n_pi)
     b.taper(n_pi, X_PA - FINAL["land_half"] - 2.4, X_PA - FINAL["land_half"],
