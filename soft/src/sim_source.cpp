@@ -445,8 +445,9 @@ void accumulate(float* __restrict accr, float* __restrict acci,
     int n = n0;
     int guard = 0;
     for (; n + 8 <= n1; n += 8) {
+        const int m = n - shift;
         for (int j = 0; j < 8; ++j) {
-            const float a = sr[n + j], b = si[n + j];
+            const float a = sr0[m + j], b = si0[m + j];
             accr[n + j] += pr[j] * a - pi[j] * b;
             acci[n + j] += pr[j] * b + pi[j] * a;
             const float t = pr[j] * cr - pi[j] * ci;
