@@ -112,7 +112,7 @@ for m in $MODELS; do
 done
 
 # shellcheck disable=SC2086
-$CXX -o "$BUILD/tb_front" "$BUILD/tb_front.o" $RTOBJS $LIBS || {
+$CXX -o "$BUILD/tb_front" "$BUILD/tb_front.o" $LIBS $RTOBJS || {
     echo "run_front.sh: link failed" >&2; exit 1; }
 printf '    linked %s\n' "$BUILD/tb_front"
 

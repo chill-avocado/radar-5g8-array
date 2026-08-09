@@ -425,8 +425,6 @@ void accumulate(float* __restrict accr, float* __restrict acci,
                 int shift, int n0, int n1, float p0r, float p0i,
                 double rot_re, double rot_im) {
     if (n1 <= n0) return;
-    const float* __restrict sr = sr0 - shift;
-    const float* __restrict si = si0 - shift;
 
     // Phasors for the first eight samples, and the rotation that advances the
     // whole group by eight.
