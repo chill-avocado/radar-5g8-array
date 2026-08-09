@@ -247,7 +247,12 @@ def run(which):
     print(f"[modes {which}] {nc[0]}x{nc[1]}x{nc[2]} = "
           f"{nc[0]*nc[1]*nc[2]/1e6:.2f} Mcells   ground "
           f"{gnd[0]:.0f} x {gnd[1]:.0f} mm", flush=True)
-    sp = os.path.join(tempfile.gettempdir(), "oems_modes_" + which)
+    # the scratch path has to name the run, or two of them at once
+    # overwrite each other's port data and both come back corrupt
+    sp = os.path.join(tempfile.gettempdir(),
+                      f"oems_modes_{TAG}"
+                      f"{'_bare' if os.environ.get('NOTRANS') == '1' else ''}"
+                      f"_{which}")
     os.makedirs(sp, exist_ok=True)
     FDTD.Run(sp, cleanup=False, verbose=0,
              numThreads=int(os.environ.get("THREADS", 2)))
