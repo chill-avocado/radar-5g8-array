@@ -4,8 +4,9 @@ Reference catalog for building an open-source FMCW/MIMO radar system around a Xi
 FPGA (RFNoC 4.0 / Ettus USRP class hardware) and a Host PC. Consolidated from five prior research
 documents, deduplicated, and reorganized as a lookup reference rather than a narrative report.
 
-Target system baseline used throughout: Kintex-7 XC7K325T FPGA, 2 Tx x 2 Rx TDM-MIMO array
-(4-element virtual ULA), 200 MSps ADC front end, PCIe/10GbE host link, C++17 / CUDA host stack.
+Target system baseline used throughout: Kintex-7 FPGA (as confirmed on a USRP B210), 2 Tx x 2 Rx
+TDM-MIMO array via a single AD9361 transceiver (4-element virtual ULA), USB 3.0 host link, C++17 /
+CUDA host stack.
 
 ---
 
@@ -22,7 +23,7 @@ Target system baseline used throughout: Kintex-7 XC7K325T FPGA, 2 Tx x 2 Rx TDM-
 9. [FPGA-Host Interface Solutions](#9-fpga-host-interface-solutions)
 10. [Host Streaming, IPC & Visualization](#10-host-streaming-ipc--visualization)
 11. [Advanced / Experimental Techniques](#11-advanced--experimental-techniques)
-12. [Device Selection Guide](#12-device-selection-guide)
+12. [FPGA Device Note](#12-fpga-device-note)
 13. [Processing Allocation Matrix](#13-processing-allocation-matrix)
 14. [System Performance Specifications](#14-system-performance-specifications)
 15. [Implementation Roadmap](#15-implementation-roadmap)
