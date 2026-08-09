@@ -587,7 +587,7 @@ void SimSource::fit_waveform() {
     if (n < 8) { mode_ = DelayMode::Sinc; fit_resid_ = 1.0; return; }
 
     // Unwrap the phase, then least-squares a quadratic in the sample index.
-    std::vector<double> ph(std::size_t(n));
+    std::vector<double> ph(std::size_t(n), 0.0);
     double prev = std::atan2(double(c[0].imag()), double(c[0].real()));
     double acc  = prev;
     ph[0]       = acc;
@@ -665,7 +665,7 @@ void SimSource::build_fractional_tables() {
     const double beta = 8.6;
     const double i0b  = bessel_i0(beta);
     const int    half = kSincTaps / 2 - 1;    ///< where the kernel's peak sits
-    std::vector<double> h(std::size_t(kSincTaps));
+    std::vector<double> h(std::size_t(kSincTaps), 0.0);
 
     for (int q = 0; q < kFracSteps; ++q) {
         const double frac = double(q) / kFracSteps;
