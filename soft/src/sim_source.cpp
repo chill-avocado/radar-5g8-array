@@ -1007,8 +1007,8 @@ bool SimSource::open(const Config& c) {
     set_levels();
 
     // Phase noise runs over the whole interval, plus enough history in front of
-    // the first chirp to look back by the longest delay in the scene.
-    phi_.assign(std::size_t(g_.n_chirp_total) * g_.n_pri + 1024, 0.0f);
+    // the first chirp for the longest delay class to look back into.
+    phi_.assign(std::size_t(g_.n_chirp_total) * g_.n_pri + 2 * kPhiPad, 0.0f);
     rng_noise_.reseed(scene_.seed ^ 0xA5A5A5A5u);
     phi_state_ = 0;
 
