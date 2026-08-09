@@ -429,7 +429,10 @@ def tx_power_block(b, s, yb, y_bt, inward):
     for k, val in enumerate(("1n", "100n"), start=1):
         b.shunt_0402(f"C{s}9{k}", X_BT1 + 1.7 + (k - 1) * 1.7, y_dec, val, r5,
                      up)
-    b.shunt_0402(f"C{s}93", X_BT1 + 6.5, y_dec, "10u", r5, up, pkg="1210")
+    # its ground pad steps towards the chain, not towards the supply row:
+    # the current monitor sits directly above it
+    b.shunt_0402(f"C{s}93", X_BT1 + 6.5, y_dec, "10u", r5, -up,
+                 pkg="1210")
     # the regulator's output down to the feed row, and out to the left where
     # the receive amplifier's own branch picks it up
     b.line(36.0, y_dec, X_BT1, y_dec, r5, w=0.50)
