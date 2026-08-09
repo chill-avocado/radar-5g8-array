@@ -166,7 +166,7 @@ class Board:
             self.vias += [(x - 0.75, gy - 1.25, VIA_D, VIA_PAD),
                           (x + 0.75, gy - 1.25, VIA_D, VIA_PAD)]
             self._add(rect(x - w / 2, y - c, x + w / 2, y), net)
-            self.labels.append((x + 3.2, y - 2.4, ref, 1.0, "silk"))
+            self.labels.append((x + 3.2, y - 2.4, ref, 1.2, "silk"))
         else:
             self.pads.append((ref + "A", x - c, y, p["w"], p["h"], "sig"))
             self.pads.append((ref + "B", x - c - p["gap"] - p["w"], y,
@@ -176,7 +176,7 @@ class Board:
             self.vias += [(gx - 1.25, y - 0.75, VIA_D, VIA_PAD),
                           (gx - 1.25, y + 0.75, VIA_D, VIA_PAD)]
             self._add(rect(x - w / 2, y - w / 2, x, y + w / 2), net)
-            self.labels.append((x - 2.4, y + 3.2, ref, 1.0, "silk"))
+            self.labels.append((x - 2.4, y + 3.2, ref, 1.2, "silk"))
 
     # ------------------------------------------------------------------
     def protection_site(self, ref, x, y, w):
@@ -203,7 +203,7 @@ class Board:
         self.vias += [(x - 0.75, ygnd - 1.25, VIA_D, VIA_PAD),
                       (x + 0.75, ygnd - 1.25, VIA_D, VIA_PAD)]
         self.labels.append((x, ygnd - 2.6, ref + " LIMITER (DNF)",
-                            1.0, "silk_b"))
+                            1.2, "silk_b"))
         # No hand-drawn window here.  The two pads are on different nets, so
         # one opening across both is a bridge; and they are real pads, so the
         # layout tool already gives each its own opening with resist between.
@@ -234,7 +234,7 @@ class Board:
             for dy in (-1.0, 1.0):
                 self.vias.append((x + dx, y + dy, VIA_D, VIA_PAD))
         self.mask.append(rect(x - 2.2, y - 2.2, x + 2.2, y + 2.2))
-        self.labels.append((x, y + 3.2, "CHASSIS GND", 1.0, "silk"))
+        self.labels.append((x, y + 3.2, "CHASSIS GND", 1.2, "silk"))
 
     def isolation_pour(self, y0, y1):
         """Via-stitched top ground between the two arrays.
@@ -315,7 +315,7 @@ def build(cfg, launch_gap):
         (BW / 2, 69.5, "RO4350B 0.762 mm / 2L / ENIG", 1.1, "silk"),
         (BW / 2, 41.5, "TX ARRAY (RHCP)  spin: x -> y  looking at this face",
          1.2, "silk"),
-        (BW / 2, 39.7, "boresight is out of this face", 1.0, "silk"),
+        (BW / 2, 39.7, "boresight is out of this face", 1.2, "silk"),
         (BW / 2, 102.0, "RX ARRAY (LHCP)  spin: y -> x  looking at this face",
          1.2, "silk"),
     ]

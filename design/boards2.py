@@ -316,12 +316,12 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # first and one of them may be in the middle, so hunt for the clearest
     # horizontal band rather than assuming the centre is free.
     ALL = [(f"5.8 GHz RADAR - {nm}", 1.6),
-           (f"{hand}  d = 25.844 mm", 1.1),
-           ("ZYF300CA-P 0.76 mm / 2L / Ag", 1.1),
-           ("BOND TO GROUND PLATE", 1.1),
-           ("25 mm PAST EVERY PATCH", 1.1),
-           ("MOUNT >= 200 mm APART", 1.1),
-           ("ABSORBER BETWEEN THE BOARDS", 1.1)]
+           (f"{hand}  d = 25.844 mm", 1.2),
+           ("ZYF300CA-P 0.76 mm / 2L / Ag", 1.2),
+           ("BOND TO GROUND PLATE", 1.2),
+           ("25 mm PAST EVERY PATCH", 1.2),
+           ("MOUNT >= 200 mm APART", 1.2),
+           ("ABSORBER BETWEEN THE BOARDS", 1.2)]
     blocked = [(y - MOUNT_PAD / 2 - 1.5, y + MOUNT_PAD / 2 + 1.5)
                for x, y, d, pad in b.mounts if abs(x - W / 2) < W * 0.35]
 
