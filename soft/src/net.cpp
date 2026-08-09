@@ -794,7 +794,7 @@ struct WebServer::Impl {
         // The only file this server will ever read off disk is the display
         // page itself, resolved once at start().  There is no path joining
         // against anything a client sends, so there is nothing to traverse.
-        if (path == "/" || path == "/index.html") { serve_index(c); return true; }
+        if (path == "/" || path == "/index.html") { serve_index(c); return; }
         if (path == "/favicon.ico") {
             queue_raw(c, "HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
             c.want_close = true;
@@ -877,7 +877,8 @@ struct WebServer::Impl {
                 return;
             }
 
-            std::vector<u8> payload(std::size_t(len));
+            const std::size_t plen = std::size_t(len);
+            std::vector<u8> payload(plen);
             for (std::size_t i = 0; i < payload.size(); ++i) payload[i] = u8(p[off + i] ^ mask[i & 3]);
             c.in_pos += off + std::size_t(len);
 
