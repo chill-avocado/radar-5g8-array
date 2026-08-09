@@ -103,7 +103,7 @@ foreach f [glob -nocomplain $b200_top/b200_core.v $b200_top/b200.v] {
 }
 if {!$marker_found} {
     puts "ERROR: the b200 sources have not been patched for the radar core."
-    puts "Run:  fpga/build/integrate_b200.sh $b200_top"
+    puts "Run:  python3 fpga/build/integrate_b200.py $b200_top"
     puts "It is reversible and prints exactly what it changes."
     exit 1
 }
