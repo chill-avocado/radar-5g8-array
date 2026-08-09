@@ -23,11 +23,12 @@
 //   the operator's display.  Instead each output cell is the LARGEST of the
 //   block of cells it stands for, so a target survives decimation with its
 //   peak intact and only its position is coarsened.  The block maximum is
-//   built up incrementally -- a register for the run along Doppler, a
-//   read-modify-write into the map buffer for the run down range -- so it
-//   costs one comparison per input cell whatever the decimation factor.
-//   n_range_out and n_doppler_out fall out of the block counters, so no
-//   division is needed to fill in header word 3.
+//   built up incrementally -- one register carries the run along Doppler and a
+//   small row accumulator carries the run down range -- so it costs a single
+//   comparison per input cell whatever the decimation factor, and each output
+//   cell is written to the map buffer exactly once, on the last input row of
+//   its block.  n_range_out and n_doppler_out fall out of the block counters,
+//   so no division is needed to fill in header word 3.
 //
 // FIELD PLACEMENT DECISIONS
 //   radar_pkg.svh gives explicit bit positions for header word 1 and for the
