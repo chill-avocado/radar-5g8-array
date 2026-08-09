@@ -1211,7 +1211,6 @@ void WebServer::broadcast(const u8* data, std::size_t n) {
     BufPtr frame = make_frame(kOpBinary, data, n);
     p_->queued.fetch_add(1, std::memory_order_relaxed);
 
-    bool woke = false;
     {
         std::lock_guard<std::mutex> lk(p_->tx_mu);
         p_->tx_pending.push_back(frame);
