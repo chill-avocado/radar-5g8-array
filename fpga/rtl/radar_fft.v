@@ -617,7 +617,7 @@ module radar_fft_delay #(
 
         (* ram_style = "block" *)
         reg [W-1:0]  mem [0:DEPTH-1];
-        reg [AW-1:0] wa = {AW{1'b0}};
+        reg [AW-1:0] wa;
         reg [W-1:0]  dor;
 
         wire [AW-1:0] ra = wa + A_ONE;   // DEPTH is a power of two, so it wraps
