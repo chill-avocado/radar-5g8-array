@@ -158,6 +158,13 @@ private:
     std::vector<ci16> rtw_, dtw_; ///< Q0.15 twiddles, forward and inverse
     std::vector<int>  rbrev_, dbrev_;
     int               n_dopp_in_ = 0;
+
+    // Float-path transforms, built the first time the float chain is asked
+    // for.  Planning them costs real time with some backends and the fixed
+    // path -- the one that runs on every frame -- must not pay for it.
+    mutable std::unique_ptr<Fft> fft_r_, fft_d_;
+    mutable std::once_flag       fft_once_;
+    void ensure_float_plans() const;
 };
 
 } // namespace radar
