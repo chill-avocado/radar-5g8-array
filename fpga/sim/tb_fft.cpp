@@ -434,6 +434,68 @@ void run_size(int N, int NLOG2) {
     dut.final();
 }
 
+//----------------------------------------------------------------------------
+// NATURAL_OUT = 0: the results come straight out of the last butterfly in
+// bit-reversed order, with out_idx naming the bin.  Same accuracy, and the
+// reorder buffer's N+1 clocks of latency disappear.
+//----------------------------------------------------------------------------
+template <class DUT>
+void run_reversed(int N, int NLOG2) {
+    DUT dut;
+
+    const int    n_check  = 4;
+    const int    n_frames = n_check + 8;
+    const int    bin      = (N > 137) ? 137 : 37;
+    const double full     = 32767.0;
+
+    uint32_t sch_half = 0;
+    for (int k = 0; k < NLOG2; ++k) sch_half |= (1u << (2 * k));
+
+    std::printf("\n--- N = %d, NATURAL_OUT = 0 (bit-reversed output) ---\n", N);
+
+    std::vector<std::vector<ci>> in;
+    for (int f = 0; f < n_frames; ++f) in.push_back(make_tone(N, bin, full, 0.7 * f));
+
+    RunOut r = stream(dut, N, NLOG2, sch_half, in, n_check, 0, true);
+
+    char line[512];
+    if (!r.complete) {
+        std::snprintf(line, sizeof line, "N=%-4d %-22s  captured %d of %d frames",
+                      N, "bit-reversed output", static_cast<int>(r.frames.size()), n_check);
+        report(false, line);
+        dut.final();
+        return;
+    }
+
+    std::vector<std::vector<cd>> ref;
+    for (int f = 0; f < n_check; ++f) ref.push_back(dft_ref(in[f]));
+    const double rms = rms_dbfs(r.frames, ref);
+
+    bool peak_ok = true;
+    for (int f = 0; f < n_check && peak_ok; ++f) {
+        int h0, h1;
+        top_two(r.frames[f], h0, h1);
+        if (h0 != bin) peak_ok = false;
+    }
+
+    std::snprintf(line, sizeof line,
+                  "N=%-4d %-22s  rms=%8.2f dBFS (limit %.0f)  peak=%d %s  "
+                  "out_idx=bitrev(pos) %s  last=%s  ovf=%d",
+                  N, "bit-reversed output", rms, RMS_LIMIT_DB, bin,
+                  peak_ok ? "ok" : "WRONG", r.idx_ok ? "ok" : "BAD",
+                  r.last_ok ? "ok" : "BAD", r.overflow ? 1 : 0);
+    report(rms < RMS_LIMIT_DB && peak_ok && r.idx_ok && r.last_ok && !r.overflow, line);
+
+    const int expect = 3 * NLOG2 + N - 2;
+    std::snprintf(line, sizeof line,
+                  "N=%-4d %-22s  %d clocks first in_valid to first out_valid "
+                  "(3*NLOG2 + N - 2 = %d)",
+                  N, "latency, reordered off", r.latency, expect);
+    report(r.latency == expect, line);
+
+    dut.final();
+}
+
 } // namespace
 
 // The RTL carries a `timescale, so the Verilated runtime wants a time source.
