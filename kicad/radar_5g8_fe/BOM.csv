@@ -1,0 +1,129 @@
+Ref,Value,Package,Manufacturer part,Note
+RAP1,150R,0402,,
+RAP2,36R,0402,,
+RAP3,150R,0402,,
+CA1,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UA1,PHA-1H+,SOT-89,PHA-1H+,0.05-6 GHz driver
+CA2,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UA2,PMA3-73-1W+,QFN12 3x3,PMA3-73-1W+,the watt; matched to fifty ohms inside the package
+CA3,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+RAF,51R,0402,,loads the forward end of the sampling line
+RBP1,150R,0402,,
+RBP2,36R,0402,,
+RBP3,150R,0402,,
+CB1,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UB1,PHA-1H+,SOT-89,PHA-1H+,0.05-6 GHz driver
+CB2,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+UB2,PMA3-73-1W+,QFN12 3x3,PMA3-73-1W+,the watt; matched to fifty ohms inside the package
+CB3,1n,0402,GRM1555C1H102JA01D,blocking capacitor
+RBF,51R,0402,,loads the forward end of the sampling line
+CC1,100p,0402,GRM1555C1H101JA01D,blocking capacitor; the limiter must never see a direct voltage that arrives on the cable
+DCL,SMP1330-085LF,QFN 3-pin 2x2,SMP1330-085LF,invisible until something large arrives
+LDCL,10n,0402,0402HP-10NXGRW,the limiter's return path; the same trick the amplifier's own bias choke uses
+CC2,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+UC1,PMA3-83LN+,QFN12 3x3,PMA3-83LN+,the sensitivity; matched to fifty ohms inside the package
+CC3,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+RCP1,120R,0402,,
+RCP2,51R,0402,,
+RCP3,120R,0402,,
+DCC1,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+DCC2,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+CC4,100p,0402,GRM1555C1H101JA01D,blocking capacitor; nothing direct-current reaches the radio from this board
+RCF,51R,0402,,loads the far end of the sampling line
+CD1,100p,0402,GRM1555C1H101JA01D,blocking capacitor; the limiter must never see a direct voltage that arrives on the cable
+DDL,SMP1330-085LF,QFN 3-pin 2x2,SMP1330-085LF,invisible until something large arrives
+LDDL,10n,0402,0402HP-10NXGRW,the limiter's return path; the same trick the amplifier's own bias choke uses
+CD2,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+UD1,PMA3-83LN+,QFN12 3x3,PMA3-83LN+,the sensitivity; matched to fifty ohms inside the package
+CD3,100p,0402,GRM1555C1H101JA01D,blocking capacitor
+RDP1,120R,0402,,
+RDP2,51R,0402,,
+RDP3,120R,0402,,
+DDC1,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+DDC2,SMS7630-079LF,SOD-523,SMS7630-079LF,clamps what the radio may see
+CD4,100p,0402,GRM1555C1H101JA01D,blocking capacitor; nothing direct-current reaches the radio from this board
+RDF,51R,0402,,loads the far end of the sampling line
+RAS,0R1,2512,,reads this side's whole supply current
+RAV,27R,2512,,takes most of the regulator's heat off it
+UA3,AMS1117-5.0,SOT-223,AMS1117-5.0,five volts for this side's driver and receive amplifier
+CA5,10u,0805,,the regulator's own output capacitor; 16 V part
+UA4,INA181A2IDBVR,SOT-23-6,INA181A2IDBVR,turns the shunt's sixty millivolts into three volts
+CA80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against; keep its hole to ground short
+CA81,1n,0402,,
+CA82,100n,0402,,
+CA83,10u,1210,,25 V part on the twelve-volt rail
+CA90,100p,0402,,the same job on the driver's feed
+CA91,1n,0402,,
+CA92,100n,0402,,
+CA93,10u,1210,,
+RBS,0R1,2512,,reads this side's whole supply current
+RBV,27R,2512,,takes most of the regulator's heat off it
+UB3,AMS1117-5.0,SOT-223,AMS1117-5.0,five volts for this side's driver and receive amplifier
+CB5,10u,0805,,the regulator's own output capacitor; 16 V part
+UB4,INA181A2IDBVR,SOT-23-6,INA181A2IDBVR,turns the shunt's sixty millivolts into three volts
+CB80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against; keep its hole to ground short
+CB81,1n,0402,,
+CB82,100n,0402,,
+CB83,10u,1210,,25 V part on the twelve-volt rail
+CB90,100p,0402,,the same job on the driver's feed
+CB91,1n,0402,,
+CB92,100n,0402,,
+CB93,10u,1210,,
+FBC,600R,0402,BLM15HD601SN1,keeps the transmitter's supply noise out of the receive amplifier
+CC80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against
+CC81,1n,0402,,
+CC82,100n,0402,,
+FBD,600R,0402,BLM15HD601SN1,keeps the transmitter's supply noise out of the receive amplifier
+CD80,100p,0402,,makes the radio-frequency short the quarter-wave feed works against
+CD81,1n,0402,,
+CD82,100n,0402,,
+J1,2-way,5.08 mm screw terminal,,"twelve volts in, one and a quarter amps"
+F1,1.5 A,1210,MF-MSMF150,resettable fuse
+D5,SMBJ15A,SMB,SMBJ15A,clamps whatever the supply lead picks up
+Q3,AO3401A,SOT-23,AO3401A,blocks a reversed supply and switches the board
+C29,22u,1210,,
+C212,22u,1210,,
+C214,100n,0402,,
+R1,100k,0402,,holds the switch on
+C1,100n,0402,,brings the switch up over ten milliseconds
+D6,10V,0402,BZX84C10,keeps the transistor's gate inside its rating
+Q4,2N7002,SOT-23,2N7002,holds the switch on; the enable line lets go of it
+R2,100k,0402,,pulls the enable line up if nothing drives it
+R3,47k,0402,,
+RAT,51R,0402,,the sampling line's own load
+DA1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CAD0,100p,0402,,
+RAD1,10k,0402,,
+CAD2,10n,0402,,
+RAO,1k,0402,,keeps the reading off the radio-frequency side
+RBT,51R,0402,,the sampling line's own load
+DB1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CBD0,100p,0402,,
+RBD1,10k,0402,,
+CBD2,10n,0402,,
+RBO,1k,0402,,keeps the reading off the radio-frequency side
+RCT,51R,0402,,the sampling line's own load
+DC1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CCD0,100p,0402,,
+RCD1,10k,0402,,
+CCD2,10n,0402,,
+RCO,1k,0402,,keeps the reading off the radio-frequency side
+RDT,51R,0402,,the sampling line's own load
+DD1,SMS7630,0402,SMS7630-079LF,zero-bias detector diode
+CDD0,100p,0402,,
+RDD1,10k,0402,,
+CDD2,10n,0402,,
+RDO,1k,0402,,keeps the reading off the radio-frequency side
+RTA,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
+RTB,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
+J5,8x2 header,2.54 mm,,
+TX1_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+TX1_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
+TX2_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+TX2_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
+RX1_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
+RX1_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+RX2_ANT,142-0701-801,SMA jack end launch,Cinch 142-0701-801,antenna cable; 0.062 in board
+RX2_RADIO,142-0711-841,SMA plug end launch,Cinch 142-0711-841,mates straight onto the radio; 0.062 in board
+H1-H8,M3 x 6 pan head and washer,M3,,four of the eight sit beside the amplifiers and carry their heat
+TIM,"thermal pad 0.5 mm, 3 W/mK",10 x 10 mm,,"under each amplifier, between the bare underside and the chassis"
