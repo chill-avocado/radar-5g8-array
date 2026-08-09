@@ -26,6 +26,7 @@ from openEMS import openEMS
 HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN = HERE
 sys.path.insert(0, DESIGN)
+sys.path.insert(0, HERE)
 TOPO = os.environ.get("TOPO", "square")
 if TOPO == "diamond":
     from element3 import Element                              # noqa: E402
