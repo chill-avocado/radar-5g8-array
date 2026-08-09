@@ -274,7 +274,8 @@ than by a delicately clipped corner, it holds up far better.
 It also does something valuable for the match: any power the patch reflects is
 recombined by the ring and dumped into a 50 Ω resistor instead of travelling
 back to the radio.  That is why the input match holds below −10 dB from
-5.70 GHz to past 6.1 GHz while the patch itself is far narrower than that.
+5.715 to 5.890 GHz -- 175 MHz, measured on the final tuning -- while the
+patch itself is far narrower than that.
 
 ### Things the simulation found that the textbook formulas got wrong
 
@@ -284,8 +285,9 @@ These are worth recording, because each one would have produced a dead board:
   predicts.**  The textbook figure would have called for a 0.025 mm-wide
   matching line — thinner than any fab can etch.  An exact match to 311 ohm
   still wants 124.7 ohm, which is a 0.16 mm line; the board uses 110 ohm on a
-  comfortable 0.26 mm line instead and lets the coupler dump the residual
-  4 % into the terminating resistors.  That is the mechanism working as
+  comfortable 0.34 mm line instead and lets the coupler dump the residual
+  into the terminating resistors: measured 5.6 % at band centre and 30.3 % at
+  5.725 GHz, which is why those parts are 1 W 0805s and not 0402s.  That is the mechanism working as
   designed, not a rounding error.
 - **A deep notch cut into the patch to feed it destroys the polarisation.**
   Cutting a 2.7 mm slot dropped the isolation between the two feed points from
@@ -588,6 +590,14 @@ that matter:
 | Minimum track | 0.34 mm |
 | Minimum hole | 0.40 mm |
 | Copper to board edge | at the launches, **intentional** — do not pull it back |
+
+Both boards are the same rectangle in different orientations, so they panelise
+**stacked, not side by side**: 71.4 × 96.5 mm including a 2 mm score, which is
+inside the 100 × 100 mm base price.  Put both launch edges outward so the
+scored seam runs where the copper is already pulled 1.2 mm back.
+
+Each board directory now carries its own `FAB_DRAWING_*.pdf`, `BOM_*.csv`,
+`*_cpl_jlcpcb.csv` and `*_jlcpcb.zip`, generated from the live board file.
 
 ### RO4350B single board (verified reference design)
 
