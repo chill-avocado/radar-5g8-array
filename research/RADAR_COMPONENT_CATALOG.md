@@ -1222,7 +1222,7 @@ including external clock/time alignment and timed command scheduling:
 ```cpp
 // Synchronous multi-channel streaming setup
 uhd::stream_args_t stream_args("fc32", "sc16");
-stream_args.channels = {0, 1, 2, 3}; // 4-channel synchronous reception
+stream_args.channels = {0, 1}; // 2-channel synchronous reception (B210: 2 RX via one AD9361)
 uhd::rx_streamer::sptr rx_stream = usrp->get_rx_stream(stream_args);
 
 // External clock & nanosecond time alignment
