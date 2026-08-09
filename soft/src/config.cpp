@@ -273,11 +273,6 @@ std::string Config::validate() const {
                fmti("%lld", n_range) + " by " + fmti("%lld", n_doppler) +
                ". Shrink the guard or training cells.";
     }
-    if (mimo == MimoMode::Ddm && (n_chirp & 1)) {
-        return "Doppler-division needs an even number of chirps, because transmitter 1 is "
-               "inverted on every other one and an odd count leaves the pattern unbalanced. " +
-               fmti("%lld", n_chirp) + " is odd.";
-    }
     if (t.d.vel_max_ms < 40.0) {
         return "Anything moving faster than " + fmt("%.1f", t.d.vel_max_ms) +
                " m/s would be reported at the wrong speed, and a small drone does better than "

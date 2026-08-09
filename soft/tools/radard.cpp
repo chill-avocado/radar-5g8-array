@@ -31,6 +31,7 @@
 #include <vector>
 
 using namespace radar;
+using namespace radar::proto;
 
 namespace {
 
@@ -201,18 +202,18 @@ int main(int argc, char** argv) {
             Json m;
             try { m = Json::parse(text); }
             catch (const std::exception& e) { LOG_W("bad control message: %s", e.what()); return; }
-            const std::string cmd = m["cmd"].as_string();
-            if      (cmd == "pfa")        pipe.set_pfa(m["value"].as_double(1e-5));
-            else if (cmd == "zero_dopp")  pipe.set_zero_dopp_blank(int(m["value"].as_int(2)));
-            else if (cmd == "dynrange")   pipe.set_dynamic_range_db(m["value"].as_double(60));
-            else if (cmd == "freeze")     pipe.freeze(m["value"].as_bool(false));
+            const std::string cmd = m["cmd"].str();
+            if      (cmd == "pfa")        pipe.set_pfa(m["value"].num(1e-5));
+            else if (cmd == "zero_dopp")  pipe.set_zero_dopp_blank(m["value"].integer(2));
+            else if (cmd == "dynrange")   pipe.set_dynamic_range_db(m["value"].num(60));
+            else if (cmd == "freeze")     pipe.freeze(m["value"].boolean(false));
             else if (cmd == "cfar") {
-                const std::string k = m["value"].as_string("ca");
+                const std::string k = m["value"].str("ca");
                 pipe.set_cfar_kind(k == "os" ? CfarKind::Os : k == "go" ? CfarKind::Go
                                  : k == "so" ? CfarKind::So : k == "none" ? CfarKind::None
                                                                           : CfarKind::Ca);
             } else if (cmd == "aoa") {
-                const std::string k = m["value"].as_string("music");
+                const std::string k = m["value"].str("music");
                 pipe.set_aoa_method(k == "monopulse" ? AoaMethod::Monopulse
                                   : k == "bartlett"  ? AoaMethod::Bartlett
                                   : k == "capon"     ? AoaMethod::Capon : AoaMethod::Music);
@@ -289,7 +290,7 @@ int main(int argc, char** argv) {
         NetTally net;
         net.clients = web->clients();
         net.bytes_sent = web->bytes_sent();
-        net.dropped = web->dropped_frames();
+        net.dropped_frames = web->dropped_frames();
         encode_stats(buf, s, net, cfg.source, f.index, t);
 
         // One track's micro-Doppler per frame, round-robin, so the link is not
