@@ -239,8 +239,12 @@ class Board:
         return True
 
     # ------------------------------------------------------------- connectors
-    def sma_launch(self, name, pt, side, w=None):
-        """Grounded-coplanar end launch, identical to the array boards'."""
+    def sma_launch(self, name, pt, side, w=None, label_dy=None):
+        """Grounded-coplanar end launch, identical to the array boards'.
+
+        label_dy moves the printed name off its default place, for the
+        connectors whose default place is already taken by a coupler.
+        """
         w = self.W50 if w is None else w
         g, depth, half = self.launch_gap, 4.30, 5.60
         x, y = pt
@@ -270,7 +274,7 @@ class Board:
                 self._via(xx, y + w / 2 + g + 0.85, VIA_D, VIA_PAD)
         # the connector's name is drawn once, by the board generator, from
         # this list -- putting it here as well printed it twice
-        self.ports.append((name, x, y, side))
+        self.ports.append((name, x, y, side, label_dy))
 
     # ------------------------------------------------------------ bought parts
     def amplifier(self, ref, kind, cx, cy, rot=0, thermal=True):

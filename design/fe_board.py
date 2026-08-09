@@ -236,7 +236,7 @@ def tx_channel(b, s, tag, y, y_j, inward):
     b.line(x_end, y, x_end + X_TAP_GAP, y, n_f)
     fwd, rev = b.tap(f"DC{s}", x_end + X_TAP_GAP, y, inward, n_f, n_cpl)
     b.line(fwd[0] + TAP["len_mm"], y, BW - PULLBACK, y, n_f)
-    b.sma_launch(f"{tag}_ANT", (BW, y), "right")
+    b.sma_launch(f"{tag}_ANT", (BW, y), "right", label_dy=-inward * 4.2)
 
     # The forward end of the sampling line has to be loaded or the coupler is
     # not a coupler, it is a pair of reflections adding themselves to the
@@ -267,7 +267,7 @@ def rx_channel(b, s, tag, y, y_j, inward, rail):
     n_t, n_p, n_o = f"{tag}_T", f"{tag}_P", f"{tag}_OUT"
     n_cpl = f"{tag}_CPL"
 
-    b.sma_launch(f"{tag}_ANT", (BW, y), "right")
+    b.sma_launch(f"{tag}_ANT", (BW, y), "right", label_dy=-inward * 4.2)
     b.line(XR_C1 + 0.585, y, BW - PULLBACK, y, n_in)
     b.series_0402(f"C{s}1", XR_C1, y, "100p", n_l, n_in,
                   mpn="GRM1555C1H101JA01D",

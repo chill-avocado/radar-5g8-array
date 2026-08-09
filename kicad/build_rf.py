@@ -403,7 +403,11 @@ for prt in D["ports"]:
     t.SetText(n)
     dx, dy = {"left": (14.0, 3.2), "right": (-14.0, 3.2),
               "top": (0.0, -2.6), "bottom": (0.0, 2.6)}[side]
-    if n.endswith("_FWD") or n.endswith("_INJ"):
+    if len(prt) > 4 and prt[4] is not None:
+        # the board asked for this one to sit somewhere particular, because
+        # the standard place is occupied by a coupler or a detector
+        dy = float(prt[4])
+    elif n.endswith("_FWD") or n.endswith("_INJ"):
         # the sample connector's label goes on whichever side of its line the
         # detector chain is not
         dx, dy = -16.0, (-2.7 if n[2] == "1" else 2.7)
