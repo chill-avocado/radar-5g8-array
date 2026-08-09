@@ -15,6 +15,8 @@
 //
 // Exit status is non-zero if any check fails.
 //============================================================================
+#include <algorithm>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
