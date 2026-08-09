@@ -656,20 +656,22 @@ void SimSource::fit_waveform() {
 void SimSource::build_fractional_tables() {
     const auto& c = wf_->chirp_float();
     const int   n = g_.n_sweep;
-    tstride_      = n + 2 * kSincTaps;
+    tstride_      = n;
     tr_.assign(std::size_t(kFracSteps) * tstride_, 0.0f);
     ti_.assign(std::size_t(kFracSteps) * tstride_, 0.0f);
 
     const double beta = 8.6;
     const double i0b  = bessel_i0(beta);
+    const int    half = kSincTaps / 2 - 1;    ///< where the kernel's peak sits
     std::vector<double> h(std::size_t(kSincTaps));
 
     for (int q = 0; q < kFracSteps; ++q) {
         const double frac = double(q) / kFracSteps;
         double       sum  = 0;
         for (int t = 0; t < kSincTaps; ++t) {
-            // Tap t of a filter whose peak sits at kSincTaps/2 - 1 + frac.
-            const double x = double(t) - (double(kSincTaps) / 2.0 - 1.0) - frac;
+            // A filter with group delay (half + frac) samples: taps are the
+            // sinc sampled about that point, tapered by a Kaiser window.
+            const double x = double(t) - (double(half) + frac);
             const double s = (std::fabs(x) < 1e-12) ? 1.0 : std::sin(kPi * x) / (kPi * x);
             const double u = 2.0 * double(t) / double(kSincTaps - 1) - 1.0;
             const double w = bessel_i0(beta * std::sqrt(std::max(0.0, 1.0 - u * u))) / i0b;
@@ -680,16 +682,20 @@ void SimSource::build_fractional_tables() {
 
         float* dr = tr_.data() + std::size_t(q) * tstride_;
         float* di = ti_.data() + std::size_t(q) * tstride_;
-        for (int i = 0; i < n + kSincTaps; ++i) {
+        // table[m] = sum_t h[t] * s[m + half - t], which is s(m - frac).  The
+        // waveform is zero outside the sweep, which is physically right: before
+        // the ramp starts the transmitter is in its retrace and radiating
+        // nothing at all.
+        for (int m = 0; m < n; ++m) {
             double ar = 0, ai = 0;
             for (int t = 0; t < kSincTaps; ++t) {
-                const int src = i - (kSincTaps / 2 - 1) + t - kSincTaps / 2;
+                const int src = m + half - t;
                 if (src < 0 || src >= n) continue;
                 ar += h[std::size_t(t)] * double(c[std::size_t(src)].real());
                 ai += h[std::size_t(t)] * double(c[std::size_t(src)].imag());
             }
-            dr[kSincTaps + i - kSincTaps] = float(ar);
-            di[kSincTaps + i - kSincTaps] = float(ai);
+            dr[m] = float(ar);
+            di[m] = float(ai);
         }
     }
 }
