@@ -33,9 +33,11 @@
 //   radar_halfband keeps its plain port list.
 //
 //   The sequencer should hold `flush` during the retrace, when adc_gate is
-//   low; releasing it at the start of a sweep gives a clean record whose first
-//   (NTAPS1 + 2*NTAPS2)/4 output samples are still filling the pipe.  Those
-//   land inside the zero-padded tail of the window, so nothing is lost.
+//   low.  Releasing it at the start of a sweep gives a clean record whose
+//   first dozen or so output samples are still the filter filling: the group
+//   delay is (NTAPS1-1)/2 + (NTAPS2-1) = 45 input samples, 11 output samples,
+//   plus the 8-clock pipeline.  Those land in the first range bins, which the
+//   transmit-leakage blanking discards anyway.
 //
 // LATENCY
 //   8 clocks from the input sample that completes an output to that output
