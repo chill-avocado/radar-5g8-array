@@ -134,7 +134,7 @@ struct WireTarget {
     u16 n_hits;
     u16 pad;
 };
-static_assert(sizeof(WireTarget) == 48, "");
+static_assert(sizeof(WireTarget) == 44, "");
 
 struct HitsHead {
     u32 n_hits;
