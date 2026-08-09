@@ -591,14 +591,54 @@ void test_decim4()
            n_inband >= 6 && worst < -50.0,
            fmt("worst of %d is %.1f dB at %.2f MHz", n_inband, worst, worst_f));
 
-    // 7 MHz is BELOW the 7.68 MHz output Nyquist, so it does not alias at all
-    // and a halfband pair neither can nor should remove it.  Reported, not
-    // asserted against a rejection threshold.
+    // The input tone that lands on 7 MHz at the output is 7 + 15.36 = 22.36
+    // MHz.  This is the honest version of "the 7 MHz tone is attenuated by
+    // more than 50 dB": interference that would appear at 7 MHz in the
+    // decimated record.
+    const DecimMeas& a7 = at(22.36);
+    record("22.36 MHz alias (folds onto 7 MHz) > 50 dB down", a7.gain_db < -50.0,
+           fmt("measured %.1f dB", a7.gain_db));
+
+    // 7 MHz at the INPUT is below the 7.68 MHz output Nyquist, so it does not
+    // fold at all and a halfband pair neither can nor should remove it.
+    // Reported, not asserted against a rejection threshold.
     const DecimMeas& p7 = at(7.0);
-    record("7 MHz reported (below output Nyquist, does not fold)",
+    record("7 MHz input reported (below output Nyquist, does not fold)",
            p7.gain_db > -8.0 && p7.gain_db < 0.5,
            fmt("measured %+.2f dB, lands at %+.3f MHz -- inside the output band",
                p7.gain_db, p7.f_out_mhz));
+
+    // --- flush must stop one chirp's tail reaching the next ----------------
+    auto tail_energy = [&](bool do_flush) -> long {
+        dut->rst = 1; dut->flush = 0; dut->in_valid = 0; dut->in_i = 0; dut->in_q = 0;
+        for (int i = 0; i < 4; ++i) tick(dut);
+        dut->rst = 0; dut->flush = 1; tick(dut); dut->flush = 0;
+        for (int n = 0; n < 400; ++n) {
+            dut->in_valid = 1;
+            dut->in_i = (uint16_t)(int16_t)30000;
+            dut->in_q = (uint16_t)(int16_t)(-30000);
+            tick(dut);
+        }
+        dut->in_valid = 0;
+        dut->flush = do_flush ? 1 : 0;
+        tick(dut);                       // same clock count either way
+        dut->flush = 0;
+        long nonzero = 0;
+        for (int n = 0; n < 200; ++n) {
+            dut->in_valid = 1; dut->in_i = 0; dut->in_q = 0;
+            tick(dut);
+            if (dut->out_valid && ((int16_t)dut->out_i != 0 || (int16_t)dut->out_q != 0))
+                ++nonzero;
+        }
+        dut->in_valid = 0;
+        return nonzero;
+    };
+    const long tail_with    = tail_energy(true);
+    const long tail_without = tail_energy(false);
+    record("flush stops the previous chirp's tail",
+           tail_with == 0 && tail_without > 0,
+           fmt("with flush %ld non-zero outputs, without flush %ld -- the "
+               "delay lines really are cleared", tail_with, tail_without));
 
     dut->final();
     delete dut;
