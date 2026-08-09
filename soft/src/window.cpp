@@ -94,26 +94,6 @@ std::vector<double> padded_magnitude(const std::vector<float>& w, std::size_t& n
     return mag;
 }
 
-/// Modified Bessel function of the first kind, order zero.  Used by Kaiser and
-/// by nothing else in the DSP, so it lives here rather than in core.hpp.
-double bessel_i0(double x) {
-    double sum = 1.0, term = 1.0;
-    const double hx = x * 0.5;
-    for (int k = 1; k < 200; ++k) {
-        term *= (hx / double(k)) * (hx / double(k));
-        sum  += term;
-        if (term < 1e-18 * sum) break;
-    }
-    return sum;
-}
-
-/// Chebyshev polynomial of the first kind, order m, on the whole real line.
-double cheby_T(int m, double x) {
-    if (x >= 1.0)  return std::cosh(double(m) * std::acosh(x));
-    if (x <= -1.0) return (m % 2 ? -1.0 : 1.0) * std::cosh(double(m) * std::acosh(-x));
-    return std::cos(double(m) * std::acos(x));
-}
-
 //----------------------------------------------------------------------------
 // The cosine-sum family, in the periodic (DFT-even) definition: the argument
 // steps 2*pi*n/N rather than 2*pi*n/(N-1).  That is the definition the

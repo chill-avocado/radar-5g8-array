@@ -104,10 +104,10 @@ module radar_fft #(
     output reg                       overflow    // sticky until rst
 );
 
-    localparam [NLOG2-1:0] IDX_ZERO = 0;
-    localparam [NLOG2-1:0] IDX_ONE  = 1;
-    localparam [NLOG2-1:0] IDX_LAST = N - 1;
-    localparam [NLOG2-1:0] PRIME_END = N - 2;   // N-1 flush samples: 0 .. N-2
+    localparam [NLOG2-1:0] IDX_ZERO  = 0;
+    localparam [NLOG2-1:0] IDX_ONE   = 1;
+    localparam [NLOG2-1:0] IDX_LAST  = {NLOG2{1'b1}};              // N-1
+    localparam [NLOG2-1:0] PRIME_END = {{(NLOG2-1){1'b1}}, 1'b0};  // N-2
 
     //------------------------------------------------------------------------
     // The stage chain.  Element 0 is the module input, element NLOG2 is the
@@ -427,15 +427,18 @@ module radar_fft_stage #(
         reg signed [TW_W-1:0] rom_c [0:DEPTH-1];
         reg signed [TW_W-1:0] rom_s [0:DEPTH-1];
 
-        integer t;
+        integer t, ci, si;
         real    ang, cv, sv;
         initial begin
             for (t = 0; t < DEPTH; t = t + 1) begin
                 ang = (-2.0 * 3.14159265358979323846 * t) / (2.0 * DEPTH);
                 cv  = 32767.0 * $cos(ang);
                 sv  = 32767.0 * $sin(ang);
-                rom_c[t] = (cv >= 0.0) ? $rtoi(cv + 0.5) : $rtoi(cv - 0.5);
-                rom_s[t] = (sv >= 0.0) ? $rtoi(sv + 0.5) : $rtoi(sv - 0.5);
+                // round half away from zero
+                ci  = (cv >= 0.0) ? $rtoi(cv + 0.5) : $rtoi(cv - 0.5);
+                si  = (sv >= 0.0) ? $rtoi(sv + 0.5) : $rtoi(sv - 0.5);
+                rom_c[t] = ci[TW_W-1:0];
+                rom_s[t] = si[TW_W-1:0];
             end
         end
 
