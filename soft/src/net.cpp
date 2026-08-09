@@ -1180,13 +1180,15 @@ bool WebServer::start(std::string& err) {
 void WebServer::stop() {
     if (!p_ || !p_->up.exchange(false)) return;
     p_->quit.store(true);
-    p_->poke();
+    { std::lock_guard<std::mutex> lk(p_->tx_mu); p_->poke(); }
     if (p_->thread.joinable()) p_->thread.join();
     if (p_->listen_fd >= 0) { ::close(p_->listen_fd); p_->listen_fd = -1; }
-    if (p_->wake_r >= 0)    { ::close(p_->wake_r); p_->wake_r = -1; }
-    if (p_->wake_w >= 0)    { ::close(p_->wake_w); p_->wake_w = -1; }
     {
+        // Under the same lock broadcast() holds, so a broadcast in flight on
+        // another thread cannot be left writing into a recycled descriptor.
         std::lock_guard<std::mutex> lk(p_->tx_mu);
+        if (p_->wake_w >= 0) { ::close(p_->wake_w); p_->wake_w = -1; }
+        if (p_->wake_r >= 0) { ::close(p_->wake_r); p_->wake_r = -1; }
         p_->tx_pending.clear();
         p_->tx_pending_bytes = 0;
     }
