@@ -37,10 +37,9 @@ body{
 /* ---------------------------------------------------------------- layout */
 #app{display:flex;flex-direction:column;height:100%}
 #status{
-  display:flex;align-items:stretch;gap:0;flex:0 0 38px;
+  display:flex;align-items:stretch;flex-wrap:wrap;flex:0 0 auto;
   background:linear-gradient(#101722,#0b1017);
   border-bottom:1px solid var(--line2);
-  overflow-x:auto;overflow-y:hidden;white-space:nowrap;
 }
 #grid{
   flex:1 1 auto;display:grid;gap:8px;padding:8px;min-height:0;
@@ -69,8 +68,8 @@ body{
   border-bottom:1px solid var(--line);background:var(--panel2);
   border-radius:3px 3px 0 0;
 }
-.ptitle{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-weight:600}
-.pmeta{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptitle{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-weight:600;white-space:nowrap;flex:0 0 auto}
+.pmeta{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-left:auto;flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbody{flex:1 1 auto;position:relative;min-height:0;min-width:0}
 canvas{display:block}
 #rd-gl,#rd-ov,#plan-cv,#mic-cv{position:absolute;top:0;left:0}
@@ -79,7 +78,7 @@ canvas{display:block}
 /* --------------------------------------------------------------- status */
 .chip{
   display:flex;flex-direction:column;justify-content:center;flex:0 0 auto;
-  padding:0 11px;border-right:1px solid var(--line);white-space:nowrap;
+  padding:0 10px;min-height:38px;border-right:1px solid var(--line);white-space:nowrap;
 }
 .chip .k{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);line-height:1.25}
 .chip .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;line-height:1.25;color:var(--ink)}
@@ -90,7 +89,7 @@ canvas{display:block}
 .chip.okish .v{color:var(--good)}
 .chip.flash{animation:flash .9s steps(1,end) 3}
 @keyframes flash{0%,49%{background:rgba(255,95,86,.42)}50%,100%{background:rgba(255,95,86,.10)}}
-#brand{display:flex;flex-direction:column;justify-content:center;flex:0 0 auto;padding:0 13px;border-right:1px solid var(--line2)}
+#brand{display:flex;flex-direction:column;justify-content:center;flex:0 0 auto;min-height:38px;padding:0 12px;border-right:1px solid var(--line2)}
 #brand .t{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700}
 #brand .s{font-size:9px;color:var(--ink3);letter-spacing:.08em}
 #status .spacer{flex:1 1 auto;border:0;min-width:8px}
@@ -204,9 +203,9 @@ button.wide{width:100%;margin-top:5px}
     <div class="chip" id="c-link"><div class="k">Link</div><div class="v"><span class="dot wait"></span><span id="v-link">connecting</span></div></div>
     <div class="chip" id="c-src"><div class="k">Source</div><div class="v" id="v-src">&mdash;</div></div>
     <div class="chip" id="c-fps"><div class="k">Frame rate</div><div class="v"><span id="v-fps">--.-</span> <span style="color:var(--ink3);font-size:10px">Hz</span></div></div>
-    <div class="chip" id="c-cpu"><div class="k">Pipeline CPU</div><div class="v" id="v-cpu">--%<div class="cpubar"><i id="v-cpubar"></i></div></div></div>
     <div class="chip" id="c-ovf"><div class="k">Overflows</div><div class="v" id="v-ovf">0</div></div>
     <div class="chip" id="c-drp"><div class="k">Dropped</div><div class="v" id="v-drp">0</div></div>
+    <div class="chip" id="c-cpu"><div class="k">Pipeline CPU</div><div class="v" id="v-cpu">--%<div class="cpubar"><i id="v-cpubar"></i></div></div></div>
     <div class="chip" id="c-skip"><div class="k">Display skip</div><div class="v" id="v-skip">0</div></div>
     <div class="chip" id="c-bps"><div class="k">Link rate</div><div class="v" id="v-bps">0.00 MB/s</div></div>
     <div class="chip" id="c-trk"><div class="k">Tracks</div><div class="v" id="v-trk">0</div></div>
@@ -1185,9 +1184,9 @@ const Plan = (() => {
       const tag = "T" + t.id + (t.label ? " " + t.label : "");
       c.fillStyle = sel ? "#ffd479" : "rgba(201,214,230,0.9)";
       c.fillText(tag, px + 9, py - 8);
-      if (S.grid){
-        c.fillStyle = "rgba(127,144,166,0.9)";
-        c.fillText(t.range.toFixed(0) + " m  " + (t.speed).toFixed(1) + " m/s", px + 9, py + 6);
+      if (sel){
+        c.fillStyle = "rgba(255,212,121,0.85)";
+        c.fillText(t.range.toFixed(0) + " m  " + t.speed.toFixed(1) + " m/s", px + 9, py + 6);
       }
     }
 

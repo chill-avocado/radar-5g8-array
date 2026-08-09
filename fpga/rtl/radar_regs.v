@@ -122,6 +122,11 @@ module radar_regs #(
     output reg                  version_stb         // 1-cycle pulse
 );
 
+    // The two window tables share one 32-bit data register; presenting the
+    // halves saves every consumer from slicing it and getting the order wrong.
+    assign win_data_r = win_data[15:0];
+    assign win_data_d = win_data[31:16];
+
     always @(posedge clk) begin
         if (rst) begin
             ctrl_enable       <= DEF_CTRL[0];
