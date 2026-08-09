@@ -241,19 +241,18 @@ module radar_cfar2d #(
     reg [31:0] lb0 [LBDEPTH-1:0];
     reg [31:0] lb1 [LBDEPTH-1:0];
 
-    // slot(offset) = (wr_slot - offset) mod l_act
-    function [4:0] slot_of;
-        input [5:0] off;
-        reg   [5:0] t;
-        begin
-            t = (wr_slot >= off) ? (wr_slot - off) : (wr_slot + l_act - off);
-            slot_of = t[4:0];
-        end
-    endfunction
+    // slot(offset) = (wr_slot - offset) mod l_act.  Always below LMAX = 25,
+    // so the top bit of the six-bit intermediate is dead by construction.
+    /* verilator lint_off UNUSEDSIGNAL */
+    wire [5:0] slot_bc6 = (wr_slot >= off_bc) ? (wr_slot - off_bc)
+                                              : (wr_slot + l_act - off_bc);
+    wire [5:0] slot_ab6 = (wr_slot >= off_ab) ? (wr_slot - off_ab)
+                                              : (wr_slot + l_act - off_ab);
+    /* verilator lint_on UNUSEDSIGNAL */
 
-    wire [LBAW-1:0] lb_addr_w  = {wr_slot[4:0],       d_cnt[DSHIFT-1:0]};
-    wire [LBAW-1:0] lb_addr_bc = {slot_of(off_bc),    d_cnt[DSHIFT-1:0]};
-    wire [LBAW-1:0] lb_addr_ab = {slot_of(off_ab),    d_cnt[DSHIFT-1:0]};
+    wire [LBAW-1:0] lb_addr_w  = {wr_slot[4:0],  d_cnt[DSHIFT-1:0]};
+    wire [LBAW-1:0] lb_addr_bc = {slot_bc6[4:0], d_cnt[DSHIFT-1:0]};
+    wire [LBAW-1:0] lb_addr_ab = {slot_ab6[4:0], d_cnt[DSHIFT-1:0]};
 
     reg [31:0] q_leave;   // the row that has just fallen out of the window
     reg [31:0] q_bc;      // the row crossing from C into B
@@ -403,7 +402,7 @@ module radar_cfar2d #(
     wire [ACCW-1:0] SBi_n = frame_first ? ((tap_bi_in == 6'd0) ? xB2 : ACCZ)
                                         : (SBi + xBii - xBio);
 
-    reg        v3, lst3;
+    reg        v3;
     reg [8:0]  r3;
     reg [9:0]  d3;
     reg [ACCW-1:0] SA3, SC3, tr3;
@@ -437,7 +436,6 @@ module radar_cfar2d #(
         if (v2) begin
             r3   <= r2;
             d3   <= d2;
-            lst3 <= lst2;
             SA3  <= SA_n;
             SC3  <= SC_n;
             tr3  <= (SA_n + SB_n + SC_n) - SBi_n;
@@ -463,7 +461,7 @@ module radar_cfar2d #(
                                                    // fraction and are dropped
     /* verilator lint_on UNUSEDSIGNAL */
 
-    reg        v4, lst4;
+    reg        v4;
     reg [8:0]  r4;
     reg [9:0]  d4;
     reg [ACCW+RECW-25:0] prod4;
@@ -474,7 +472,6 @@ module radar_cfar2d #(
         if (v3) begin
             r4    <= r3;
             d4    <= d3;
-            lst4  <= lst3;
             prod4 <= prod_full[ACCW+RECW-1:24];
         end
     end
@@ -489,7 +486,7 @@ module radar_cfar2d #(
                                                    // are the fraction
     /* verilator lint_on UNUSEDSIGNAL */
 
-    reg        v5, lst5;
+    reg        v5;
     reg [8:0]  r5;
     reg [9:0]  d5;
     reg [31:0] noise5_r;
@@ -501,7 +498,6 @@ module radar_cfar2d #(
         if (v4) begin
             r5       <= r4;
             d5       <= d4;
-            lst5     <= lst4;
             noise5_r <= noise5;
             thr5     <= thr_full[63:16];
         end
@@ -522,7 +518,7 @@ module radar_cfar2d #(
     wire [7:0] cut_r = r5[7:0] - {3'd0, w_r};
     wire [9:0] cut_d = d5 - {5'd0, w_d};
 
-    wire in_body = (r5 >= ({4'd0, w_r} + {4'd0, w_r})) &&
+    wire in_body = (r5 >= ({4'd0, w_r} + {4'd0, w_r})) && (r5 < q_nr) &&
                    (d5 >= ({5'd0, w_d} + {5'd0, w_d}));
     wire blanked = (cut_d <= {2'd0, q_zd}) ||
                    ((cut_d + {2'd0, q_zd}) >= q_nd);
