@@ -108,6 +108,9 @@ Y_DEC_OFF = 1.4                         # decoupling row, off a feed's end
 Y_DET_OFF = 3.5                         # detector row, off the sampling line
 X_V12_IN = 50.0                         # where the buried twelve volts lands
 X_V5_BR = 23.5                          # the receive amplifiers' supply branch
+# The one clear corridor between the transmit final's ring of holes and the
+# receive amplifier's: 2.5 mm wide, and the thermistor and its run share it.
+X_TEMP = 55.75
 
 # One regulator per side, feeding that side's transmit driver AND the receive
 # amplifier next to it.  A hundred and ninety milliamps is small enough that
@@ -338,7 +341,7 @@ def detector(b, s, tag, port, inward):
                                     ("C", "10n"))):
         xk = xs - 1.20 - k * 1.70
         b.line(xk, y_run, xs, y_run, n_v, w=0.60)
-        b.shunt_0402(f"{ref}{s}D{k}", xk, y_run, val, n_v, inward)
+        b.shunt_0402(f"{ref}{s}D{k}", xk, y_run, val, n_v, -inward)
     xr = xs - 1.20 - 2 * 1.70
     b.series_0402(f"R{s}O", xr - 1.80, y_run, "1k", n_o, n_v,
                   note="keeps the reading off the radio-frequency side")
@@ -420,11 +423,12 @@ def tx_power_block(b, s, yb, y_bt, inward):
                  note="25 V part on the twelve-volt rail")
     b.shunt_0402(f"C{s}90", X_BT1, y_bt + up * 0.62, "100p", r5, -1,
                  axis="x", note="the same job on the driver's feed")
-    b.line(X_BT1, y_dec, X_BT1 + 11.4, y_dec, r5, w=0.50)
+    b.line(X_BT1, y_dec, X_BT1 + 9.4, y_dec, r5, w=0.50)
     for k, val in enumerate(("1n", "100n"), start=1):
         b.shunt_0402(f"C{s}9{k}", X_BT1 + 1.7 + (k - 1) * 1.7, y_dec, val, r5,
                      up)
-    b.shunt_0402(f"C{s}93", X_BT1 + 10.0, y_dec, "10u", r5, up, pkg="1210")
+    b.shunt_0402(f"C{s}93", X_BT1 + 8.0, y_dec, "10u", r5, up,
+                 pkg="1210")
     # the regulator's output down to the feed row, and out to the left where
     # the receive amplifier's own branch picks it up
     b.line(36.0, y_dec, X_BT1, y_dec, r5, w=0.50)
@@ -471,7 +475,6 @@ def rx_feed(b, s, y, y_bt, inward, src, src_rail):
     for k, val in enumerate(("1n", "100n"), start=1):
         b.shunt_0402(f"C{s}8{k}", x0 + 1.4 + (k - 1) * 1.7, y_dec, val,
                      rail, -inward)
-    b.shunt_0402(f"C{s}83", x0 + 5.6, y_dec, "10u", rail, -inward, pkg="1210")
 
 
 def input_block(b):
@@ -513,14 +516,14 @@ def input_block(b):
     b.line(6.0, 12.0, 6.0, 14.06, "VF", w=0.70)
     b.line(6.95, 15.94, 6.95, 19.0, "V12", w=0.70)
     b.line(6.95, 19.0, 16.0, 19.0, "V12", w=0.90)
-    for val, pkg, x in (("22u", "1210", 9.5), ("22u", "1210", 13.0),
-                        ("100n", "0402", 15.6)):
+    for val, pkg, x in (("22u", "1210", 9.0), ("22u", "1210", 12.0),
+                        ("100n", "0402", 14.5)):
         b.shunt_0402(f"C2{x:.0f}", x, 19.0, val, "V12", -1, pkg=pkg)
     # the gate network: one rail for the gate, one for the supply, three parts
     # bridging between them, and the transistor the host lets go of
-    b.line(4.2, 15.94, 4.2, 24.5, "V12G", w=0.35)
-    b.line(4.2, 15.94, 5.05, 15.94, "V12G", w=0.35)
-    b.line(4.2, 24.5, 15.5, 24.5, "V12G", w=0.35)
+    b.line(4.8, 15.94, 4.8, 24.5, "V12G", w=0.35)
+    b.line(4.8, 15.94, 5.05, 15.94, "V12G", w=0.35)
+    b.line(4.8, 24.5, 15.5, 24.5, "V12G", w=0.35)
     for ref, x, val, mpn, note in (
             ("R1", 10.5, "100k", "", "holds the switch on"),
             ("C1", 13.0, "100n", "",
@@ -576,8 +579,8 @@ def build():
 
     # ------------------------------- a thermistor beside each transmit final
     for s, y, inward in (("A", Y_TX1, +1), ("B", Y_TX2, -1)):
-        b.shunt_0402(f"RT{s}", X_PA + 4.6, y + inward * 3.6, "10k NTC",
-                     f"TEMP{s}", inward, mpn="NCP15XH103F03RC",
+        b.shunt_0402(f"RT{s}", X_TEMP, y + inward * 3.6, "10k NTC",
+                     f"TEMP{s}", -inward, mpn="NCP15XH103F03RC",
                      note="how hot the board is beside the amplifier")
 
     # ----------------------------------------------------- monitoring header
@@ -606,16 +609,30 @@ def build():
     b.hop("V12", (X_V12_IN, Y_PWR_A + 2.2), (X_V12_IN, Y_PWR_B - 2.2), w=1.20)
     b.line(X_V12_IN, Y_PWR_B - 2.2, X_V12_IN, Y_PWR_B, "V12", w=0.90)
 
-    below = [("EN", en_src, 46.9), ("DETC", ch["C"]["det"], 46.0),
-             ("IMONA", pa["imon"], 45.1), ("TEMPA", (X_PA + 4.6, 10.6), 44.2),
-             ("DETA", ch["A"]["det"], 43.3)]
-    above = [("DETD", ch["D"]["det"], 53.1), ("IMONB", pb["imon"], 54.0),
-             ("TEMPB", (X_PA + 4.6, 89.4), 54.9),
-             ("DETB", ch["B"]["det"], 55.8)]
-    for net, src, lane in below + above:
+    # A lane's height falls as its source moves right, and its header pin
+    # moves right as its source does.  Those two rules together are what let
+    # nine signals share one layer without a single crossing.  The enable line
+    # is the exception: it starts behind the four finger slots, so it comes
+    # out along the board first and only then turns for the header.
+    lanes = [("EN", en_src, 45.0, 17.0), ("DETC", ch["C"]["det"], 44.4, None),
+             ("IMONA", pa["imon"], 43.8, None),
+             ("TEMPA", (X_TEMP, 10.6), 43.2, None),
+             ("DETA", ch["A"]["det"], 42.6, None),
+             ("DETD", ch["D"]["det"], 55.0, None),
+             ("IMONB", pb["imon"], 55.6, None),
+             ("TEMPB", (X_TEMP, 89.4), 56.2, None),
+             ("DETB", ch["B"]["det"], 56.8, None)]
+    for net, src, lane, turn in lanes:
         pin = hdr[net]
-        b.dc(net, [src, (src[0], lane), (pin[0], lane), pin], w=0.40,
-             skip_last_via=True)
+        pts = [src]
+        if turn is not None:
+            pts += [(src[0], 30.0 if lane < 50 else 70.0),
+                    (turn, 30.0 if lane < 50 else 70.0)]
+            pts.append((turn, lane))
+        else:
+            pts.append((src[0], lane))
+        pts += [(pin[0], lane), pin]
+        b.dc(net, pts, w=0.40, skip_last_via=True)
 
     # ----------------------------------------------------------- mechanical
     # Four of the eight bolts sit as close to the four amplifiers as the

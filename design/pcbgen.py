@@ -383,6 +383,11 @@ class Board:
             xs = [q[0] for q in g]
             ys = [q[1] for q in g]
             keep.append((min(xs), min(ys), max(xs), max(ys)))
+        # and anywhere the board is not going to be there at all
+        for s in getattr(self, "slots", []):
+            keep.append((-1.0, s["y"] - s["width"] / 2 - EDGE_KEEP,
+                         s["depth"] + EDGE_KEEP,
+                         s["y"] + s["width"] / 2 + EDGE_KEEP))
 
         def free(x, y, r=0.0):
             return not any(a - r < x < c + r and b - r < y < d + r
