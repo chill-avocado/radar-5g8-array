@@ -701,10 +701,16 @@ def main():
         'else if (part == "extender") extender();\n'
         'else if (part == "transmit")')
     # show it in place in the assembly view, behind the arrays
+    # the two extenders that bridge the arms, and the radio behind
+    _e1 = ext_top
+    _e2 = ext_top - ext_len + LAP_L
     src = src.replace(
         '  half_tx();\n  half_rx();',
-        '  half_tx();\n  half_rx();\n' + "".join(
-            f'  translate([{o[0]:.3f}, {o[1]:.3f}, -{SHELF_T:.2f}])\n'
+        '  half_tx();\n  half_rx();\n'
+        f'  color("#7f8fa6") translate([0, {_e1:.3f}, 0]) extender();\n'
+        f'  color("#94a3b8") translate([0, {_e2:.3f}, 0]) '
+        f'mirror([1,0,0]) extender();\n' + "".join(
+            f'  translate([{o[0]:.3f}, {o[1]:.3f}, -{SHELF_T + 14:.2f}])\n'
             f'    color("#4a6fa5") {k}();\n'
             for k, _s, _wh, o in shelves))
     sc = os.path.join(HERE, "carrier.scad")

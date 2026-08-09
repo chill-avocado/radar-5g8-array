@@ -221,7 +221,9 @@ else if (part == "receive") half_rx();
 else {
   half_tx();
   half_rx();
-  translate([-64.250, -239.071, -5.00])
+  color("#7f8fa6") translate([0, -91.571, 0]) extender();
+  color("#94a3b8") translate([0, -166.571, 0]) mirror([1,0,0]) extender();
+  translate([-64.250, -239.071, -19.00])
     color("#4a6fa5") cradle();
 
   // the aluminium, and the boards sitting on it
