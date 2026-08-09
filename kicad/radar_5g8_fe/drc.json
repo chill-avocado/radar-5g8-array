@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-08-09T20:14:39",
+    "date": "2026-08-09T20:16:17",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -37,12 +37,12 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Zone [GND] on F.Cu, priority 0",
+                    "description": "Zone [GND] on In1.Cu, priority 0",
                     "pos": {
                         "x": 97.0,
                         "y": 99.75
                     },
-                    "uuid": "aaa88f28-d8fb-4174-9b6f-f20eb391c9bc"
+                    "uuid": "e94608af-b62a-40d8-9986-b6bf959e2885"
                 },
                 {
                     "description": "Zone [GND] on F.Cu, priority 0",
@@ -50,7 +50,7 @@
                         "x": 97.0,
                         "y": 99.75
                     },
-                    "uuid": "aaa88f28-d8fb-4174-9b6f-f20eb391c9bc"
+                    "uuid": "5d35df6a-5e03-4747-be9d-a2a60330eb21"
                 }
             ],
             "severity": "error",
@@ -59,142 +59,73 @@
     ],
     "violations": [
         {
-            "description": "Items shorting two nets (nets TEMPA and GND)",
+            "description": "Courtyards overlap",
             "items": [
                 {
-                    "description": "Via [TEMPA] on F.Cu - B.Cu",
+                    "description": "Footprint RAI",
                     "pos": {
-                        "x": 55.75,
-                        "y": 88.4
+                        "x": 51.49,
+                        "y": 88.86
                     },
-                    "uuid": "c947294b-170e-490a-bf2f-304051f5aebc"
+                    "uuid": "227887f6-0b51-419d-9c1e-47e897eef2bd"
                 },
                 {
-                    "description": "Pad 1 [GND] of TP1 on B.Cu",
+                    "description": "Footprint TP1",
                     "pos": {
                         "x": 52.0,
                         "y": 92.0
                     },
-                    "uuid": "ce331ad1-053d-4fb9-a32f-a9d7f4c56f53"
+                    "uuid": "e1009ae1-1fff-4220-90de-827e57bf30d4"
                 }
             ],
             "severity": "error",
-            "type": "shorting_items"
+            "type": "courtyards_overlap"
         },
         {
-            "description": "Items shorting two nets (nets TEMPB and GND)",
+            "description": "Courtyards overlap",
             "items": [
                 {
-                    "description": "Via [TEMPB] on F.Cu - B.Cu",
+                    "description": "Footprint TP4",
                     "pos": {
-                        "x": 55.75,
-                        "y": 11.599999
-                    },
-                    "uuid": "569dbab4-31a0-4fe2-b083-57c327815ca4"
-                },
-                {
-                    "description": "Pad 1 [GND] of TP3 on B.Cu",
-                    "pos": {
-                        "x": 52.0,
+                        "x": 34.0,
                         "y": 8.0
                     },
-                    "uuid": "79c52dee-610a-4cbe-8c9f-c77deb33f69b"
+                    "uuid": "22b2c17f-bcec-40b8-abd2-fdf1b9702c58"
+                },
+                {
+                    "description": "Footprint UB1",
+                    "pos": {
+                        "x": 34.0,
+                        "y": 6.049999
+                    },
+                    "uuid": "8685776e-d7ee-4fa9-b820-55bc359a8ed7"
                 }
             ],
             "severity": "error",
-            "type": "shorting_items"
+            "type": "courtyards_overlap"
         },
         {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.0000 mm)",
+            "description": "Courtyards overlap",
             "items": [
                 {
-                    "description": "Pad 1 [GND] of TP1 on B.Cu",
+                    "description": "Footprint UA1",
                     "pos": {
-                        "x": 52.0,
+                        "x": 34.0,
+                        "y": 93.95
+                    },
+                    "uuid": "58825aef-98a6-4090-bda2-b253b417728e"
+                },
+                {
+                    "description": "Footprint TP2",
+                    "pos": {
+                        "x": 34.0,
                         "y": 92.0
                     },
-                    "uuid": "ce331ad1-053d-4fb9-a32f-a9d7f4c56f53"
-                },
-                {
-                    "description": "Via [TEMPA] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 55.75,
-                        "y": 88.4
-                    },
-                    "uuid": "c947294b-170e-490a-bf2f-304051f5aebc"
+                    "uuid": "aa1471a4-3828-4bd0-9681-02febc861be4"
                 }
             ],
             "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.0000 mm)",
-            "items": [
-                {
-                    "description": "Pad 1 [GND] of TP3 on B.Cu",
-                    "pos": {
-                        "x": 52.0,
-                        "y": 8.0
-                    },
-                    "uuid": "79c52dee-610a-4cbe-8c9f-c77deb33f69b"
-                },
-                {
-                    "description": "Via [TEMPB] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 55.75,
-                        "y": 11.599999
-                    },
-                    "uuid": "569dbab4-31a0-4fe2-b083-57c327815ca4"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Items shorting two nets (nets GND and TEMPA)",
-            "items": [
-                {
-                    "description": "PTH pad 1 [GND] of H54_16",
-                    "pos": {
-                        "x": 54.0,
-                        "y": 83.2
-                    },
-                    "uuid": "74a76584-d1c3-4a03-9a25-e6932f5a99f1"
-                },
-                {
-                    "description": "Polygon [TEMPA] on In2.Cu",
-                    "pos": {
-                        "x": 55.55,
-                        "y": 88.4
-                    },
-                    "uuid": "fd6e9fdc-29e8-4493-ae29-91f78b1d0d0a"
-                }
-            ],
-            "severity": "error",
-            "type": "shorting_items"
-        },
-        {
-            "description": "Items shorting two nets (nets GND and TEMPB)",
-            "items": [
-                {
-                    "description": "PTH pad 1 [GND] of H54_83",
-                    "pos": {
-                        "x": 54.0,
-                        "y": 16.799999
-                    },
-                    "uuid": "46ef1ac8-fd37-4b10-8604-e4d2cf52e758"
-                },
-                {
-                    "description": "Polygon [TEMPB] on In2.Cu",
-                    "pos": {
-                        "x": 55.55,
-                        "y": 43.8
-                    },
-                    "uuid": "fba321a2-ae28-4555-be48-c6708500b842"
-                }
-            ],
-            "severity": "error",
-            "type": "shorting_items"
+            "type": "courtyards_overlap"
         },
         {
             "description": "Courtyards overlap",
@@ -205,7 +136,7 @@
                         "x": 51.49,
                         "y": 4.859999
                     },
-                    "uuid": "0986a846-693d-42b0-a557-eeca273ed3c5"
+                    "uuid": "7ca10444-e259-4dfc-9e3b-ce97c61d7a08"
                 },
                 {
                     "description": "Footprint TP3",
@@ -213,172 +144,34 @@
                         "x": 52.0,
                         "y": 8.0
                     },
-                    "uuid": "86c4aec1-f8bd-4e36-bcf6-7741c4381d8e"
+                    "uuid": "e334542d-c060-440d-b6ba-e755314a7269"
                 }
             ],
             "severity": "error",
             "type": "courtyards_overlap"
         },
         {
-            "description": "Courtyards overlap",
+            "description": "Silkscreen clipped by solder mask",
             "items": [
                 {
-                    "description": "Footprint TP1",
+                    "description": "PCB text 'TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A' on F.Silkscreen",
                     "pos": {
-                        "x": 52.0,
-                        "y": 92.0
+                        "x": 14.0,
+                        "y": 5.0
                     },
-                    "uuid": "2178fb00-67a3-4fdc-ace1-b1e57d690eb7"
+                    "uuid": "7d932641-7675-49cf-b81f-715e53a271c6"
                 },
                 {
-                    "description": "Footprint RTA",
+                    "description": "PTH pad 1 [GND] of H19_96",
                     "pos": {
-                        "x": 55.75,
-                        "y": 88.4
+                        "x": 19.5,
+                        "y": 3.5
                     },
-                    "uuid": "b52d2d97-bd1e-44a7-ad54-d0a6b7b40df6"
+                    "uuid": "6053dc8e-a308-4f63-8191-b3015099ffaa"
                 }
             ],
-            "severity": "error",
-            "type": "courtyards_overlap"
-        },
-        {
-            "description": "Courtyards overlap",
-            "items": [
-                {
-                    "description": "Footprint TP1",
-                    "pos": {
-                        "x": 52.0,
-                        "y": 92.0
-                    },
-                    "uuid": "2178fb00-67a3-4fdc-ace1-b1e57d690eb7"
-                },
-                {
-                    "description": "Footprint RAI",
-                    "pos": {
-                        "x": 51.49,
-                        "y": 88.86
-                    },
-                    "uuid": "c45f6f3a-0ad6-481d-bc72-dce550821023"
-                }
-            ],
-            "severity": "error",
-            "type": "courtyards_overlap"
-        },
-        {
-            "description": "Courtyards overlap",
-            "items": [
-                {
-                    "description": "Footprint UB1",
-                    "pos": {
-                        "x": 34.0,
-                        "y": 6.049999
-                    },
-                    "uuid": "3003bd9a-bb06-43f9-9f98-e4e9e4a96fc0"
-                },
-                {
-                    "description": "Footprint TP4",
-                    "pos": {
-                        "x": 34.0,
-                        "y": 8.0
-                    },
-                    "uuid": "746e98af-1a67-4b29-8d1d-dd5c05f43cd4"
-                }
-            ],
-            "severity": "error",
-            "type": "courtyards_overlap"
-        },
-        {
-            "description": "Courtyards overlap",
-            "items": [
-                {
-                    "description": "Footprint RTB",
-                    "pos": {
-                        "x": 55.75,
-                        "y": 11.599999
-                    },
-                    "uuid": "703149a6-f9a2-4960-96f3-9ea53c848d9d"
-                },
-                {
-                    "description": "Footprint TP3",
-                    "pos": {
-                        "x": 52.0,
-                        "y": 8.0
-                    },
-                    "uuid": "86c4aec1-f8bd-4e36-bcf6-7741c4381d8e"
-                }
-            ],
-            "severity": "error",
-            "type": "courtyards_overlap"
-        },
-        {
-            "description": "Courtyards overlap",
-            "items": [
-                {
-                    "description": "Footprint TP2",
-                    "pos": {
-                        "x": 34.0,
-                        "y": 92.0
-                    },
-                    "uuid": "a7284d8a-ec52-41a1-892a-6d3f2cd2c15a"
-                },
-                {
-                    "description": "Footprint UA1",
-                    "pos": {
-                        "x": 34.0,
-                        "y": 93.95
-                    },
-                    "uuid": "e0bf70d7-a975-4b1d-a5e5-63e8046ff7e7"
-                }
-            ],
-            "severity": "error",
-            "type": "courtyards_overlap"
-        },
-        {
-            "description": "Rear solder mask aperture bridges items with different nets",
-            "items": [
-                {
-                    "description": "Via [TEMPA] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 55.75,
-                        "y": 88.4
-                    },
-                    "uuid": "c947294b-170e-490a-bf2f-304051f5aebc"
-                },
-                {
-                    "description": "Pad 1 [GND] of TP1 on B.Cu",
-                    "pos": {
-                        "x": 52.0,
-                        "y": 92.0
-                    },
-                    "uuid": "ce331ad1-053d-4fb9-a32f-a9d7f4c56f53"
-                }
-            ],
-            "severity": "error",
-            "type": "solder_mask_bridge"
-        },
-        {
-            "description": "Rear solder mask aperture bridges items with different nets",
-            "items": [
-                {
-                    "description": "Via [TEMPB] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 55.75,
-                        "y": 11.599999
-                    },
-                    "uuid": "569dbab4-31a0-4fe2-b083-57c327815ca4"
-                },
-                {
-                    "description": "Pad 1 [GND] of TP3 on B.Cu",
-                    "pos": {
-                        "x": 52.0,
-                        "y": 8.0
-                    },
-                    "uuid": "79c52dee-610a-4cbe-8c9f-c77deb33f69b"
-                }
-            ],
-            "severity": "error",
-            "type": "solder_mask_bridge"
+            "severity": "warning",
+            "type": "silk_over_copper"
         },
         {
             "description": "Silkscreen clipped by solder mask",
@@ -389,7 +182,30 @@
                         "x": 14.0,
                         "y": 2.5
                     },
-                    "uuid": "31d546e3-2009-4b9f-95ca-4ee26e70a4a1"
+                    "uuid": "8a33fc50-d1a2-4cd5-ab68-dd27b3fa868c"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H19_96",
+                    "pos": {
+                        "x": 19.5,
+                        "y": 3.5
+                    },
+                    "uuid": "6053dc8e-a308-4f63-8191-b3015099ffaa"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text '5.8 GHz RADAR FRONT END' on F.Silkscreen",
+                    "pos": {
+                        "x": 14.0,
+                        "y": 2.5
+                    },
+                    "uuid": "8a33fc50-d1a2-4cd5-ab68-dd27b3fa868c"
                 },
                 {
                     "description": "Pad 1 [GND] of FID6_97 on F.Cu",
@@ -397,7 +213,7 @@
                         "x": 6.0,
                         "y": 3.0
                     },
-                    "uuid": "9102f9ba-7a9b-4443-8ee9-97caf41c6650"
+                    "uuid": "a78cc4dd-4746-449a-b529-04c9a672ab78"
                 }
             ],
             "severity": "warning",
