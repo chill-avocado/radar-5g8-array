@@ -361,11 +361,11 @@ void Tracker::update(const std::vector<Target>& z, double dt, std::vector<Track>
         const double h_el = std::atan2(pz, rho);
 
         for (int j = 0; j < nm; ++j) {
-            Cache& c = cache[std::size_t(i) * std::size_t(std::max(nm, 1)) + std::size_t(j)];
+            Cache& c = cache_[std::size_t(i) * stride + std::size_t(j)];
             c.ok = false;
             const Target& m = z[std::size_t(j)];
 
-            double R[NZ][NZ];
+            double (&R)[NZ][NZ] = c.R;
             measurement_noise(m.snr_db, rad(m.elevation_deg), R);
 
             // S = H P H^T + R
