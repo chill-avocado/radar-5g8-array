@@ -97,6 +97,10 @@ module radar_nco #(
         for (k = 0; k < LUT_N; k = k + 1) begin
             ang_r      = (2.0 * pi_r) * ((k + 0.5) / nph_r);
             rv         = $rtoi(amp_r * $sin(ang_r) + 0.5);
+            // the quarter wave is strictly inside (0, +2^(OUT_W-1)-1], so the
+            // clamp never fires; it is here so that negating a table entry in
+            // quadrants 2 and 3 provably cannot overflow s16
+            if (rv > AMP_MAX) rv = AMP_MAX;
             sin_rom[k] = rv[OUT_W-1:0];
         end
     end
