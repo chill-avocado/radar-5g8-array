@@ -37,7 +37,7 @@ HOW IT IS FED
 -------------
 The two edges facing left are fed, so the whole network sits outboard and the
 two patches face each other across clear board.  The matching transformers
-run straight in horizontally and meet those edges obliquely -- 46.7 per cent
+run straight in horizontally and meet those edges obliquely -- 55 per cent
 along, near enough the middle for the edge impedance.  The coupler ring is
 turned a quarter turn from the flat-on version so its two outputs come off
 one above the other, level with the two transformers, and feed them directly
@@ -96,10 +96,14 @@ class Element:
         self.xT = self.edge_x - self.lq         # transformers start here
         self.xr = self.xT                       # ring's right edge
         self.xl = self.xr - self.a
-        self.input_pt = (self.xl, +hy)
-        self.iso_pt = (self.xl, -hy)
-        # how far along its edge the feed lands: 0.5 would be dead centre
-        self.edge_frac = 0.5 * (1.0 + hy / (self.Dv / 2.0))
+        # Ports are settled here, once.  build() used to flip them, which
+        # meant calling it twice flipped them back.
+        sx = -1.0 if self.mirror else 1.0
+        self.input_pt = (sx * self.xl, +hy)
+        self.iso_pt = (sx * self.xl, -hy)
+        # how far along the edge the feed lands, from the top vertex;
+        # 0.5 is dead centre and that is where the edge impedance is right
+        self.edge_frac = 1.0 - hy / (self.Dv / 2.0)
 
     # ------------------------------------------------------------------
     def build(self):
@@ -115,13 +119,12 @@ class Element:
         polys.append(seg((self.xr, -hy), (self.xr, +hy), self.wav))
         if self.mirror:
             polys = [[(-x, y) for (x, y) in p][::-1] for p in polys]
-            self.input_pt = (-self.input_pt[0], self.input_pt[1])
-            self.iso_pt = (-self.iso_pt[0], self.iso_pt[1])
         return polys
 
     def bbox(self):
-        xs = [q[0] for p in self.build() for q in p]
-        ys = [q[1] for p in self.build() for q in p]
+        P = self.build()
+        xs = [q[0] for p in P for q in p]
+        ys = [q[1] for p in P for q in p]
         return (min(xs), min(ys), max(xs), max(ys))
 
     def report(self):
