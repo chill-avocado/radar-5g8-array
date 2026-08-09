@@ -439,11 +439,9 @@ void Tracker::update(const std::vector<Target>& z, double dt, std::vector<Track>
         Track& t = tracks_[std::size_t(i)];
         if (j < 0) { ++t.misses; continue; }
 
-        const Cache& c = cache[std::size_t(i) * std::size_t(std::max(nm, 1)) + std::size_t(j)];
+        const Cache& c = cache_[std::size_t(i) * stride + std::size_t(j)];
         const Target& m = z[std::size_t(j)];
-
-        double R[NZ][NZ];
-        measurement_noise(m.snr_db, rad(m.elevation_deg), R);
+        const double (&R)[NZ][NZ] = c.R;
 
         double PHt[NX][NZ] = {};
         for (int a = 0; a < NX; ++a)
