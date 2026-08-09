@@ -68,6 +68,10 @@ def build(drive):
     sys.path.insert(0, HERE)
     from geom import rect, hseg, vseg
     TOPO = os.environ.get("TOPO", "square")
+    # NOTRANS: feed the patch edge with a plain 50 ohm line and no matching
+    # section at all, so the impedance read at the port IS the edge, with
+    # nothing to de-embed and nothing to get wrong.
+    NOTRANS = os.environ.get("NOTRANS", "0") == "1"
     if TOPO == "diamond":
         from element3 import Element
     else:
@@ -83,31 +87,49 @@ def build(drive):
     el = Element(cfg, dLx=dLx, dLy=dLy)
     wq = el.wq
 
+    # NOTRANS: feed the patch edge with a plain 50 ohm line and no matching
+    # section at all, so the impedance read at the port IS the edge, with
+    # nothing to de-embed and nothing to get wrong.
+    NOTRANS = os.environ.get("NOTRANS", "0") == "1"
     if TOPO == "diamond":
         # Turned corner-up, both feeds come in horizontally from outboard at
         # the same two heights, so both ports sit on the same side.
         from geom45 import diamond as _dia, seg as _seg
         hy, xT, ex = el.feed_y, el.xT, el.edge_x
 
+        ey = el.edge_y
+
         def one(sx):
             P = [_dia(0.0, 0.0, el.Lu)]
             for s_ in (+1, -1):
-                P.append(_seg((xT, s_*hy), (ex + 0.05, s_*hy), wq))
-                P.append(_seg((xT - STUB, s_*hy), (xT + 0.05, s_*hy), WF))
+                if NOTRANS:
+                    # straight 50 ohm line onto the middle of the edge
+                    P.append(_seg((ex - 6.0, s_ * ey), (ex + 0.05, s_ * ey), WF))
+                else:
+                    P.append(_seg((xT, s_*hy), (ex + 0.05, s_*ey), wq))
+                    P.append(_seg((xT - STUB, s_*hy), (xT + 0.05, s_*hy), WF))
             if sx < 0:
                 P = [[(-x, y) for (x, y) in p][::-1] for p in P]
             return P
         polys = [list(p) for p in one(+1)] + \
                 [[(x + PITCH, y) for (x, y) in p] for p in one(-1)]
-        feet = [(xT - STUB, +hy, "x"), (xT - STUB, -hy, "x"),
-                (PITCH - (xT - STUB), +hy, "x"),
-                (PITCH - (xT - STUB), -hy, "x")]
+        _fx = (ex - 6.0) if NOTRANS else (xT - STUB)
+        _fy = ey if NOTRANS else hy
+        feet = [(_fx, +_fy, "x"), (_fx, -_fy, "x"),
+                (PITCH - _fx, +_fy, "x"), (PITCH - _fx, -_fy, "x")]
     else:
         Lx2, Ly2, lq = el.Lx2, el.Ly2, el.lq
         xA = -Lx2 - lq                  # transformer A meets the coupler here
         yB = -Ly2 - lq
 
         def one(sx):
+            if NOTRANS:
+                P = [rect(-Lx2, -Ly2, Lx2, Ly2),
+                     hseg(-Lx2 - 6.0, -Lx2 + 0.05, 0.0, WF),
+                     vseg(-Ly2 - 6.0, -Ly2 + 0.05, 0.0, WF)]
+                if sx < 0:
+                    P = [[(-x, y) for (x, y) in p][::-1] for p in P]
+                return P
             P = [rect(-Lx2, -Ly2, Lx2, Ly2),
                  hseg(xA, -Lx2, 0.0, wq),
                  vseg(yB, -Ly2, 0.0, wq),
@@ -118,8 +140,10 @@ def build(drive):
             return P
         polys = [list(p) for p in one(+1)] + \
                 [[(x + PITCH, y) for (x, y) in p] for p in one(-1)]
-        feet = [(xA - STUB, 0.0, "x"), (0.0, yB - STUB, "y"),
-                (PITCH - (xA - STUB), 0.0, "x"), (PITCH, yB - STUB, "y")]
+        _ax = (-Lx2 - 6.0) if NOTRANS else (xA - STUB)
+        _by = (-Ly2 - 6.0) if NOTRANS else (yB - STUB)
+        feet = [(_ax, 0.0, "x"), (0.0, _by, "y"),
+                (PITCH - _ax, 0.0, "x"), (PITCH, _by, "y")]
 
     xs = [q[0] for p in polys for q in p]
     ys = [q[1] for p in polys for q in p]
@@ -237,7 +261,8 @@ def run(which):
                f_res=fr, dip_db=dip)
     TUNING = os.path.join(HERE, "tuning")
     os.makedirs(TUNING, exist_ok=True)
-    json.dump(out, open(os.path.join(TUNING, f"modes_{which}.json"), "w"))
+    json.dump(out, open(os.path.join(
+        TUNING, f"modes_{TAG}{'_bare' if NOTRANS else ''}_{which}.json"), "w"))
     print(f"[modes {which}] rings at {fr/1e9:.4f} GHz, dip {dip:.1f} dB")
 
 
