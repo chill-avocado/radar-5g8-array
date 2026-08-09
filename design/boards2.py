@@ -24,7 +24,8 @@ Everything this conversation changed, in one place:
     the resistance of copper, costing 4.3 per cent of range.  Silver's tarnish
     is a semiconductor and carries no current at all: a board gone black
     measures the same as a fresh one.
-  * the coplanar launch gap rescaled with everything else, to 0.978 mm
+  * the coplanar launch gap rescaled with everything else, to 0.9699 mm.  The SMA footprint's ground pads follow it -- they were left at the amplifier boards' 0.9781 mm, which is an
+    8 um disagreement and two DRC warnings per board
 
 The bracket in mech/ holds the two 250 mm apart, which is where the
 transmitter stops deafening the receiver.  200 mm is the floor.  A small gap
