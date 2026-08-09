@@ -11,13 +11,18 @@
 //
 //   The wanted signal after de-chirp is the beat frequency, 6666.7 Hz per
 //   metre, so 250 m of range is 1.67 MHz.  What matters is that nothing folds
-//   ON TOP of +/- 1.9 MHz at the output.  Measured on the built coefficients:
-//     1 MHz passband loss                                 0.000 dB
-//     worst fold into the +/- 1.9 MHz wanted band       -88.6 dB
+//   ON TOP of +/- 1.9 MHz at the output.  Measured on the built RTL by
+//   fpga/sim/run_front.sh:
+//     DC gain                                    exactly 1.0, bit for bit
+//     1 MHz passband loss                           0.0000 dB
+//     16.36 MHz, which folds onto  1 MHz           -113.3 dB
+//     22.36 MHz, which folds onto  7 MHz            -75.9 dB
+//     worst fold into the +/- 1.9 MHz wanted band   -89.2 dB
 //   Frequencies just above the 7.68 MHz output Nyquist sit in the halfband
 //   transition and are only 6 dB down -- that is inherent to halfband
 //   decimation, and harmless, because they land at the far edge of the output
-//   band where no target of interest can be.
+//   band where no target of interest can be.  A 7 MHz INPUT tone is below that
+//   Nyquist, so it does not fold at all and passes at -2.3 dB.
 //
 // FLUSH
 //   Chirps are independent coherent records: the tail of one sweep must not
