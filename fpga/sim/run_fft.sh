@@ -107,8 +107,22 @@ for s in "${SIZES[@]}"; do
     LIBS+=("$BUILD/obj_$n/libVfft$n.a")
 done
 
+# and once more with the reorder buffer switched off, so the bit-reversed
+# output ordering is exercised too
+if ! "$VERILATOR" --cc -O3 --top-module radar_fft \
+        -Mdir "$BUILD/obj_rev1024" --prefix "Vfftrev1024" \
+        -GN=1024 -GNLOG2=10 -GNATURAL_OUT=0 \
+        "+incdir+$RTL" "$RTL/radar_fft.v" "$RTL/radar_bitrev.v" \
+        --build -j "$JOBS" >"$BUILD/verilate_rev1024.log" 2>&1; then
+    echo "FAIL  verilate N=1024 NATURAL_OUT=0"
+    tail -30 "$BUILD/verilate_rev1024.log"
+    exit 1
+fi
+echo "PASS  verilate N=1024 NATURAL_OUT=0"
+INCS+=("-I$BUILD/obj_rev1024")
+LIBS+=("$BUILD/obj_rev1024/libVfftrev1024.a")
+
 VROOT="$($VERILATOR --getenv VERILATOR_ROOT)"
-set -- 1024 10
 if ! c++ -std=gnu++17 -O2 -Wall -Wno-sign-compare \
         "${INCS[@]}" -I"$VROOT/include" -I"$VROOT/include/vltstd" \
         "$HERE/tb_fft.cpp" "${LIBS[@]}" "$BUILD/obj_1024/libverilated.a" \

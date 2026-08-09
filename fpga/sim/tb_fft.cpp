@@ -513,6 +513,7 @@ int main(int argc, char** argv) {
     run_size<Vfft512>(512, 9);
     run_size<Vfft256>(256, 8);
     run_size<Vfft128>(128, 7);
+    run_reversed<Vfftrev1024>(1024, 10);
 
     std::printf("\n");
     if (g_fail == 0) {
