@@ -1,0 +1,150 @@
+"""One circularly-polarised element with the patch stood on its corner.
+
+Local frame: patch centred on (0, 0), millimetres, +y up.
+
+                                    /\\
+        input o====[ ring ]====TrA=/  \\
+                      |             \\  \\        the patch, turned 45 degrees
+                      |              \\  \\
+        51 ohm o======'=========TrB===\\  /
+                                       \\/
+
+WHY TURN IT
+-----------
+A square patch rings two ways at once, and circular polarisation needs both
+to answer identically.  Straight ahead they do.  Off to one side they do not,
+because each way of ringing throws its energy in a slightly different shape,
+and the two shapes only agree on boresight.  Measured on the flat-on version:
+the polarisation is 2.6 dB round dead ahead and 6.2 dB by the edge of the
+coverage, which costs about 7 dB of the rejection that tells a drone from
+rain.
+
+Turn the same square 45 degrees and neither way of ringing points along a
+direction the radar measures in -- both sit symmetrically either side of it.
+Look off-axis and you are at the same angle to both, so they fall off
+together and cannot drift apart.  It is a symmetry, not a tuning.
+
+WHAT IT BUYS BESIDES
+--------------------
+The two feeds become mirror images of each other about the horizontal centre
+line, so their lengths match because the shape says so.  The old layout had a
+dogleg in one route and a trim knob to null what was left; both are gone.
+Whatever the feed network itself radiates is then shared evenly between the
+two modes instead of landing mostly on one.  And the board gets about a fifth
+smaller.
+
+HOW IT IS FED
+-------------
+The two edges facing left are fed, so the whole network sits outboard and the
+two patches face each other across clear board.  The matching transformers
+run straight in horizontally and meet those edges obliquely -- 46.7 per cent
+along, near enough the middle for the edge impedance.  The coupler ring is
+turned a quarter turn from the flat-on version so its two outputs come off
+one above the other, level with the two transformers, and feed them directly
+with no routing at all between.  Input and the 51 ohm load sit on the ring's
+far side, out of the way.
+"""
+
+import json
+import math
+import os
+
+from geom45 import stroke, seg, diamond, mitre_cut
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+JOIN = 0.05
+
+
+class Element:
+    """The diamond element.  Mirroring it flips the handedness, nothing else."""
+
+    def __init__(self, cfg, dLx=None, dLy=None, mirror=False, launch_y=None):
+        t = cfg.get("tuned", {})
+        self.mirror = mirror
+        L = t.get("L", 14.0835)
+        dLx = t.get("dLx", 0.0) if dLx is None else dLx
+        dLy = t.get("dLy", 0.0) if dLy is None else dLy
+        f, h = cfg["feed"], cfg["hybrid"]
+        self.hsub = cfg["substrate"]["h_mm"]
+        self.wq = t.get("wq", 0.3414)
+        self.lq = t.get("lq", 8.5422)
+        self.wf = f["w50_mm"]
+        self.lam_g = f["lam_g50_mm"]
+        self.cut = mitre_cut(self.wf, self.hsub)
+
+        # The two ways it rings run along the diamond's two diagonals, so the
+        # trims act on the diagonals too.
+        self.Lu, self.Lv = L + dLx, L + dLy
+        self.L = L
+        self.Du = self.Lu * math.sqrt(2.0)          # corner to corner
+        self.Dv = self.Lv * math.sqrt(2.0)
+
+        # the ring, turned a quarter turn: its long arms now lie horizontally
+        self.a = t["arm_series"]                    # horizontal arms
+        self.b = t["arm_shunt"]                     # vertical arms
+        self.wah = t.get("w_arm_v", h["w_series_mm"])   # horizontal arm width
+        self.wav = t.get("w_arm_h", h["w_shunt_mm"])    # vertical arm width
+        self.zq = t.get("zq_ohm", 110.0)
+        self._plan()
+
+    # ------------------------------------------------------------------
+    def _plan(self):
+        hy = self.b / 2.0                       # the two feeds sit at +/- this
+        # where a horizontal line at that height crosses the patch's left edges
+        self.feed_y = hy
+        self.edge_x = -(self.Du / 2.0) * (1.0 - hy / (self.Dv / 2.0))
+        self.xT = self.edge_x - self.lq         # transformers start here
+        self.xr = self.xT                       # ring's right edge
+        self.xl = self.xr - self.a
+        self.input_pt = (self.xl, +hy)
+        self.iso_pt = (self.xl, -hy)
+        # how far along its edge the feed lands: 0.5 would be dead centre
+        self.edge_frac = 0.5 * (1.0 + hy / (self.Dv / 2.0))
+
+    # ------------------------------------------------------------------
+    def build(self):
+        hy, wq, w = self.feed_y, self.wq, self.wf
+        polys = [diamond(0.0, 0.0, self.Lu)]                     # the patch
+        for s in (+1, -1):
+            polys.append(seg((self.xT - JOIN, s * hy),
+                             (self.edge_x + JOIN, s * hy), wq))  # transformer
+        # the ring: two horizontal arms, two vertical
+        polys.append(seg((self.xl, +hy), (self.xr, +hy), self.wah))
+        polys.append(seg((self.xl, -hy), (self.xr, -hy), self.wah))
+        polys.append(seg((self.xl, -hy), (self.xl, +hy), self.wav))
+        polys.append(seg((self.xr, -hy), (self.xr, +hy), self.wav))
+        if self.mirror:
+            polys = [[(-x, y) for (x, y) in p][::-1] for p in polys]
+            self.input_pt = (-self.input_pt[0], self.input_pt[1])
+            self.iso_pt = (-self.iso_pt[0], self.iso_pt[1])
+        return polys
+
+    def bbox(self):
+        xs = [q[0] for p in self.build() for q in p]
+        ys = [q[1] for p in self.build() for q in p]
+        return (min(xs), min(ys), max(xs), max(ys))
+
+    def report(self):
+        bb = self.bbox()
+        return dict(topology="diamond",
+                    patch_side_mm=round(self.Lu, 4),
+                    patch_across_mm=round(self.Du, 4),
+                    feed_height_mm=round(self.feed_y, 4),
+                    feed_along_edge=round(self.edge_frac, 4),
+                    transformer_w_mm=round(self.wq, 4),
+                    transformer_l_mm=round(self.lq, 4),
+                    ring_mm=[round(self.a, 4), round(self.b, 4)],
+                    extent_mm=[round(bb[2] - bb[0], 3), round(bb[3] - bb[1], 3)],
+                    input_pt_mm=[round(v, 3) for v in self.input_pt],
+                    iso_pt_mm=[round(v, 3) for v in self.iso_pt])
+
+
+if __name__ == "__main__":
+    cfg = json.load(open(os.path.join(HERE, "synthesis.json")))["ZYF300CA"]
+    for m in (False, True):
+        e = Element(cfg, mirror=m)
+        r = e.report()
+        print(f"  mirror={str(m):5}  " +
+              "  ".join(f"{k}={v}" for k, v in r.items() if k in
+                        ("patch_across_mm", "extent_mm", "feed_along_edge",
+                         "input_pt_mm", "iso_pt_mm")))
