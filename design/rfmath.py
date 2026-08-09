@@ -539,3 +539,51 @@ def stripline_width(z0, b, t, er):
         else:
             hi = mid
     return 0.5 * (lo + hi)
+
+
+def match_network(z_load, freqs, z0=50.0, sub=None, f0=5.8e9, sections=(1, 2)):
+    """Design the flattest match across a band, not the deepest at one point.
+
+    A quarter-wave section sized by the textbook rule -- the square root of
+    the two impedances it bridges -- is perfect at one frequency and nowhere
+    else.  On a sharp resonator that is the wrong target: the reflection
+    climbs steeply either side and the usable band collapses.  What is wanted
+    is equal ripple, the same modest reflection right across the band.
+
+    Give it the load impedance measured at each frequency and it searches
+    one- and two-section transformers for the arrangement whose WORST
+    reflection in band is smallest.  Returns that, with the impedances and
+    lengths to draw.
+    """
+    best = None
+    lam = lambda z, f: C0 / f / math.sqrt(ms_dispersive(
+        ms_width_for_z0(z, sub, f0)[0], sub, f)[1])
+
+    def gamma(zs, ls, f, zl):
+        z = zl
+        for zi, li in zip(reversed(zs), reversed(ls)):
+            b = 2 * math.pi / lam(zi, f)
+            t = math.tan(b * li)
+            z = zi * (z + 1j * zi * t) / (zi + 1j * z * t)
+        return abs((z - z0) / (z + z0))
+
+    lo, hi = min(freqs), max(freqs)
+    for n in sections:
+        if n == 1:
+            grid = [(z,) for z in [40 + 4 * k for k in range(46)]]
+        else:
+            grid = [(a, b) for a in [50 + 6 * k for k in range(26)]
+                    for b in [90 + 6 * k for k in range(35)] if b > a]
+        for zs in grid:
+            l0 = [lam(z, f0) / 4.0 for z in zs]
+            for scale in [0.85 + 0.025 * k for k in range(13)]:
+                ls = [l * scale for l in l0]
+                worst = max(gamma(zs, ls, f, zl) for f, zl in zip(freqs, z_load))
+                if best is None or worst < best[0]:
+                    best = (worst, zs, ls)
+    worst, zs, ls = best
+    return dict(sections=len(zs),
+                z_ohm=[round(z, 2) for z in zs],
+                len_mm=[round(l * 1e3, 4) for l in ls],
+                w_mm=[round(ms_width_for_z0(z, sub, f0)[0] * 1e3, 4) for z in zs],
+                worst_return_db=round(20 * math.log10(worst), 2))
