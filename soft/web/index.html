@@ -1791,20 +1791,20 @@ const Demo = (() => {
       range: 88 - 5.5*t + 6*Math.sin(t*0.22),
       vel:   5.5 - 6*0.22*Math.cos(t*0.22),
       az:    -14 + 17*Math.sin(t*0.31),
-      snr:   23 + 3*Math.sin(t*1.7),
+      snr:   34 + 3*Math.sin(t*1.7),
       spread: 3.1, label: "quadrotor", blade: 71 + 4*Math.sin(t*0.5),
     };
     const car = {
       range: 132 + 11*t*0.35,
       vel:   -11.4,
       az:    22 + 2*Math.sin(t*0.13),
-      snr:   31, spread: 0.5, label: "vehicle", blade: 0,
+      snr:   45, spread: 0.5, label: "vehicle", blade: 0,
     };
     const bird = {
       range: 46 + 5*Math.cos(t*0.4),
       vel:   -2.0*Math.sin(t*0.4)*5,
       az:    30*Math.sin(t*0.18 + 1.1),
-      snr:   12 + 2.5*Math.sin(t*2.3),
+      snr:   13 + 2.5*Math.sin(t*2.3),
       spread: 1.4, label: "", blade: 9.5,
     };
     return [drone, car, bird].filter(o => o.range > 4 && o.range < NR*RANGE_BIN - 6);
@@ -1821,7 +1821,7 @@ const Demo = (() => {
     const dc = ND >> 1;
     for (let r = 0; r < NR; r++){
       const rm = Math.max(r*RANGE_BIN, 1);
-      const amp = -18 - 34*Math.log10(rm/8) + gauss()*2.5;
+      const amp = -36 - 22*Math.log10(rm) + gauss()*2.5;
       for (let d = dc-4; d <= dc+4; d++){
         const w = Math.exp(-0.55*(d-dc)*(d-dc));
         const v = amp + 10*Math.log10(w + 1e-9);
@@ -1832,7 +1832,7 @@ const Demo = (() => {
     // transmit leakage at the near bins
     for (let r = 0; r < 3; r++)
       for (let d = dc-6; d <= dc+6; d++)
-        dbBuf[r*ND+d] = Math.max(dbBuf[r*ND+d], -6 - r*7 - Math.abs(d-dc)*1.5);
+        dbBuf[r*ND+d] = Math.max(dbBuf[r*ND+d], -36 - r*9 - Math.abs(d-dc)*1.5);
 
     for (const o of objs){
       const rb = o.range/RANGE_BIN;
