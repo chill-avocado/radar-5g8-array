@@ -267,6 +267,12 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
         for off in [x / 2.0 for x in range(52, 23, -1)]:
             pair = [(mid - off, stand), (mid + off, stand)] if kind == "TX" \
                 else [(stand, mid - off), (stand, mid + off)]
+            if os.environ.get('FIDDBG') and kind == 'RX' and abs(stand-4.0)<0.01:
+                for fx, fy in pair:
+                    bl = [t for t in occ_f if t[0] < fx < t[2] and t[1] < fy < t[3]]
+                    if bl:
+                        print(f'      blocked ({fx:.2f},{fy:.2f}) off={off} by',
+                              [tuple(round(v,2) for v in bl[0])])
             if all(not any(a < fx < c and b_ < fy < d
                            for a, b_, c, d in occ_f) for fx, fy in pair):
                 for fx, fy in pair:
