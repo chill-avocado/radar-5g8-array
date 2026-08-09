@@ -1227,17 +1227,21 @@ void SimSource::do_chirps(int begin, int end) {
                     double fast, ph0;
                     const float* sr;
                     const float* si;
+                    int shift = 0;
                     if (mode_ == DelayMode::Exact) {
                         fast = -g_.mu * tau;
                         ph0  = -2.0 * kPi * (g_.fc + g_.f_start) * tau + kPi * g_.mu * tau * tau;
                         sr = wr_.data(); si = wi_.data();
                     } else {
-                        const int idel = int(std::floor(tau * fs));
-                        const int frac = int(std::lround((tau * fs - idel) * kFracSteps)) % kFracSteps;
-                        const std::size_t off = std::size_t(frac) * tstride_ + kSincTaps;
-                        sr = tr_.data() + off - idel;
-                        si = ti_.data() + off - idel;
-                        fast = 0; ph0 = -2.0 * kPi * g_.fc * tau;
+                        int idel = int(std::floor(tau * fs));
+                        int frac = int(std::lround((tau * fs - idel) * kFracSteps));
+                        if (frac >= kFracSteps) { frac -= kFracSteps; ++idel; }
+                        const std::size_t off = std::size_t(frac) * tstride_;
+                        sr    = tr_.data() + off;
+                        si    = ti_.data() + off;
+                        shift = idel;
+                        fast  = 0;
+                        ph0   = -2.0 * kPi * g_.fc * tau;
                     }
                     // A small fixed phase difference between the two leakage
                     // paths, so they do not add perfectly and the residual is
@@ -1245,7 +1249,7 @@ void SimSource::do_chirps(int begin, int end) {
                     ph0 += (tx == 1) ? 0.7 : 0.0;
                     const double th = ph0 + 2.0 * kPi * fast * double(n0) / fs;
                     const double w  = 2.0 * kPi * fast / fs;
-                    accumulate(sc.outr.data(), sc.outi.data(), sr, si, n0, ns,
+                    accumulate(sc.outr.data(), sc.outi.data(), sr, si, shift, n0, ns,
                                float(leak_amp_ * sign * std::cos(th)),
                                float(leak_amp_ * sign * std::sin(th)),
                                std::cos(w), std::sin(w));
