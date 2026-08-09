@@ -1266,7 +1266,7 @@ struct DriverConfig {
 class UhdZeroCopyDriver {
 public:
     bool initialize();       // configures clock/time source, subdev, per-channel rate/freq/gain,
-                              // builds the rx_streamer with use_dpdk=1
+                              // builds the rx_streamer over the USB 3.0 transport
     bool start_streaming();  // pins thread affinity + SCHED_FIFO priority 99, issues STREAM_MODE_START_CONTINUOUS
     void stop_streaming();
     bool receive_frame(ZeroCopyFrame& frame, double timeout_sec = 0.1); // rx_streamer_->recv(...),
@@ -1517,19 +1517,14 @@ sub-decimeter target multilateration.
 
 ---
 
-## 12. Device Selection Guide
+## 12. FPGA Device Note
 
-| Device | Logic cells | DSP slices | Block RAM | GTX transceivers | PCIe | 10G Eth | Suitability |
-|---|---|---|---|---|---|---|---|
-| XC7K70T | 70,000 | 220 | 2.1 Mb | 4 | No | No | Basic — small single-channel prototypes only |
-| XC7K160T | 160,000 | 480 | 4.9 Mb | 8 | x4 | No | Good — small-scale radar (2 TX, 2 RX, <50 MHz BW) |
-| XC7K325T | 325,000 | 840 | 10.1 Mb | 8 | x8 | Yes | Recommended baseline — medium-scale radar (4 TX, 4 RX, <100 MHz BW) |
-| XC7K410T | 410,000 | 1,540 | 12.6 Mb | 8 | x8 | Yes | Best — large-scale MIMO (8+ TX, 8+ RX, >100 MHz BW) |
-| XC7K480T | 480,000 | 1,920 | 15.1 Mb | 8 | x8 | Yes | Best — largest MIMO configurations, most acceleration headroom |
-
-XC7K325T is the practical default: all Gen-3 USRPs (X310/X300 class) use it, RFNoC 4.0
-infrastructure plus the full radar acceleration chain (Section 5.5) leaves 74% of LUTs, 89% of DSPs,
-and 51% of BRAM unused, and its cost sits well below the 410T/480T tier.
+The B210's FPGA is fixed by the board — this is not a component-selection decision the way it would
+be when designing a custom FPGA carrier. The confirmed hardware is a Kintex-7 device, which is why
+RFNoC 4.0 and the Kintex-7 resource-budget figures throughout this catalog (Section 5.5) apply
+directly. Those figures use the Kintex-7 XC7K325T as the representative baseline device, since it is
+the part used across the Gen-3 USRP line and gives a realistic picture of the margin available on a
+Kintex-7 fabric for the radar IP described here.
 
 ---
 
