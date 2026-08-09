@@ -100,12 +100,12 @@ def draw():
 
     dim(0, -6, BW, -6, f"{BW:.2f}")
     dim(-7, 0, -7, BH, f"{BH:.2f}")
-    tx = D["report"]["tx_patches"]
-    rx = D["report"]["rx_patches"]
-    dim(tx[0][0], tx[0][1], tx[1][0], tx[1][1],
-        f"{D['report']['tx_spacing_mm']:.4f}")
-    dim(rx[0][0], rx[0][1], rx[1][0], rx[1][1],
-        f"{D['report']['rx_spacing_mm']:.4f}")
+    # One board now, so one pair of patches -- the report used to carry a
+    # transmit set and a receive set because they shared a panel.
+    pc = D["report"]["patch_centres"]
+    if len(pc) >= 2:
+        dim(pc[0][0], pc[0][1], pc[1][0], pc[1][1],
+            f"{D['report']['element_pitch_mm']:.4f}")
     for n, x, y, side in D["ports"]:
         axb.plot(x, y, "kv" if side == "bottom" else "k<", ms=5)
         axb.text(x + (0 if side == "bottom" else 3),

@@ -25,8 +25,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN = os.path.abspath(os.path.join(HERE, "..", "design"))
 NAME = sys.argv[1] if len(sys.argv) > 1 else "radar_5g8_transmit_array"
 OUT = os.path.join(HERE, NAME)
-PCB = os.path.join(OUT, f"{PCBNAME}.kicad_pcb")
 PCBNAME = NAME.replace("_array", "")   # the board file drops the suffix
+PCB = os.path.join(OUT, f"{PCBNAME}.kicad_pcb")
 B = json.load(open(os.path.join(DESIGN, {
     "radar_5g8_transmit_array": "board_transmit.json",
     "radar_5g8_receive_array": "board_receive.json",
