@@ -249,14 +249,46 @@ void test_nco()
            all_ok,
            fmt("%ld cycles, %ld valid samples, %ld mismatches", cycles, valid_out, mismatch));
 
-    // --- the +0.5 half-sample offset, checked explicitly -------------------
-    const bool half_ok = (NcoRef::rom_entry(0) == 25) &&
-                         (NcoRef::rom_entry(1023) == 32767) &&
-                         (NcoRef::rom_entry(512) == 23170);
-    record("quarter-wave ROM half-sample offset",
-           half_ok,
-           fmt("rom[0]=%d rom[512]=%d rom[1023]=%d (no exact 0, no exact 32768)",
-               NcoRef::rom_entry(0), NcoRef::rom_entry(512), NcoRef::rom_entry(1023)));
+    // --- the quadrant fold against the mathematical definition -------------
+    // Step the phase by exactly one table entry per sample and compare all
+    // 4096 points of the full circle with round(32767*sin(2*pi*(m+0.5)/4096))
+    // evaluated directly.  This checks the fold and the half-sample offset
+    // against the formula rather than against another copy of the fold.
+    dut->rst = 1; dut->ena = 0; dut->restart = 0;
+    for (int i = 0; i < 4; ++i) tick(dut);
+    dut->rst = 0;
+    dut->freq_start = (uint32_t)(1u << 20);      // one ROM step per sample
+    dut->freq_slope = 0;
+    dut->restart = 1; dut->ena = 0;
+    tick(dut);
+    dut->restart = 0; dut->ena = 1;
+
+    auto direct = [](int m) -> int {
+        const double ang = (2.0 * kPi) * (((m & 4095) + 0.5) / 4096.0);
+        return (int)std::llround(32767.0 * std::sin(ang));
+    };
+
+    std::vector<std::pair<int, int>> circle;
+    for (int t = 0; t < 4096 + 8 && (int)circle.size() < 4096; ++t) {
+        tick(dut);
+        if (dut->out_valid)
+            circle.push_back({(int)(int16_t)dut->out_i, (int)(int16_t)dut->out_q});
+    }
+    long fold_bad = 0;
+    for (int s = 0; s < (int)circle.size(); ++s) {
+        if (circle[s].second != direct(s) || circle[s].first != direct(s + 1024)) {
+            if (fold_bad < 4)
+                std::printf("      fold mismatch m=%d rtl=(%d,%d) direct=(%d,%d)\n",
+                            s, circle[s].first, circle[s].second,
+                            direct(s + 1024), direct(s));
+            ++fold_bad;
+        }
+    }
+    record("quadrant fold matches the sine formula over all 4096 points",
+           fold_bad == 0 && circle.size() == 4096,
+           fmt("rom[0]=%d rom[1023]=%d -- the +0.5 offset keeps every entry "
+               "off zero and inside +/-32767, %ld mismatches",
+               NcoRef::rom_entry(0), NcoRef::rom_entry(1023), fold_bad));
 
     // --- latency: restart to the first sample of the sweep -----------------
     dut->rst = 1; dut->ena = 0; dut->restart = 0;
@@ -265,13 +297,13 @@ void test_nco()
     dut->freq_start = (uint32_t)1137778;
     dut->freq_slope = (uint32_t)1137778;
     dut->restart = 1; dut->ena = 0;
-    tick(dut);                        // this is "the restart cycle"
+    tick(dut);                        // this edge ends "the restart cycle"
     dut->restart = 0; dut->ena = 1;
     int  lat   = 0;
     bool found = false;
-    for (int n = 1; n <= 16 && !found; ++n) {
+    for (int n = 0; n < 16 && !found; ++n) {
         tick(dut);
-        if (dut->out_valid) { lat = n; found = true; }
+        if (dut->out_valid) { lat = n + 1; found = true; }
     }
     const bool lat_ok = found && lat == 4 &&
                         (int16_t)dut->out_i == 32767 && (int16_t)dut->out_q == 25;

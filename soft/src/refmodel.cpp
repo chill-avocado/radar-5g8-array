@@ -58,7 +58,7 @@ double bessel_i0(double x) {
 /// resulting gain error is three parts in a hundred thousand per multiply and
 /// the fabric's ROM holds the same numbers.
 std::vector<ci16> make_twiddles_q15(int n, bool inverse) {
-    std::vector<ci16> t(std::size_t(n / 2));
+    std::vector<ci16> t(static_cast<std::size_t>(n / 2));
     const double sgn = inverse ? 1.0 : -1.0;
     for (int k = 0; k < n / 2; ++k) {
         const double a = sgn * 2.0 * kPi * double(k) / double(n);
@@ -70,7 +70,7 @@ std::vector<ci16> make_twiddles_q15(int n, bool inverse) {
 
 std::vector<int> make_bitrev(int n) {
     const int bits = log2i(std::size_t(n));
-    std::vector<int> p(std::size_t(n));
+    std::vector<int> p(static_cast<std::size_t>(n));
     for (int i = 0; i < n; ++i) {
         int r = 0;
         for (int b = 0; b < bits; ++b) if (i & (1 << b)) r |= 1 << (bits - 1 - b);
@@ -186,12 +186,12 @@ const std::vector<i32>& halfband_taps_q17() {
 
 std::vector<int> fft_scale_stages(const std::vector<i16>& win_q15, int n_fft) {
     const int stages = log2i(std::size_t(n_fft));
-    std::vector<double> a(std::size_t(n_fft), 0.0);
+    std::vector<double> a(static_cast<std::size_t>(n_fft), 0.0);
     for (int i = 0; i < n_fft && i < int(win_q15.size()); ++i) {
         a[std::size_t(i)] = std::fabs(double(win_q15[std::size_t(i)])) / 32768.0;
     }
 
-    std::vector<int> sh(std::size_t(stages), 0);
+    std::vector<int> sh(static_cast<std::size_t>(stages), 0);
     int cum = 0;
     for (int s = 0; s < stages; ++s) {
         const int group  = 1 << (s + 1);      // inputs merged so far
@@ -344,9 +344,9 @@ void RefModel::process_cpi(const ci16* const* rx_chirps, int n_rx, int n_chirp_t
     // Range transforms for every chirp of every receive channel.  Only the
     // bins the fabric keeps are held, which is what the corner-turn buffer
     // stores: n_range * n_chirp_total words per channel.
-    std::vector<ci16> rb(std::size_t(nrx) * n_chirp_total * nr);
+    std::vector<ci16> rb(static_cast<std::size_t>(nrx) * n_chirp_total * nr);
     {
-        std::vector<ci16> full(std::size_t(nfft));
+        std::vector<ci16> full(static_cast<std::size_t>(nfft));
         for (int rx = 0; rx < nrx; ++rx) {
             for (int k = 0; k < n_chirp_total; ++k) {
                 range_chirp(rx_chirps[rx] + std::size_t(k) * ns, ns, full.data());
@@ -359,8 +359,8 @@ void RefModel::process_cpi(const ci16* const* rx_chirps, int n_rx, int n_chirp_t
     const int cpc = (cfg_.mimo == MimoMode::Tdm) ? n_chirp_total / 2 : n_chirp_total;
     const int nin = std::min(cpc, n_dopp_in_);
 
-    std::vector<ci16> series(std::size_t(nd));
-    std::vector<ci16> alt(std::size_t(nd));
+    std::vector<ci16> series(static_cast<std::size_t>(nd));
+    std::vector<ci16> alt(static_cast<std::size_t>(nd));
 
     auto doppler = [&](std::vector<ci16>& buf) {
         for (int i = 0; i < nin; ++i) {
@@ -482,10 +482,10 @@ void RefModel::process_cpi_float(const cf32* const* rx_chirps, int n_rx, int n_c
 
     const std::vector<cf32>& ref = wf_.chirp_float();
 
-    std::vector<cf32> rb(std::size_t(nrx) * n_chirp_total * nr);
+    std::vector<cf32> rb(static_cast<std::size_t>(nrx) * n_chirp_total * nr);
     {
-        std::vector<cf32> dech(std::size_t(ns)), h1(std::size_t(nd1)), h2(std::size_t(nd2));
-        AlignedBuffer<cf32> buf(std::size_t(nfft));
+        std::vector<cf32> dech(static_cast<std::size_t>(ns)), h1(static_cast<std::size_t>(nd1)), h2(static_cast<std::size_t>(nd2));
+        AlignedBuffer<cf32> buf(static_cast<std::size_t>(nfft));
 
         auto halfband = [&](const cf32* in, int nin_, cf32* outp) {
             for (int t = 0; t < nin_; t += 2) {
@@ -529,8 +529,8 @@ void RefModel::process_cpi_float(const cf32* const* rx_chirps, int n_rx, int n_c
     const int cpc = (cfg_.mimo == MimoMode::Tdm) ? n_chirp_total / 2 : n_chirp_total;
     const int nin = std::min(cpc, n_dopp_in_);
 
-    AlignedBuffer<cf32> series(std::size_t(nd));
-    std::vector<cf32>   alt(std::size_t(nd));
+    AlignedBuffer<cf32> series(static_cast<std::size_t>(nd));
+    std::vector<cf32>   alt(static_cast<std::size_t>(nd));
 
     auto doppler = [&]() {
         for (int i = 0; i < nin; ++i) series[std::size_t(i)] = series[std::size_t(i)] * float(dwf[std::size_t(i)]);

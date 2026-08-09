@@ -102,7 +102,7 @@ std::vector<double> padded_magnitude(const std::vector<float>& w, std::size_t& n
 // it is the right one for a window that multiplies a block before a DFT.
 //----------------------------------------------------------------------------
 std::vector<float> cosine_sum(int n, const double* a, int terms) {
-    std::vector<float> w(std::size_t(n < 0 ? 0 : n));
+    std::vector<float> w(static_cast<std::size_t>(n < 0 ? 0 : n));
     if (n < 2) { if (n == 1) w[0] = 1.0f; return w; }
     for (int i = 0; i < n; ++i) {
         double v = 0.0;
@@ -121,14 +121,14 @@ std::vector<float> cosine_sum(int n, const double* a, int terms) {
 // requested level and the rest decay like a rectangular window's.
 //----------------------------------------------------------------------------
 std::vector<float> taylor_window(int n, int nbar, double sll_db) {
-    std::vector<float> w(std::size_t(n < 0 ? 0 : n));
+    std::vector<float> w(static_cast<std::size_t>(n < 0 ? 0 : n));
     if (n < 2) { if (n == 1) w[0] = 1.0f; return w; }
 
     const double A   = std::acosh(std::pow(10.0, sll_db / 20.0)) / kPi;
     const double sp2 = double(nbar) * double(nbar) /
                        (A * A + (double(nbar) - 0.5) * (double(nbar) - 0.5));
 
-    std::vector<double> F(std::size_t(nbar), 0.0);
+    std::vector<double> F(static_cast<std::size_t>(nbar), 0.0);
     for (int m = 1; m <= nbar - 1; ++m) {
         double num = 1.0;
         for (int i = 1; i <= nbar - 1; ++i) {
@@ -164,13 +164,13 @@ std::vector<float> taylor_window(int n, int nbar, double sll_db) {
 // sidelobe budget.
 //----------------------------------------------------------------------------
 std::vector<float> chebyshev_window(int n, double sll_db) {
-    std::vector<float> w(std::size_t(n < 0 ? 0 : n));
+    std::vector<float> w(static_cast<std::size_t>(n < 0 ? 0 : n));
     if (n < 2) { if (n == 1) w[0] = 1.0f; return w; }
 
     const int    order = n - 1;
     const double beta  = std::cosh(std::acosh(std::pow(10.0, sll_db / 20.0)) / double(order));
 
-    std::vector<cd> p(std::size_t(n));
+    std::vector<cd> p(static_cast<std::size_t>(n));
     for (int k = 0; k < n; ++k) {
         const double x = beta * std::cos(kPi * double(k) / double(n));
         double v;
