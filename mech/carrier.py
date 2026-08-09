@@ -338,6 +338,8 @@ def scad(tx, rx):
     rx_holes = [lap_hi - STEP * (i + 1) for i in range(n_hole)]
     pad_tx = lap_hi + 25.0
     pad_rx = lap_lo - 25.0
+    # and the collision check slides the RECEIVE half along y now
+
 
     def nut_pockets(p, ox, oy):
         s = []
@@ -430,11 +432,11 @@ module arm_{tag}() {{{{
 
     boxes = {
         'tx': [('tray', T[0], T[1], T[2], T[3]),
-               ('arm', bar_x0, lap_hi, x_split, T[1] + OVL),
+               ('arm', bar_x0, lap_lo, x_split, T[1] + OVL),
                ('pad', bar_x0 - (PAD_D - HALF), pad_tx - PAD_L / 2,
                 bar_x0, pad_tx + PAD_L / 2)],
         'rx': [('tray', R[0], R[1], R[2], R[3]),
-               ('arm', x_split, R[3] - OVL, bar_x1, lap_lo),
+               ('arm', x_split, R[3] - OVL, bar_x1, lap_hi),
                ('pad', bar_x1, pad_rx - PAD_L / 2,
                 bar_x1 + (PAD_D - HALF), pad_rx + PAD_L / 2)],
         'holes': (tx_holes, rx_holes),
@@ -454,8 +456,8 @@ part = "all";     // "transmit" | "receive" | "all"
 $fn = 48;
 {tray(tx, T, 'tx')}
 {tray(rx, R, 'rx')}
-{arm('tx', T[1] + OVL, lap_hi, True, tx_holes, pad_tx)}
-{arm('rx', R[3] - OVL, lap_lo, False, rx_holes, pad_rx)}
+{arm('tx', T[1] + OVL, lap_lo, True, tx_holes, pad_tx)}
+{arm('rx', R[3] - OVL, lap_hi, False, rx_holes, pad_rx)}
 
 module half_tx() {{
   difference() {{
