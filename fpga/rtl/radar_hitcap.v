@@ -73,11 +73,20 @@ module radar_hitcap #(
     //------------------------------------------------------------------
     wire [4:0]  halo_r = {1'b0, cfg_guard_r} + {1'b0, cfg_train_r};
     wire [4:0]  halo_d = {1'b0, cfg_guard_d} + {1'b0, cfg_train_d};
-    wire [19:0] lag    = (halo_r * N_DOPPLER) + halo_d + PIPE;
+
+    // Everything widened explicitly to 20 bits. The implicit-width rules would
+    // give the right answer here, but a silent truncation in an address
+    // calculation is exactly the bug that would attach the wrong complex
+    // samples to a detection, so it is spelled out.
+    localparam [19:0] ND20   = N_DOPPLER[19:0];
+    localparam [19:0] PIPE20 = PIPE[19:0];
+    localparam [19:0] DEPTH20 = DEPTH[19:0];
+
+    wire [19:0] lag = ({15'd0, halo_r} * ND20) + {15'd0, halo_d} + PIPE20;
 
     always @(posedge clk) begin
         if (rst) cfg_error <= 1'b0;
-        else     cfg_error <= (lag >= DEPTH);
+        else     cfg_error <= (lag >= DEPTH20);
     end
 
     //------------------------------------------------------------------
