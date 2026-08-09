@@ -23,11 +23,15 @@ import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN = os.path.abspath(os.path.join(HERE, "..", "design"))
-NAME = sys.argv[1] if len(sys.argv) > 1 else "radar_5g8_ro4350b"
+NAME = sys.argv[1] if len(sys.argv) > 1 else "radar_5g8_transmit_array"
 OUT = os.path.join(HERE, NAME)
 PCB = os.path.join(OUT, f"{NAME}.kicad_pcb")
-B = json.load(open(os.path.join(DESIGN, "board.json")))
-S = json.load(open(os.path.join(DESIGN, "synthesis.json")))["RO4350B"]
+B = json.load(open(os.path.join(DESIGN, {
+    "radar_5g8_transmit_array": "board_transmit.json",
+    "radar_5g8_receive_array": "board_receive.json",
+}.get(NAME, "board.json"))))
+S = json.load(open(os.path.join(DESIGN, "synthesis.json")))[
+    "ZYF300CA" if "array" in NAME else "RO4350B"]
 BW, BH = B["outline"]
 C0 = 299792458.0
 F0 = 5.80e9
@@ -143,7 +147,8 @@ def report():
     bw = math.degrees(0.886 * lam / (pitch * 2))   # 2-element array factor
     rep = {
         "board": {"name": NAME, "size_mm": [BW, BH],
-                  "substrate": B["stack"], "layers": 2, "finish": "ENIG"},
+                  "substrate": B["stack"], "layers": 2,
+                  "finish": B["stack"].get("finish", "Immersion silver")},
         "array": {
             "centre_frequency_ghz": F0 / 1e9,
             "wavelength_mm": round(lam, 4),

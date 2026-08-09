@@ -12,9 +12,9 @@ from matplotlib.patches import Polygon as MPoly, Circle, Rectangle
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN = os.path.abspath(os.path.join(HERE, "..", "design"))
-VAR = sys.argv[1] if len(sys.argv) > 1 else "RO4350B"
+VAR = sys.argv[1] if len(sys.argv) > 1 else "transmit"
 D = json.load(open(os.path.join(
-    DESIGN, "board.json" if VAR == "RO4350B" else "board_fr4.json")))
+    DESIGN, {"RO4350B": "board.json"}.get(VAR, f"board_{VAR}.json"))))
 S = json.load(open(os.path.join(DESIGN, "synthesis.json")))[VAR]
 OUT = os.path.join(HERE, f"radar_5g8_{VAR.lower()}")
 BW, BH = D["outline"]
@@ -35,9 +35,15 @@ NOTES = [
     "    The ground plane must be continuous. Do NOT add thieving, hatching "
     "or venting to layer 2.",
     "3.  COPPER: 1 oz (35 um) finished on both layers.",
-    "4.  FINISH: ENIG per IPC-4552 (0.05-0.1 um gold over 3-6 um nickel).",
-    "    ENIG is required: the antenna conductors are unmasked and HASL "
-    "would ruin their flatness.",
+    "4.  FINISH: IMMERSION SILVER per IPC-4553.  DO NOT SUBSTITUTE ENIG.",
+    "    At 5.8 GHz the current reaches only 0.87 um into the metal, so "
+    "ENIG's 3 um
+    of nickel would carry all of it at 2.7 times the "
+    "resistance of copper --
+    4.3 per cent of detection range.  Silver "
+    "tarnish is a semiconductor and
+    carries no RF current: a blackened "
+    "board measures the same as a fresh one.",
     "5.  SOLDER MASK: layer 1 has deliberate openings over the radiating "
     "elements and the",
     "    four end-launch transitions - mask there would detune the patches "
@@ -130,7 +136,7 @@ def draw():
              va="top")
     y -= 0.020
     for line in [
-        "  +-------------------------------------------+  layer 1  35 um Cu, ENIG, mask opened over antennas",
+        "  +-------------------------------------------+  layer 1  35 um Cu, immersion silver, mask open over antennas",
         f"  |  {sub['name']:<20s} {sub['h_mm']:.3f} mm      |  er {sub['er']}, tan d {sub['tand']}",
         "  +-------------------------------------------+  layer 2  35 um Cu, SOLID ground, masked",
         f"     finished thickness approx {sub['h_mm']+0.07:.2f} mm",
@@ -220,7 +226,7 @@ BOM = [
      "holes are plated and bonded to the ground plane: use metal hardware if "
      "you want the mounting plate grounded, nylon if you do not"],
     ["PCB", "1", f"{sub['name'].replace(' 1.0mm','')}, {sub['h_mm']} mm dielectric, 2 layer, "
-     f"1 oz, ENIG (finished thickness {sub['h_mm'] + 0.09:.3f} mm)",
+     f"1 oz, immersion silver (finished {sub['h_mm'] + 0.09:.3f} mm)",
      "PCBWay / JLCPCB", "-", f"{BW} x {BH} mm, see fabrication drawing"],
 ]
 
