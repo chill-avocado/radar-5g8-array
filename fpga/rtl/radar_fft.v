@@ -392,7 +392,10 @@ module radar_fft_stage #(
     // Pipeline stage 1: butterfly result.
     //------------------------------------------------------------------------
     reg                     p1_valid;
+    // The depth-1 stage has no twiddle at all, so it never reads p1_sel.
+    /* verilator lint_off UNUSEDSIGNAL */
     reg                     p1_sel;
+    /* verilator lint_on UNUSEDSIGNAL */
     reg signed [DATA_W-1:0] p1_i, p1_q;
 
     always @(posedge clk) begin

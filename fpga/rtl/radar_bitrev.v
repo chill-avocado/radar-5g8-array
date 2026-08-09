@@ -52,7 +52,7 @@ module radar_bitrev #(
 );
 
     localparam integer         W        = 2 * DATA_W;          // packed sample
-    localparam [NLOG2-1:0]     IDX_LAST = N - 1;
+    localparam [NLOG2-1:0]     IDX_LAST = {NLOG2{1'b1}};   // N-1
     localparam [NLOG2-1:0]     IDX_ONE  = 1;
     localparam [NLOG2-1:0]     IDX_ZERO = 0;
 
