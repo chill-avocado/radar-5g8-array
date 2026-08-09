@@ -67,7 +67,7 @@ LAUNCH_GAP = 0.9781                    # the array boards' launch, unchanged
 #   bottom   ground, and the face that bolts to the chassis
 STACK = dict(layers=4, dielectric_mm=[0.76, 0.338, 0.338],
              total_mm=0.76 + 0.338 + 0.338 + 4 * 0.035,
-             connector="Cinch 142-0701-801 (0.062 in)")
+             connector="Cinch 142-0701-881 (0.062 in)")
 W_DC = 0.45                            # a buried run; 0.9 mm for the supplies
 
 BW, BH = 100.0, 84.0
@@ -1170,7 +1170,7 @@ def build():
     ]
     # the parts that are not soldered to the board but are needed to build it
     for nm, x, y, side in b.ports:
-        b._bom(nm, "142-0701-801", "SMA end launch", "Cinch 142-0701-801",
+        b._bom(nm, "142-0701-881", "SMA end launch", "Cinch 142-0701-881",
                f"{side} edge, 0.062 in board")
     b._bom("H1-H6", "M3 x 6 pan head and washer", "M3", "",
            "two of the six sit beside the amplifiers and carry their heat")

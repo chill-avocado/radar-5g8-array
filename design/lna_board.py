@@ -683,7 +683,7 @@ def build():
     ]
     # the parts that are not soldered on but are needed to build it
     for nm, x, y, side in b.ports:
-        b._bom(nm, "142-0701-801", "SMA end launch", "Cinch 142-0701-801",
+        b._bom(nm, "142-0701-881", "SMA end launch", "Cinch 142-0701-881",
                f"{side} edge, 0.062 in board")
     b._bom("H1-H6", "M3 x 6 pan head and washer", "M3", "",
            "the two middle ones sit beside the amplifiers")
