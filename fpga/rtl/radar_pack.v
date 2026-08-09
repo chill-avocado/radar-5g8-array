@@ -150,3 +150,379 @@ module radar_pack #(
     wire [7:0]  dec_r = (q_dec_r == 8'd0) ? 8'd1 : q_dec_r;
     wire [7:0]  dec_d = (q_dec_d == 8'd0) ? 8'd1 : q_dec_d;
 
+    localparam [31:0] MAPW32 = MAP_WORDS;
+    localparam [31:0] MAXH32 = MAX_HITS;
+    wire [MAPAW:0] MAPW_LIM = MAPW32[MAPAW:0];
+    wire [HITAW:0] MAXH_LIM = MAXH32[HITAW:0];
+
+    //------------------------------------------------------------------------
+    // Buffers.  Each array has exactly one write port and one read port, which
+    // is the simple dual-port shape Vivado turns into true block RAM.  The
+    // write side always addresses buffer wsel and the read side buffer rsel,
+    // and the two are never the same once a frame has been handed over.
+    //------------------------------------------------------------------------
+    reg [31:0]     mapbuf [(2*MAP_WORDS)-1:0];
+    reg [HITW-1:0] hitbuf [(2*MAX_HITS)-1:0];
+    reg [31:0]     rowacc [511:0];      // running max down range, per column
+    reg            wsel, rsel;
+
+    //------------------------------------------------------------------------
+    // MAP WRITER
+    //------------------------------------------------------------------------
+    reg [8:0]       mr;          // input range row
+    reg [9:0]       md;          // input Doppler column
+    reg [7:0]       cnt_r;       // position within the range block
+    reg [7:0]       cnt_d;       // position within the Doppler block
+    reg [9:0]       od;          // output Doppler index
+    reg [MAPAW-1:0] row_base;    // first word of the current output row
+    reg [31:0]      blk_max;     // running maximum along Doppler
+    reg [31:0]      rowacc_q;
+    reg [9:0]       nd_out;
+    reg [8:0]       nr_out;
+    reg             map_ovf;
+
+    wire row_last  = (md == (q_nd - 10'd1));
+    wire col_last  = (mr == (q_nr - 9'd1));
+    wire d_blk_end = (cnt_d == (dec_d - 8'd1)) || row_last;
+    wire r_blk_end = (cnt_r == (dec_r - 8'd1)) || col_last;
+
+    // Maximum along the Doppler run, then down the range run.
+    wire [31:0] blk_new  = (cnt_d == 8'd0) ? map_pwr
+                         : ((map_pwr > blk_max) ? map_pwr : blk_max);
+    wire [31:0] cell_val = (cnt_r == 8'd0) ? blk_new
+                         : ((blk_new > rowacc_q) ? blk_new : rowacc_q);
+
+    // Read one column ahead so the accumulator is there on the clock the
+    // Doppler block closes, even at a decimation of one.
+    wire [9:0] od_next = row_last ? 10'd0 : (d_blk_end ? (od + 10'd1) : od);
+    wire [9:0] nd_eff  = (mr == 9'd0) ? (od + 10'd1) : nd_out;
+
+    wire [MAPAW-1:0] w_addr = row_base + od[MAPAW-1:0];
+    wire             w_fits = ({1'b0, w_addr} < MAPW_LIM);
+
+    wire cell_close = map_valid && d_blk_end && q_map_en;
+    wire cell_final = cell_close && r_blk_end;
+    wire cell_hold  = cell_close && !r_blk_end;
+
+    //------------------------------------------------------------------------
+    // DETECTION WRITER
+    //------------------------------------------------------------------------
+    reg [HITAW:0] hit_wcnt;
+
+    wire [31:0] hit_w0 = {8'd0, 7'd0, hit_dopp[8], hit_dopp[7:0], hit_range};
+    wire [HITW-1:0] hit_rec = {hit_w0,
+                               hit_pwr,
+                               hit_v0_i, hit_v0_q,
+                               hit_v1_i, hit_v1_q,
+                               hit_v2_i, hit_v2_q,
+                               hit_v3_i, hit_v3_q};
+
+    wire hit_take = hit_valid && q_hit_en && (hit_wcnt < MAXH_LIM);
+
+    //------------------------------------------------------------------------
+    // OUTPUT QUEUE -- four entries, enough to cover the one memory read in
+    // flight plus a clock of backpressure, so the stream never bubbles.
+    //------------------------------------------------------------------------
+    reg [31:0] fifo_d [3:0];
+    reg [3:0]  fifo_l;
+    reg [1:0]  fifo_wp, fifo_rp;
+    reg [2:0]  fifo_cnt;
+
+    assign m_valid = (fifo_cnt != 3'd0);
+    assign m_data  = fifo_d[fifo_rp];
+    assign m_last  = fifo_l[fifo_rp];
+
+    wire fifo_pop = m_valid & m_ready;
+
+    reg        push;
+    reg [31:0] push_d;
+    reg        push_l;
+
+    //------------------------------------------------------------------------
+    // EMITTER state
+    //------------------------------------------------------------------------
+    localparam [2:0] S_IDLE = 3'd0, S_HDR = 3'd1, S_MAP = 3'd2,
+                     S_HITS = 3'd3, S_END = 3'd4;
+
+    reg [2:0]      st;
+    reg [2:0]      hdr_i;
+    reg [MAPAW:0]  map_i;
+    reg            map_infl;
+    reg [31:0]     map_rq;
+    reg [HITAW:0]  hit_i;
+    reg [3:0]      hit_ph;      // 0 settle, 1 load, 2..7 push words 0..5
+    reg [HITW-1:0] hit_rq;
+    reg [HITW-1:0] hit_reg;
+
+    reg [15:0]     l_flags;
+    reg [31:0]     l_index;
+    reg [63:0]     l_time;
+    reg [31:0]     l_noise;
+    reg [15:0]     l_nhits;
+    reg [15:0]     l_nr, l_nd;
+    reg [MAPAW:0]  l_mapwords;
+    reg            l_map_present, l_hit_present;
+    reg            go;
+
+    wire can_push  = (fifo_cnt < 3'd4);
+    wire can_issue = ((fifo_cnt + {2'd0, map_infl}) <= 3'd2);
+    wire idle_now  = (st == S_IDLE) && (fifo_cnt == 3'd0);
+
+    wire map_present_now = q_map_en && !map_ovf && (row_base != {MAPAW{1'b0}});
+    wire hit_present_now = q_hit_en && (hit_wcnt != {(HITAW+1){1'b0}});
+
+    wire [2:0] hw   = hit_ph[2:0] - 3'd2;
+    wire [7:0] hoff = {hw, 5'd0};
+    wire [7:0] hsel = 8'd191 - hoff;
+
+    reg [31:0] hdr_w;
+    always @* begin
+        case (hdr_i)
+            3'd0:    hdr_w = RADAR_MAGIC;
+            3'd1:    hdr_w = {RADAR_FMT_VER, l_flags};
+            3'd2:    hdr_w = l_index;
+            3'd3:    hdr_w = {l_nr, l_nd};
+            3'd4:    hdr_w = {l_nhits, 16'd0};
+            3'd5:    hdr_w = l_noise;
+            3'd6:    hdr_w = l_time[63:32];
+            default: hdr_w = l_time[31:0];
+        endcase
+    end
+
+    //------------------------------------------------------------------------
+    // Memories.  One write port and one read port each, in one block apiece.
+    //------------------------------------------------------------------------
+    always @(posedge clk) begin
+        if (cell_final && w_fits) mapbuf[{wsel, w_addr}] <= cell_val;
+        map_rq <= mapbuf[{rsel, map_i[MAPAW-1:0]}];
+    end
+
+    always @(posedge clk) begin
+        if (hit_take) hitbuf[{wsel, hit_wcnt[HITAW-1:0]}] <= hit_rec;
+        hit_rq <= hitbuf[{rsel, hit_i[HITAW-1:0]}];
+    end
+
+    always @(posedge clk) begin
+        if (cell_hold) rowacc[od[8:0]] <= cell_val;
+        if (map_valid) rowacc_q <= rowacc[od_next[8:0]];
+    end
+
+    //------------------------------------------------------------------------
+    // Map write bookkeeping
+    //------------------------------------------------------------------------
+    always @(posedge clk) begin
+        if (rst) begin
+            mr <= 9'd0; md <= 10'd0; cnt_r <= 8'd0; cnt_d <= 8'd0;
+            od <= 10'd0; row_base <= {MAPAW{1'b0}}; blk_max <= 32'd0;
+            nd_out <= 10'd0; nr_out <= 9'd0; map_ovf <= 1'b0;
+            hit_wcnt <= {(HITAW+1){1'b0}};
+        end else begin
+            if (frame_start) begin
+                mr <= 9'd0; md <= 10'd0; cnt_r <= 8'd0; cnt_d <= 8'd0;
+                od <= 10'd0; row_base <= {MAPAW{1'b0}};
+                nd_out <= 10'd0; nr_out <= 9'd0; map_ovf <= 1'b0;
+                hit_wcnt <= {(HITAW+1){1'b0}};
+            end else begin
+                if (hit_take) hit_wcnt <= hit_wcnt + {{HITAW{1'b0}}, 1'b1};
+
+                if (map_valid) begin
+                    blk_max <= blk_new;
+                    if (cell_final && !w_fits) map_ovf <= 1'b1;
+
+                    if (row_last) begin
+                        md    <= 10'd0;
+                        cnt_d <= 8'd0;
+                        od    <= 10'd0;
+                        if (mr == 9'd0) nd_out <= nd_eff;
+                        mr <= col_last ? 9'd0 : (mr + 9'd1);
+                        if (r_blk_end) begin
+                            cnt_r    <= 8'd0;
+                            row_base <= row_base + nd_eff[MAPAW-1:0];
+                            nr_out   <= nr_out + 9'd1;
+                        end else begin
+                            cnt_r <= cnt_r + 8'd1;
+                        end
+                    end else begin
+                        md <= md + 10'd1;
+                        if (d_blk_end) begin
+                            cnt_d <= 8'd0;
+                            od    <= od + 10'd1;
+                        end else begin
+                            cnt_d <= cnt_d + 8'd1;
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    //------------------------------------------------------------------------
+    // Output queue
+    //------------------------------------------------------------------------
+    always @(posedge clk) begin
+        if (rst) begin
+            fifo_wp  <= 2'd0;
+            fifo_rp  <= 2'd0;
+            fifo_cnt <= 3'd0;
+            fifo_l   <= 4'd0;
+        end else begin
+            if (push) begin
+                fifo_d[fifo_wp] <= push_d;
+                fifo_l[fifo_wp] <= push_l;
+                fifo_wp         <= fifo_wp + 2'd1;
+            end
+            if (fifo_pop) fifo_rp <= fifo_rp + 2'd1;
+            case ({push, fifo_pop})
+                2'b10:   fifo_cnt <= fifo_cnt + 3'd1;
+                2'b01:   fifo_cnt <= fifo_cnt - 3'd1;
+                default: fifo_cnt <= fifo_cnt;
+            endcase
+        end
+    end
+
+    //------------------------------------------------------------------------
+    // Frame handover and emitter
+    //------------------------------------------------------------------------
+    always @(posedge clk) begin
+        if (rst) begin
+            st       <= S_IDLE;
+            hdr_i    <= 3'd0;
+            map_i    <= {(MAPAW+1){1'b0}};
+            map_infl <= 1'b0;
+            hit_i    <= {(HITAW+1){1'b0}};
+            hit_ph   <= 4'd0;
+            hit_reg  <= {HITW{1'b0}};
+            push     <= 1'b0;
+            push_d   <= 32'd0;
+            push_l   <= 1'b0;
+            go       <= 1'b0;
+            rsel     <= 1'b0;
+            wsel     <= 1'b0;
+            l_flags  <= 16'd0;
+            l_index  <= 32'd0;
+            l_time   <= 64'd0;
+            l_noise  <= 32'd0;
+            l_nhits  <= 16'd0;
+            l_nr     <= 16'd0;
+            l_nd     <= 16'd0;
+            l_mapwords    <= {(MAPAW+1){1'b0}};
+            l_map_present <= 1'b0;
+            l_hit_present <= 1'b0;
+            q_map_en <= 1'b0;  q_hit_en <= 1'b0;
+            q_dec_r  <= 8'd1;  q_dec_d  <= 8'd1;
+            q_flags  <= 16'd0; q_index  <= 32'd0; q_time <= 64'd0;
+            q_nr     <= 9'd256; q_nd    <= 10'd256;
+        end else begin
+            push <= 1'b0;
+            go   <= 1'b0;
+
+            if (frame_start) begin
+                q_map_en <= cfg_map_enable;
+                q_hit_en <= cfg_hits_enable;
+                q_dec_r  <= cfg_map_decim_r;
+                q_dec_d  <= cfg_map_decim_d;
+                q_flags  <= cfg_flags;
+                q_index  <= frame_index;
+                q_time   <= timestamp;
+                q_nr     <= n_range;
+                q_nd     <= n_doppler;
+            end
+
+            // Hand the finished frame to the emitter.  If the previous packet
+            // is still going out this frame's packet is skipped rather than
+            // corrupted -- the write buffer is simply reused.
+            if (frame_end && idle_now) begin
+                l_map_present <= map_present_now;
+                l_hit_present <= hit_present_now;
+                l_flags       <= {q_flags[15:2], hit_present_now, map_present_now};
+                l_index       <= q_index;
+                l_time        <= q_time;
+                l_noise       <= noise;
+                l_nhits       <= hit_present_now
+                                 ? {{(15-HITAW){1'b0}}, hit_wcnt} : 16'd0;
+                l_nr          <= map_present_now ? {7'd0, nr_out} : 16'd0;
+                l_nd          <= map_present_now ? {6'd0, nd_out} : 16'd0;
+                l_mapwords    <= map_present_now ? {1'b0, row_base}
+                                                 : {(MAPAW+1){1'b0}};
+                rsel          <= wsel;
+                wsel          <= ~wsel;
+                go            <= 1'b1;
+            end
+
+            case (st)
+                S_IDLE: begin
+                    hdr_i    <= 3'd0;
+                    map_i    <= {(MAPAW+1){1'b0}};
+                    hit_i    <= {(HITAW+1){1'b0}};
+                    hit_ph   <= 4'd0;
+                    map_infl <= 1'b0;
+                    if (go) st <= S_HDR;
+                end
+
+                S_HDR: begin
+                    if (can_push) begin
+                        push   <= 1'b1;
+                        push_d <= hdr_w;
+                        push_l <= 1'b0;
+                        if (hdr_i == 3'd7) begin
+                            st <= (l_map_present && (l_mapwords != {(MAPAW+1){1'b0}}))
+                                    ? S_MAP : (l_hit_present ? S_HITS : S_END);
+                        end else begin
+                            hdr_i <= hdr_i + 3'd1;
+                        end
+                    end
+                end
+
+                S_MAP: begin
+                    if (map_infl) begin
+                        push     <= 1'b1;
+                        push_d   <= map_rq;
+                        push_l   <= 1'b0;
+                        map_infl <= 1'b0;
+                    end
+                    if (can_issue && (map_i < l_mapwords)) begin
+                        map_infl <= 1'b1;
+                        map_i    <= map_i + {{MAPAW{1'b0}}, 1'b1};
+                    end else if (!map_infl && (map_i >= l_mapwords)) begin
+                        st <= l_hit_present ? S_HITS : S_END;
+                    end
+                end
+
+                S_HITS: begin
+                    if (hit_ph == 4'd0) begin
+                        hit_ph <= 4'd1;                 // let the address settle
+                    end else if (hit_ph == 4'd1) begin
+                        hit_reg <= hit_rq;
+                        hit_ph  <= 4'd2;
+                    end else if (can_push) begin
+                        push   <= 1'b1;
+                        push_d <= hit_reg[hsel -: 32];
+                        push_l <= 1'b0;
+                        if (hit_ph == 4'd7) begin
+                            hit_ph <= 4'd0;
+                            if ((hit_i + {{HITAW{1'b0}}, 1'b1}) >= l_nhits[HITAW:0]) begin
+                                st <= S_END;
+                            end else begin
+                                hit_i <= hit_i + {{HITAW{1'b0}}, 1'b1};
+                            end
+                        end else begin
+                            hit_ph <= hit_ph + 4'd1;
+                        end
+                    end
+                end
+
+                default: begin   // S_END
+                    if (can_push) begin
+                        push   <= 1'b1;
+                        push_d <= RADAR_ENDMARK;
+                        push_l <= 1'b1;
+                        st     <= S_IDLE;
+                    end
+                end
+            endcase
+        end
+    end
+
+endmodule
+
+`default_nettype wire
