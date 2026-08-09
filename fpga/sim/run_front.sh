@@ -96,9 +96,12 @@ RTOBJS=$BUILD/obj_radar_nco/libverilated.a
 printf '    built the Verilator runtime\n'
 
 VFLAGS="-std=c++17 -O2 -I$VROOT/include -I$VROOT/include/vltstd"
-TBFLAGS="$VFLAGS -Wall -Wextra -Wno-unused-parameter -I$SOFT"
+# -isystem on the generated and library headers so that -Wall only reports
+# problems in tb_front.cpp itself
+TBFLAGS="-std=c++17 -O2 -Wall -Wextra -isystem $VROOT/include"
+TBFLAGS="$TBFLAGS -isystem $VROOT/include/vltstd -I$SOFT"
 for m in $MODELS; do
-    TBFLAGS="$TBFLAGS -I$BUILD/obj_$m"
+    TBFLAGS="$TBFLAGS -isystem $BUILD/obj_$m"
 done
 
 # shellcheck disable=SC2086
