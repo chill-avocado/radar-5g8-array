@@ -36,14 +36,11 @@ NOTES = [
     "or venting to layer 2.",
     "3.  COPPER: 1 oz (35 um) finished on both layers.",
     "4.  FINISH: IMMERSION SILVER per IPC-4553.  DO NOT SUBSTITUTE ENIG.",
-    "    At 5.8 GHz the current reaches only 0.87 um into the metal, so "
-    "ENIG's 3 um
-    of nickel would carry all of it at 2.7 times the "
-    "resistance of copper --
-    4.3 per cent of detection range.  Silver "
-    "tarnish is a semiconductor and
-    carries no RF current: a blackened "
-    "board measures the same as a fresh one.",
+    "    At 5.8 GHz the current reaches only 0.87 um into the metal, so",
+    "    ENIG's 3 um of nickel would carry all of it, at 2.7 times the",
+    "    resistance of copper -- 4.3 per cent of detection range.",
+    "    Silver tarnish is a semiconductor and carries no RF current:",
+    "    a blackened board measures the same as a fresh one.",
     "5.  SOLDER MASK: layer 1 has deliberate openings over the radiating "
     "elements and the",
     "    four end-launch transitions - mask there would detune the patches "
