@@ -481,7 +481,7 @@ for _fp in board.GetFootprints():
     if _nm in _seen:
         continue
     _seen.add(_nm)
-    _c = _fp.Clone()
+    _c = pcbnew.Cast_to_FOOTPRINT(_fp.Clone())
     _c.SetOrientationDegrees(0)
     _c.SetPosition(pcbnew.VECTOR2I(0, 0))
     for _p in _c.Pads():
