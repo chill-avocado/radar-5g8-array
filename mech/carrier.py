@@ -582,7 +582,7 @@ def main():
               f"{len(p['notches'])} connector notches")
         dxf(os.path.join(HERE, f"plate_{p['name']}.dxf"),
             plate_outline(p),
-            p["board_holes"],
+            p["board_holes"] + p["plate_holes"],
             csk=(),
             note=(f"5.8 GHz RADAR GROUND PLATE - {p['name'].upper()} - "
                   f"{PLATE_T} mm AL",
@@ -646,7 +646,7 @@ def main():
     print(f"\n  everything it takes to bolt together")
     print(f"    {sum(len(p['board_holes']) for p in (tx, rx)):2d} x M3 x 8 cap head    "
           f"array board -> plate -> nut in the tray")
-    print(f"    {sum(len(p['plate_holes']) for p in (tx, rx)):2d} x M3 x 8 countersunk  "
+    print(f"    {sum(len(p['plate_holes']) for p in (tx, rx)):2d} x M3 x 8 pan head     plate -> nut in the tray"
           f"plate -> nut in the tray (pan head: a countersink would break through 1.5 mm plate)")
     print(f"    {n_bolt:2d} x M3 nut            dropped into the tray's underside")
     print(f"     7 x M3 x 30 + nut     through the lap, setting the separation")
