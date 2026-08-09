@@ -102,13 +102,6 @@ public:
         return true;
     }
 
-    /// The producer's view of the slot it is about to fill, so a large item can
-    /// be written straight into the ring instead of built elsewhere and moved.
-    /// Returns null when full.  The slot must already hold a live object, which
-    /// it does only if the ring was filled and drained at least Capacity times;
-    /// for that reason this is only safe for trivially default-constructible T,
-    /// and it is left out of the general path.  Use try_emplace instead.
-
     /// Count of items the producer had to throw away.  The producer increments
     /// this itself with drop(); the ring never discards anything on its own,
     /// because only the producer knows whether dropping or blocking is right.
