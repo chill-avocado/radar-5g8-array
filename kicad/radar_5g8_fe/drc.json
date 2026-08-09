@@ -1,0 +1,2661 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-08-09T20:06:11",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.5",
+    "schematic_parity": [],
+    "source": "radar_5g8_fe.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Zone [GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 99.75
+                    },
+                    "uuid": "8edddaa2-b326-4ea6-a59e-fc03a0bb6dc3"
+                },
+                {
+                    "description": "Zone [GND] on F.Cu, priority 0",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 99.75
+                    },
+                    "uuid": "4694d888-f4ed-4994-ab79-38664991e9ab"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [V5B] of UB3 on F.Cu",
+                    "pos": {
+                        "x": 30.5,
+                        "y": 28.0
+                    },
+                    "uuid": "563a4651-7c91-4626-8424-c9dcdea9fd56"
+                },
+                {
+                    "description": "Pad 2 [V5B] of UB3 on F.Cu",
+                    "pos": {
+                        "x": 30.5,
+                        "y": 21.7
+                    },
+                    "uuid": "b4f715dd-8851-40ca-8721-284759d57bcb"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Polygon [V5B] on F.Cu",
+                    "pos": {
+                        "x": 35.75,
+                        "y": 21.7
+                    },
+                    "uuid": "9b82cd1e-321e-4fec-98a5-3305e8c3b4be"
+                },
+                {
+                    "description": "Pad 1 [V5B] of CB5 on F.Cu",
+                    "pos": {
+                        "x": 34.5,
+                        "y": 21.7
+                    },
+                    "uuid": "b1b85a57-0a0a-45a9-a056-cc3e79a7ede3"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 1 [V5B] of FBD on F.Cu",
+                    "pos": {
+                        "x": 38.215,
+                        "y": 47.404152
+                    },
+                    "uuid": "70289132-4155-4212-9d02-25314d2a873d"
+                },
+                {
+                    "description": "Polygon [V5B] on F.Cu",
+                    "pos": {
+                        "x": 37.35,
+                        "y": 47.404152
+                    },
+                    "uuid": "657e7ed1-a974-477c-9c46-1ccddabbd3d1"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [V5A] of UA3 on F.Cu",
+                    "pos": {
+                        "x": 30.5,
+                        "y": 72.0
+                    },
+                    "uuid": "80ed31b8-6209-4270-a544-3a348b2ba866"
+                },
+                {
+                    "description": "Pad 2 [V5A] of UA3 on F.Cu",
+                    "pos": {
+                        "x": 30.5,
+                        "y": 78.3
+                    },
+                    "uuid": "5f5f78ea-3526-4f09-85df-b8414731535e"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 1 [V5A] of CA5 on F.Cu",
+                    "pos": {
+                        "x": 34.5,
+                        "y": 78.3
+                    },
+                    "uuid": "708af639-2297-4932-817a-4820c9f7bf00"
+                },
+                {
+                    "description": "Polygon [V5A] on F.Cu",
+                    "pos": {
+                        "x": 35.75,
+                        "y": 81.595847
+                    },
+                    "uuid": "d6cc3d02-d228-4008-ac12-7494c4188b4b"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Polygon [V5A] on F.Cu",
+                    "pos": {
+                        "x": 37.35,
+                        "y": 54.795847
+                    },
+                    "uuid": "0d3ba80e-0254-4f90-b803-a000d901baf3"
+                },
+                {
+                    "description": "Pad 1 [V5A] of FBC on F.Cu",
+                    "pos": {
+                        "x": 38.215,
+                        "y": 52.595847
+                    },
+                    "uuid": "ad3b9a6b-e41d-4201-a551-af3d52a2d757"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": [
+        {
+            "description": "Clearance violation ( clearance 0.1500 mm; actual 0.1303 mm)",
+            "items": [
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 48.994709,
+                        "y": 57.726138
+                    },
+                    "uuid": "d6e2107f-570d-4016-bbd6-c330c50987f6"
+                },
+                {
+                    "description": "Polygon [V12] on B.Cu",
+                    "pos": {
+                        "x": 49.4,
+                        "y": 69.8
+                    },
+                    "uuid": "edcff5ac-cc3b-4643-8ab3-ad729d921d10"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.1500 mm; actual 0.1303 mm)",
+            "items": [
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 48.994709,
+                        "y": 42.273861
+                    },
+                    "uuid": "25ea065c-572e-4114-ab2b-022b084d6fcd"
+                },
+                {
+                    "description": "Polygon [V12] on B.Cu",
+                    "pos": {
+                        "x": 49.4,
+                        "y": 69.8
+                    },
+                    "uuid": "edcff5ac-cc3b-4643-8ab3-ad729d921d10"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Items shorting two nets (nets DETC and GND)",
+            "items": [
+                {
+                    "description": "Polygon [DETC] on In2.Cu",
+                    "pos": {
+                        "x": 36.254709,
+                        "y": 55.8
+                    },
+                    "uuid": "0c4a32d1-1975-4050-b358-8a01daac1940"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_43",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 57.0
+                    },
+                    "uuid": "614f3966-7def-4278-a22b-f468dec67f2e"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets IMONB and GND)",
+            "items": [
+                {
+                    "description": "Polygon [IMONB] on In2.Cu",
+                    "pos": {
+                        "x": 45.14,
+                        "y": 44.6
+                    },
+                    "uuid": "0ce6fd1e-c872-47db-a94f-085824bd959e"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_57",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 43.0
+                    },
+                    "uuid": "d385ff90-6337-4720-8b4a-5013fa2088b1"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets TEMPB and GND)",
+            "items": [
+                {
+                    "description": "Polygon [TEMPB] on In2.Cu",
+                    "pos": {
+                        "x": 55.75,
+                        "y": 44.0
+                    },
+                    "uuid": "6b0352c7-2362-47d0-b719-4d438563cafa"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_57",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 43.0
+                    },
+                    "uuid": "d385ff90-6337-4720-8b4a-5013fa2088b1"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets GND and EN)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [GND] of H63_43",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 57.0
+                    },
+                    "uuid": "614f3966-7def-4278-a22b-f468dec67f2e"
+                },
+                {
+                    "description": "Polygon [EN] on In2.Cu",
+                    "pos": {
+                        "x": 63.449999,
+                        "y": 55.0
+                    },
+                    "uuid": "e1ecd665-c836-4f81-961e-f542ffa51690"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets DETD and GND)",
+            "items": [
+                {
+                    "description": "Polygon [DETD] on In2.Cu",
+                    "pos": {
+                        "x": 63.449999,
+                        "y": 48.73
+                    },
+                    "uuid": "ce10effe-a668-4917-a2c9-d8379e6ebfe6"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_57",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 43.0
+                    },
+                    "uuid": "d385ff90-6337-4720-8b4a-5013fa2088b1"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets GND and DETC)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [GND] of H63_43",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 57.0
+                    },
+                    "uuid": "614f3966-7def-4278-a22b-f468dec67f2e"
+                },
+                {
+                    "description": "Polygon [DETC] on In2.Cu",
+                    "pos": {
+                        "x": 65.989999,
+                        "y": 55.6
+                    },
+                    "uuid": "db791f2b-b286-4d75-9b6a-994cbc72aa30"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets GND and EN)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [GND] of H63_43",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 57.0
+                    },
+                    "uuid": "614f3966-7def-4278-a22b-f468dec67f2e"
+                },
+                {
+                    "description": "Polygon [EN] on In2.Cu",
+                    "pos": {
+                        "x": 17.0,
+                        "y": 55.2
+                    },
+                    "uuid": "b0b8f2c8-f541-4abc-bfbb-ca793eb2fe4d"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets IMONB and GND)",
+            "items": [
+                {
+                    "description": "Polygon [IMONB] on In2.Cu",
+                    "pos": {
+                        "x": 65.989999,
+                        "y": 48.73
+                    },
+                    "uuid": "7065d474-2179-441c-9609-622c8d98e5e0"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_57",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 43.0
+                    },
+                    "uuid": "d385ff90-6337-4720-8b4a-5013fa2088b1"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets V12 and GND)",
+            "items": [
+                {
+                    "description": "Polygon [V12] on In2.Cu",
+                    "pos": {
+                        "x": 16.0,
+                        "y": 86.45
+                    },
+                    "uuid": "941b55b9-1b41-4a82-8da6-f2ea0a14150f"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H52_15",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 84.2
+                    },
+                    "uuid": "c0083be4-029b-4a42-86c4-aac24ab17bb6"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets GND and IMONA)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [GND] of H63_43",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 57.0
+                    },
+                    "uuid": "614f3966-7def-4278-a22b-f468dec67f2e"
+                },
+                {
+                    "description": "Polygon [IMONA] on In2.Cu",
+                    "pos": {
+                        "x": 45.14,
+                        "y": 56.4
+                    },
+                    "uuid": "ac8490e3-8ff2-43f5-838d-929fdfec3e50"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets DETD and GND)",
+            "items": [
+                {
+                    "description": "Polygon [DETD] on In2.Cu",
+                    "pos": {
+                        "x": 36.254709,
+                        "y": 45.2
+                    },
+                    "uuid": "3bd7698b-6060-44ac-ace9-3da4d2ecb573"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_57",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 43.0
+                    },
+                    "uuid": "d385ff90-6337-4720-8b4a-5013fa2088b1"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets V12 and GND)",
+            "items": [
+                {
+                    "description": "Polygon [V12] on In2.Cu",
+                    "pos": {
+                        "x": 49.55,
+                        "y": 86.0
+                    },
+                    "uuid": "2f193400-aa44-40b4-a76b-fcabd7962622"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H52_15",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 84.2
+                    },
+                    "uuid": "c0083be4-029b-4a42-86c4-aac24ab17bb6"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Items shorting two nets (nets TEMPA and GND)",
+            "items": [
+                {
+                    "description": "Polygon [TEMPA] on In2.Cu",
+                    "pos": {
+                        "x": 55.75,
+                        "y": 57.0
+                    },
+                    "uuid": "3cd66597-c511-41e6-afba-f284c57a81c1"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_43",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 57.0
+                    },
+                    "uuid": "614f3966-7def-4278-a22b-f468dec67f2e"
+                }
+            ],
+            "severity": "error",
+            "type": "shorting_items"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint RAD1",
+                    "pos": {
+                        "x": 86.211001,
+                        "y": 86.726138
+                    },
+                    "uuid": "1276692f-5fd5-42c5-8284-8a1c05709ec7"
+                },
+                {
+                    "description": "Footprint RAF",
+                    "pos": {
+                        "x": 85.371292,
+                        "y": 88.626138
+                    },
+                    "uuid": "e5108420-aa06-4006-890c-ebb13ea36013"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint RCF",
+                    "pos": {
+                        "x": 39.5,
+                        "y": 59.626138
+                    },
+                    "uuid": "1c12a985-cd19-42e7-aaab-f311409cc5f5"
+                },
+                {
+                    "description": "Footprint CCD2",
+                    "pos": {
+                        "x": 38.639709,
+                        "y": 57.726138
+                    },
+                    "uuid": "7455cf3e-e5bc-4042-a10d-6f62253f35e5"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint RBF",
+                    "pos": {
+                        "x": 85.371292,
+                        "y": 11.373861
+                    },
+                    "uuid": "31380637-f148-4a88-a1c9-01eea8122e9b"
+                },
+                {
+                    "description": "Footprint RBD1",
+                    "pos": {
+                        "x": 86.211001,
+                        "y": 13.273861
+                    },
+                    "uuid": "8339e21c-2991-4975-9e45-4f2ccab6a01e"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint UA3",
+                    "pos": {
+                        "x": 30.5,
+                        "y": 75.15
+                    },
+                    "uuid": "43b7e023-dd0b-4f6a-8aae-a08f3712b3b1"
+                },
+                {
+                    "description": "Footprint CA5",
+                    "pos": {
+                        "x": 34.5,
+                        "y": 78.3
+                    },
+                    "uuid": "de8f38b6-84f9-48b4-9234-3167573c6d85"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint RDF",
+                    "pos": {
+                        "x": 39.5,
+                        "y": 40.373861
+                    },
+                    "uuid": "743866cf-08d8-4f8b-b333-bb7674a4600b"
+                },
+                {
+                    "description": "Footprint CDD2",
+                    "pos": {
+                        "x": 38.639709,
+                        "y": 42.273861
+                    },
+                    "uuid": "c1ee8891-d811-4122-bd51-59a5c758f67e"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint H52_15",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 84.2
+                    },
+                    "uuid": "94171e24-0599-41f0-9213-548ff4d5d925"
+                },
+                {
+                    "description": "Footprint CA93",
+                    "pos": {
+                        "x": 47.9,
+                        "y": 81.595847
+                    },
+                    "uuid": "b99a0865-21e2-4232-babf-07f429a2c399"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint UB3",
+                    "pos": {
+                        "x": 30.5,
+                        "y": 24.849999
+                    },
+                    "uuid": "a56c5e5b-dc1e-4ba3-ad9b-c4f8a4bd530e"
+                },
+                {
+                    "description": "Footprint CB5",
+                    "pos": {
+                        "x": 34.5,
+                        "y": 21.7
+                    },
+                    "uuid": "a8654ccb-b2f5-4597-ad02-24bebeafd471"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint H52_84",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 15.799999
+                    },
+                    "uuid": "c0bb4b01-9461-43a0-bd01-9a5e63e35279"
+                },
+                {
+                    "description": "Footprint CB93",
+                    "pos": {
+                        "x": 47.9,
+                        "y": 18.404152
+                    },
+                    "uuid": "f2517cec-d124-4c0e-af15-5a15e88efdc0"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Board edge clearance violation (board setup constraints edge clearance 0.1300 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Arc on Edge.Cuts",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 3.0
+                    },
+                    "uuid": "33d64e0b-dfa6-4460-9ff8-2a54d21256ca"
+                },
+                {
+                    "description": "Polygon [GND] on F.Cu",
+                    "pos": {
+                        "x": 95.7,
+                        "y": 5.095135
+                    },
+                    "uuid": "c5655e56-204a-444f-a40b-bb7bf15d16c4"
+                }
+            ],
+            "severity": "error",
+            "type": "copper_edge_clearance"
+        },
+        {
+            "description": "Board edge clearance violation (board setup constraints edge clearance 0.1300 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Arc on Edge.Cuts",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 97.0
+                    },
+                    "uuid": "f6af88a2-9342-4a40-8d24-098bb1ca7c9f"
+                },
+                {
+                    "description": "Polygon [GND] on F.Cu",
+                    "pos": {
+                        "x": 95.7,
+                        "y": 98.6
+                    },
+                    "uuid": "52e74137-10c9-4b39-81a5-d60e4710755e"
+                }
+            ],
+            "severity": "error",
+            "type": "copper_edge_clearance"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 91.76
+                    },
+                    "uuid": "3b623d58-73f0-4594-9661-c256827d2e2c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 92.38
+                    },
+                    "uuid": "f40c8a55-76cd-4a6d-922f-407e08da7316"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.6,
+                        "y": 92.4
+                    },
+                    "uuid": "bc2727e5-9d21-4649-a530-6de129497098"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 95.48
+                    },
+                    "uuid": "01553a4d-0964-43cf-ae5b-d68fbc6e7ae0"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 94.86
+                    },
+                    "uuid": "f731122b-454a-4231-94f1-6eda0b40ec79"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 91.76
+                    },
+                    "uuid": "bd4af72f-5bf2-4eef-898b-417220a8c25f"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 92.38
+                    },
+                    "uuid": "be9f27e3-fc03-4621-beee-b65fe2829442"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 93.62
+                    },
+                    "uuid": "49117077-4495-4ba1-9030-bec7c1cc60a5"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 55.75,
+                        "y": 90.57
+                    },
+                    "uuid": "88c42c2d-a56a-4f6b-84a6-ebd96639c860"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 94.86
+                    },
+                    "uuid": "c865dc02-4723-47bf-972c-ccabd5516a92"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 94.24
+                    },
+                    "uuid": "513a031f-c788-47ba-84a7-024483f3bb7a"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.4,
+                        "y": 92.4
+                    },
+                    "uuid": "91d50c24-9efb-481c-95cd-4658620a18d1"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 90.52
+                    },
+                    "uuid": "5593c176-fb90-449c-baff-51bad11bb001"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.38,
+                        "y": 95.48
+                    },
+                    "uuid": "0fccff4d-7305-4413-b95d-66e2b4d9a284"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 94.86
+                    },
+                    "uuid": "955ebae3-0e4a-49d9-ab7c-f3680d5a343c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 91.76
+                    },
+                    "uuid": "17fe6de9-980a-431a-9953-83116d0bdd24"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 95.48
+                    },
+                    "uuid": "9abc88e5-91e2-4273-af94-b8b65c83e419"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Zone [GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 99.75
+                    },
+                    "uuid": "8edddaa2-b326-4ea6-a59e-fc03a0bb6dc3"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.38,
+                        "y": 94.86
+                    },
+                    "uuid": "24e19a3d-1fd4-4a8c-a64e-ab598aa33ede"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.14,
+                        "y": 94.24
+                    },
+                    "uuid": "641d0b12-9964-4c0d-bbb6-1569eb86f94c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.4,
+                        "y": 93.6
+                    },
+                    "uuid": "a3b18e86-a9ef-48ea-944f-03ebfd99b555"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.6,
+                        "y": 93.6
+                    },
+                    "uuid": "a4e69c39-348c-4673-b578-52a1d0f8ded1"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 93.6
+                    },
+                    "uuid": "e26555ca-b0e9-4230-9ae3-73e1ee1e7a02"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 94.86
+                    },
+                    "uuid": "a994a6db-f307-4b64-9092-ada119e2d4d5"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 95.48
+                    },
+                    "uuid": "2ee4bf24-9ea8-4dc2-8fac-34a7da2aa3d7"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 93.62
+                    },
+                    "uuid": "2fcc7aaf-130d-49f4-9175-365c5933fea9"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.86,
+                        "y": 94.24
+                    },
+                    "uuid": "e4d545b1-365b-49c9-b977-d9d84205bf2c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 95.48
+                    },
+                    "uuid": "6ef730ab-816d-4114-946a-f6623830e108"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 94.86
+                    },
+                    "uuid": "311039df-70b3-47fe-98a9-14c99f4f0b36"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.14,
+                        "y": 91.14
+                    },
+                    "uuid": "313aa3a4-52c2-401b-aa9b-9360fd1f29e2"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 90.52
+                    },
+                    "uuid": "e6f0ebcc-25e1-4e8a-a184-7df9ce918d63"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 91.76
+                    },
+                    "uuid": "71d86ed7-6fa3-4f59-8efb-11734ef97934"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 90.52
+                    },
+                    "uuid": "34991a4c-5371-4b9a-95b6-c65311cc8c7a"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.86,
+                        "y": 91.14
+                    },
+                    "uuid": "eaf00144-7af5-475d-b748-c5ed8c238ba7"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 95.48
+                    },
+                    "uuid": "78b747db-fd9f-49dd-af2e-6f88677bb1c5"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 91.76
+                    },
+                    "uuid": "3ac2f745-378f-444f-9771-657989e05bd6"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 92.4
+                    },
+                    "uuid": "edd19660-df52-4579-9b32-1b70f5330706"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 96.6
+                    },
+                    "uuid": "87c9f943-cba3-4df8-bf06-84fc7269433b"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 90.52
+                    },
+                    "uuid": "efe81241-40d7-4cf8-94cf-f2742cdfdc1e"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.86,
+                        "y": 5.76
+                    },
+                    "uuid": "3b39477e-5281-46e0-b1db-1586c0aa67af"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 5.76
+                    },
+                    "uuid": "7f04a9ad-174b-4b0a-b25e-9d96602e6f57"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.38,
+                        "y": 8.86
+                    },
+                    "uuid": "bbe925cc-6a9d-4a4e-a26c-6474041ae92f"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 7.599999
+                    },
+                    "uuid": "827fd633-616f-4a82-8e47-a820f3570f4c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.6,
+                        "y": 7.599999
+                    },
+                    "uuid": "3e3054a2-07ec-4607-ade1-75b40726a8b4"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 4.519999
+                    },
+                    "uuid": "3e8c9d1e-2bbf-4de5-b36c-349c2642aa81"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 8.86
+                    },
+                    "uuid": "bc27550f-8375-4552-bf36-0ec3a2178bc4"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 8.239999
+                    },
+                    "uuid": "46cf445b-f768-481f-b989-b15b9d092127"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 9.48
+                    },
+                    "uuid": "beca2d7e-fb87-432a-85aa-ea09107f2e8a"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.38,
+                        "y": 9.48
+                    },
+                    "uuid": "fd4d2ea0-e216-4406-a735-23863e976eaf"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 9.48
+                    },
+                    "uuid": "47ae7c52-6dcb-4819-9f37-d642fe9fc474"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 8.239999
+                    },
+                    "uuid": "c1571064-5183-4198-b18e-b83ee741e829"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 9.48
+                    },
+                    "uuid": "4ecbd045-5453-40d8-9186-52b7dbf9f0a1"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 4.519999
+                    },
+                    "uuid": "4f87c451-35da-4eb8-a5b1-4c58611be501"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 4.519999
+                    },
+                    "uuid": "0e443bef-9e10-4d25-9a97-a10c5d601f0c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 5.14
+                    },
+                    "uuid": "57016d32-9566-4038-8873-de09ff5659b6"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 55.75,
+                        "y": 9.429999
+                    },
+                    "uuid": "d18b1487-4693-42e4-8018-92a4a2cdd7ca"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 9.48
+                    },
+                    "uuid": "57c0143c-4bb2-49ea-9abd-c20978dbd74f"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 8.86
+                    },
+                    "uuid": "173f7228-05e8-42bf-9da3-785caa87eab9"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 8.86
+                    },
+                    "uuid": "d33ee99b-8ecf-4138-9034-7f0e2e247d06"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 6.379999
+                    },
+                    "uuid": "58be1e78-7d8e-4359-8af8-eb4b64075287"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 5.14
+                    },
+                    "uuid": "9b8e2117-988e-4b0d-b4d1-7a1f82383e72"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Zone [GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 99.75
+                    },
+                    "uuid": "8edddaa2-b326-4ea6-a59e-fc03a0bb6dc3"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 5.76
+                    },
+                    "uuid": "9c61a09d-da45-488c-9ed6-45746b17c54c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.4,
+                        "y": 7.599999
+                    },
+                    "uuid": "dc955a55-61ff-4057-82c2-63c8cf9fa007"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 9.48
+                    },
+                    "uuid": "dd2e52c4-cbe1-43ea-8b57-1aab90c3fa57"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.4,
+                        "y": 6.4
+                    },
+                    "uuid": "de6cdde8-db62-4836-bd78-4253e95228dd"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.6,
+                        "y": 6.4
+                    },
+                    "uuid": "273e1a62-9eb2-4106-b233-ce67c58da1a1"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 8.86
+                    },
+                    "uuid": "658c226a-9376-42cf-8102-eac7dffc71e7"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 54.48,
+                        "y": 5.14
+                    },
+                    "uuid": "287a36b9-f548-444d-87ab-9df967180807"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.0,
+                        "y": 6.4
+                    },
+                    "uuid": "a6cb1004-a133-46c5-9abb-25dd08ded4a1"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 8.86
+                    },
+                    "uuid": "ab3a6601-1c16-46f7-898c-0d9e86642a7e"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 4.519999
+                    },
+                    "uuid": "aece7007-a8ac-479b-a7d8-532bf4f502b0"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 53.24,
+                        "y": 6.379999
+                    },
+                    "uuid": "6b146d16-3b46-43a2-9137-1bcad13eb77b"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 51.38,
+                        "y": 8.239999
+                    },
+                    "uuid": "314cf851-f820-4e30-9c3c-9bb57c579676"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 5.14
+                    },
+                    "uuid": "70d53a95-b341-4f76-b7b7-aa787f5f5b7b"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 49.52,
+                        "y": 8.239999
+                    },
+                    "uuid": "b7061199-e3ec-4451-8d4a-5d5998b4f75c"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 52.62,
+                        "y": 8.239999
+                    },
+                    "uuid": "371fe313-0e52-408c-8b28-8543a854e362"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Rear solder mask aperture bridges items with different nets",
+            "items": [
+                {
+                    "description": "Polygon on B.Mask",
+                    "pos": {
+                        "x": 48.4,
+                        "y": 10.599999
+                    },
+                    "uuid": "702d20ea-b61c-4263-9773-880858ae789d"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 50.76,
+                        "y": 8.239999
+                    },
+                    "uuid": "ed9e6543-701d-47c9-8c2a-b30112b7d363"
+                }
+            ],
+            "severity": "error",
+            "type": "solder_mask_bridge"
+        },
+        {
+            "description": "Drilled holes co-located",
+            "items": [
+                {
+                    "description": "Via [EN] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 6.55,
+                        "y": 79.19
+                    },
+                    "uuid": "64966e3a-4ef1-42b4-b41a-327d23b71a72"
+                },
+                {
+                    "description": "Via [EN] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 6.55,
+                        "y": 79.19
+                    },
+                    "uuid": "bf9823a3-dfe4-41ec-9449-aca3c02c2462"
+                }
+            ],
+            "severity": "warning",
+            "type": "holes_co_located"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text '5.8 GHz RADAR FRONT END' on F.Silkscreen",
+                    "pos": {
+                        "x": 24.0,
+                        "y": 3.0
+                    },
+                    "uuid": "ab3ad0b7-8058-450f-9f2b-3841ce46079a"
+                },
+                {
+                    "description": "Pad 4 [GND] of UB1 on F.Cu",
+                    "pos": {
+                        "x": 34.0,
+                        "y": 4.612499
+                    },
+                    "uuid": "8d01c187-e6a1-4089-8b1e-57d094397e39"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text 'TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A' on F.Silkscreen",
+                    "pos": {
+                        "x": 24.0,
+                        "y": 5.5
+                    },
+                    "uuid": "8e83663b-de50-4ce2-9c78-efab0e564166"
+                },
+                {
+                    "description": "Pad 4 [GND] of UB1 on F.Cu",
+                    "pos": {
+                        "x": 34.0,
+                        "y": 4.612499
+                    },
+                    "uuid": "8d01c187-e6a1-4089-8b1e-57d094397e39"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text 'J5  enable + monitors' on F.Silkscreen",
+                    "pos": {
+                        "x": 66.0,
+                        "y": 56.0
+                    },
+                    "uuid": "18cae711-c4aa-48b7-aad0-0174924b3a23"
+                },
+                {
+                    "description": "PTH pad 1 [GND] of H63_43",
+                    "pos": {
+                        "x": 63.5,
+                        "y": 57.0
+                    },
+                    "uuid": "614f3966-7def-4278-a22b-f468dec67f2e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text '5.8 GHz RADAR FRONT END' on F.Silkscreen",
+                    "pos": {
+                        "x": 24.0,
+                        "y": 3.0
+                    },
+                    "uuid": "ab3ad0b7-8058-450f-9f2b-3841ce46079a"
+                },
+                {
+                    "description": "Pad 1 [GND] of FID22_97 on F.Cu",
+                    "pos": {
+                        "x": 22.0,
+                        "y": 3.0
+                    },
+                    "uuid": "169208f0-84cc-467f-b6bc-37a499dff4c8"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        }
+    ]
+}
