@@ -242,7 +242,7 @@ module radar_corner_turn #(
                 buf_nc_log2[wr_sel] <= eff_nc_log2;
             end
 
-            if (!rd_active && buf_full[rd_sel] && !(wr_frame_end && (wr_sel == rd_sel))) begin
+            if (!rd_active && buf_full[rd_sel]) begin
                 rd_active  <= 1'b1;
                 rd_range   <= {AW{1'b0}};
                 rd_chirp   <= {AW{1'b0}};
