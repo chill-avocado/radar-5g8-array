@@ -250,7 +250,14 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
              for a, b_, c, d in occupied]
     mid = (W if kind == "TX" else H) / 2.0
     placed = False
-    for stand in (6.0, 7.5, 9.0, 10.5, 12.0):
+    # Try the connector edge first, then the far edge.  What the camera needs
+    # is two marks far apart; what the ARRAY needs is that they sit
+    # symmetrically about the centre line, so the two elements see the same
+    # thing.  Either edge satisfies both, and the receive board's connector
+    # edge is full of launches, loads and limiter sites.
+    far = (H if kind == "TX" else W)
+    for stand in (6.0, 7.5, 9.0, 10.5, 12.0,
+                  far - 6.0, far - 7.5, far - 9.0, far - 10.5, far - 12.0):
         for off in [x / 2.0 for x in range(52, 23, -1)]:
             pair = [(mid - off, stand), (mid + off, stand)] if kind == "TX" \
                 else [(stand, mid - off), (stand, mid + off)]
