@@ -25,16 +25,42 @@
     "array_factor_beamwidth_deg": 50.76,
     "transmit_positions_mm": [
       [
-        22.998980000000003,
-        34.195
+        -12.922088706896552,
+        0.0
       ],
       [
-        48.84315741379311,
-        34.195
+        12.922088706896552,
+        0.0
       ]
     ],
-    "receive_positions_mm": [],
-    "virtual_array_positions_mm": [],
+    "receive_positions_mm": [
+      [
+        0.0,
+        -12.922088706896552
+      ],
+      [
+        0.0,
+        12.922088706896552
+      ]
+    ],
+    "virtual_array_positions_mm": [
+      [
+        -12.9221,
+        -12.9221
+      ],
+      [
+        -12.9221,
+        12.9221
+      ],
+      [
+        12.9221,
+        -12.9221
+      ],
+      [
+        12.9221,
+        12.9221
+      ]
+    ],
     "virtual_array_note": "transmit position + receive position; the constant offset is common to all four and cancels out of any angle estimate",
     "transmit_polarisation": "RHCP",
     "receive_polarisation": "LHCP",

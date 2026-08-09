@@ -134,8 +134,29 @@ def mechanical(radius=3.0):
 def report():
     lam = C0 / F0 * 1e3
     d = S["tuned"]
-    tx = [e["centre"] for e in B["elements"] if e["hand"] == "RHCP"]
-    rx = [e["centre"] for e in B["elements"] if e["hand"] == "LHCP"]
+    # The receive elements live on the OTHER board, so read it too.  A
+    # single-board product was always empty: each board carries one hand.
+    #
+    # Positions are taken relative to each array's OWN centre, which is the
+    # honest formulation -- the 250 mm between the two boards is a common
+    # offset that falls straight out of the difference and does not enter the
+    # angle at all.  That was argued earlier in the project and then confirmed
+    # by beamforming a simulated target.
+    _other = os.path.join(DESIGN, "board_receive.json"
+                          if "transmit" in NAME else "board_transmit.json")
+    _O = json.load(open(_other)) if os.path.exists(_other) else B
+    def _rel(els):
+        if not els:
+            return []
+        cx = sum(e["centre"][0] for e in els) / len(els)
+        cy = sum(e["centre"][1] for e in els) / len(els)
+        return [[e["centre"][0] - cx, e["centre"][1] - cy] for e in els]
+    _txe = [e for e in B["elements"] if e["hand"] == "RHCP"] or \
+           [e for e in _O["elements"] if e["hand"] == "RHCP"]
+    _rxe = [e for e in B["elements"] if e["hand"] == "LHCP"] or \
+           [e for e in _O["elements"] if e["hand"] == "LHCP"]
+    tx = _rel(_txe)
+    rx = _rel(_rxe)
     pitch = B["report"]["element_pitch_mm"]
     # A 2x2 virtual array: every transmit position added to every receive one.
     virt = sorted([[round(t[0] + r[0], 4), round(t[1] + r[1], 4)]
