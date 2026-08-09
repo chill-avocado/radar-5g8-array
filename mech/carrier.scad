@@ -26,8 +26,10 @@ module tray_tx() {
       translate([31.079, 5.805, -1]) cylinder(d=3.40, h=8.00);
       translate([-1.921, -30.195, -1]) cylinder(d=7.159, h=3.80, $fn=6);
       translate([-1.921, -30.195, -1]) cylinder(d=3.40, h=8.00);
-      translate([4.079, -21.195, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-      translate([4.079, -21.195, -1]) cylinder(d=3.40, h=8.00);
+      translate([7.079, -17.195, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+      translate([7.079, -17.195, -1]) cylinder(d=3.40, h=8.00);
+      translate([-6.921, -17.195, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+      translate([-6.921, -17.195, -1]) cylinder(d=3.40, h=8.00);
       translate([-40.921, -0.695, -1]) cylinder(d=7.159, h=3.80, $fn=6);
       translate([-40.921, -0.695, -1]) cylinder(d=3.40, h=8.00);
       translate([40.250, -0.695, -1]) cylinder(d=7.159, h=3.80, $fn=6);
@@ -51,14 +53,10 @@ module tray_rx() {
     // fasteners, each with an M3 nut trapped in the underside
       translate([219.805, 8.052, -1]) cylinder(d=7.159, h=3.80, $fn=6);
       translate([219.805, 8.052, -1]) cylinder(d=3.40, h=8.00);
-      translate([258.805, -31.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-      translate([258.805, -31.948, -1]) cylinder(d=3.40, h=8.00);
-      translate([258.805, 31.052, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-      translate([258.805, 31.052, -1]) cylinder(d=3.40, h=8.00);
       translate([223.805, -11.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
       translate([223.805, -11.948, -1]) cylinder(d=3.40, h=8.00);
-      translate([228.805, -0.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-      translate([228.805, -0.948, -1]) cylinder(d=3.40, h=8.00);
+      translate([232.805, 0.052, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+      translate([232.805, 0.052, -1]) cylinder(d=3.40, h=8.00);
       translate([249.305, -40.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
       translate([249.305, -40.948, -1]) cylinder(d=3.40, h=8.00);
       translate([249.305, 40.237, -1]) cylinder(d=7.159, h=3.80, $fn=6);
