@@ -173,6 +173,11 @@ def build(drive):
     for fy in {round(f[1], 4) for f in feet}:
         yl += list(np.linspace(fy - wq / 2, fy + wq / 2, 4))
     yl += list(np.linspace(-wq / 2, wq / 2, 4))
+    # Mirror the y lines about the centre.  The two modes are reflections of
+    # each other in that line, so a grid that is not itself symmetric splits
+    # them by pure numerics -- 65 MHz on the first diamond run, on a shape
+    # whose two diagonals are equal by construction.
+    yl = list(yl) + [-v for v in yl]
     mesh.AddLine("x", clean(xl)); mesh.SmoothMeshLines("x", res_air, 1.35)
     mesh.AddLine("y", clean(yl)); mesh.SmoothMeshLines("y", res_air, 1.35)
     mesh.AddLine("z", clean([-AIR] + list(np.linspace(0, H, 4)) + [H + AIR]))
