@@ -69,14 +69,14 @@
 		(uuid "3ef7ac3e-1444-416a-9c09-3f671c1c40ff")
 	)
 	(pad "2" smd rect
-		(at 1.6 3.404865)
+		(at 1.6 3.896664)
 		(size 2.9 2.6)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
 		(uuid "a8814f12-6b62-4dd1-90cd-7016e217b635")
 	)
 	(pad "3" smd rect
-		(at 1.6 -3.404865)
+		(at 1.6 -3.896664)
 		(size 2.9 2.6)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
