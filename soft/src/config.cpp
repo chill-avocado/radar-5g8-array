@@ -241,6 +241,14 @@ std::string Config::validate() const {
                "of a lower one. Keep at most " + fmti("%lld", n_range_fft / 2) + ".";
     }
 
+    // Ahead of the corner-turn arithmetic, because an odd chirp count fails
+    // that too and this says the useful thing about why.
+    if (mimo == MimoMode::Ddm && (n_chirp & 1)) {
+        return "Doppler-division needs an even number of chirps, because transmitter 1 is "
+               "inverted on every other one and an odd count leaves the pattern unbalanced. " +
+               fmti("%lld", n_chirp) + " is odd.";
+    }
+
     // The one the whole operating point is built around.
     if (!is_pow2(std::size_t(n_range)) || !is_pow2(std::size_t(t.d.n_chirp_total))) {
         return "Range bins and chirps per interval both have to be powers of two, because "

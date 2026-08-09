@@ -80,8 +80,8 @@ module radar_nco #(
 
     localparam integer IDX_W   = LUT_ADDR_W + 2;      // 12 bits of phase used
     localparam integer LUT_N   = (1 << LUT_ADDR_W);   // 1024 quarter-wave pts
-    localparam integer QUARTER = LUT_N;               // cos = sin + quarter
     localparam integer AMP_MAX = (1 << (OUT_W - 1)) - 1;   // 32767
+    localparam [IDX_W-1:0] QUARTER = LUT_N;           // cos = sin + quarter turn
 
     //------------------------------------------------------------------------
     // Quarter-wave sine ROM, built at elaboration time.
