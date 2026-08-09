@@ -496,14 +496,16 @@ void test_decim4()
         dut->in_q = 0;
         tick(dut);
         if (dut->out_valid) {
-            if (first_valid < 0) first_valid = n;
+            if (first_valid < 0) first_valid = n + 1;    // clock cycle number
             ++n_valid;
         }
     }
+    const int want_valid = (NCLK - first_valid) / 4 + 1;
     record("decim4 latency and 4:1 ratio",
-           first_valid == 11 && n_valid == (NCLK - first_valid + 3) / 4,
-           fmt("first out_valid at clock %d (8 clocks after the completing "
-               "input), %d outputs in %d clocks", first_valid, n_valid, NCLK));
+           first_valid == 11 && n_valid == want_valid,
+           fmt("first output on clock %d -- 8 clocks after the input that "
+               "completes it -- then %d outputs in %d clocks (want %d)",
+               first_valid, n_valid, NCLK, want_valid));
 
     // --- DC gain must be exactly 1.0 ---------------------------------------
     dut->rst = 1; tick(dut); dut->rst = 0;
@@ -961,7 +963,8 @@ void test_regs()
     bad.clear();
 
     // --- write every register ----------------------------------------------
-    wr(dut, 0, 0xBEEF0000u | 0x00FDu);   // ctrl: enable, mimo=3, tx, map, hits, loopback
+    wr(dut, 0, 0xBEEF00FFu);   // every ctrl bit set: enable, soft reset, mimo 3,
+                               // tx, map, hits, loopback, frame_limit 0xBEEF
     chk("ctrl_enable",      dut->ctrl_enable, 1);
     chk("ctrl_mimo_mode",   dut->ctrl_mimo_mode, 3);
     chk("ctrl_tx_enable",   dut->ctrl_tx_enable, 1);
