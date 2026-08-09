@@ -128,7 +128,10 @@ module radar_nco #(
     // Stage 1 : quadrant fold for both the sine and the cosine read.
     //------------------------------------------------------------------------
     wire [IDX_W-1:0] idx_q = phase[PHASE_W-1 -: IDX_W];
-    wire [IDX_W-1:0] idx_i = idx_q + QUARTER;
+    // cos(x) = sin(x + quarter turn): add 2^LUT_ADDR_W, which is just the
+    // quadrant field incrementing and the offset staying put
+    wire [IDX_W-1:0] idx_i = {idx_q[IDX_W-1:LUT_ADDR_W] + 2'd1,
+                              idx_q[LUT_ADDR_W-1:0]};
 
     wire [LUT_ADDR_W-1:0] fold_q = idx_q[LUT_ADDR_W]
                                  ? ~idx_q[LUT_ADDR_W-1:0] : idx_q[LUT_ADDR_W-1:0];
