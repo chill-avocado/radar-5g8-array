@@ -216,7 +216,12 @@
 `define RADAR_REG_MAP_DECIM    8'd15  // [7:0] range decim, [15:8] Doppler decim
 `define RADAR_REG_MAX_HITS     8'd16  // u16 detections reported per CPI
 `define RADAR_REG_ZERO_DOPP    8'd17  // u8  Doppler bins around zero to blank
-`define RADAR_REG_TEST_TONE    8'd18  // s32 loopback test tone phase increment
+`define RADAR_REG_GEOM         8'd18
+//   [3:0]   n_range_log2  range bins kept, log2 (7 or 8)
+//   [7:4]   n_chirp_log2  chirps per CPI, log2 (8 or 9)
+//   the two must sum to RADAR_CT_WORDS_LOG2 or the core refuses to start and
+//   raises the config-error flag in the frame header
+`define RADAR_REG_TEST_TONE    8'd20  // s32 loopback test tone phase increment
 `define RADAR_REG_VERSION      8'd19  // write anything: stamps the version word
                                       //   into the next frame header
 
