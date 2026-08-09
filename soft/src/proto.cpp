@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <type_traits>
 
 namespace radar {
 namespace proto {
