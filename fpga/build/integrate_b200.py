@@ -266,7 +266,7 @@ module radar_b200_shim{param_decls} (
     wire        radio_rx_stb_mux = radar_enabled ? radar_out_valid : {rx_stb};
 
     //-- The original radio, untouched ------------------------------------
-    {module_name} u_radio (
+    {module_name}{param_pass} u_radio (
 {conn_text}
     );
 
@@ -379,7 +379,10 @@ def main():
     for r, p in roles.items():
         print(f"   {r:9s} -> {p.dir} {p.width} {p.name}")
 
-    shim = emit_shim(module_name, ports, roles, shim_path)
+    params = parse_parameters(src, module_name)
+    if params:
+        print("parameters   : " + ", ".join(n for n, _ in params))
+    shim = emit_shim(module_name, ports, roles, params, shim_path)
     print(f"\nwrote {shim_path}  ({len(shim.splitlines())} lines, "
           f"sha256 {hashlib.sha256(shim.encode()).hexdigest()[:12]})")
 
