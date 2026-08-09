@@ -688,9 +688,9 @@ struct WebServer::Impl {
             if (avail > 16384) {
                 respond(c, 431, "Request Header Fields Too Large", "text/plain",
                         "header block too large\n");
-                return true;
+                return;
             }
-            return true;   // wait for more
+            return;   // wait for more
         }
 
         const std::string block(reinterpret_cast<const char*>(base), end);
@@ -703,14 +703,14 @@ struct WebServer::Impl {
         const std::size_t sp2 = (sp1 == std::string::npos) ? std::string::npos : line.find(' ', sp1 + 1);
         if (sp1 == std::string::npos || sp2 == std::string::npos || sp1 == 0) {
             respond(c, 400, "Bad Request", "text/plain", "malformed request line\n");
-            return true;
+            return;
         }
         const std::string method = line.substr(0, sp1);
         const std::string target = line.substr(sp1 + 1, sp2 - sp1 - 1);
         const std::string ver    = line.substr(sp2 + 1);
         if (target.empty() || target[0] != '/' || ver.compare(0, 5, "HTTP/") != 0) {
             respond(c, 400, "Bad Request", "text/plain", "malformed request line\n");
-            return true;
+            return;
         }
 
         // ---- headers ----
@@ -723,7 +723,7 @@ struct WebServer::Impl {
             const std::size_t colon = h.find(':');
             if (colon == std::string::npos) {
                 respond(c, 400, "Bad Request", "text/plain", "malformed header\n");
-                return true;
+                return;
             }
             hdr[lower(trim(h.substr(0, colon)))] = trim(h.substr(colon + 1));
             pos = e + 2;
@@ -740,7 +740,7 @@ struct WebServer::Impl {
                              "Content-Type: text/plain\r\nContent-Length: " +
                              std::to_string(body.size()) + "\r\nConnection: close\r\n\r\n" + body);
                 c.want_close = true;
-                return true;
+                return;
             }
             std::string resp = "HTTP/1.1 101 Switching Protocols\r\n";
             resp += "Upgrade: websocket\r\n";
@@ -755,12 +755,12 @@ struct WebServer::Impl {
             std::vector<u8> hello;
             proto::encode_hello(hello, t0_ns, now_ns(), build_id);
             queue_frame(c, kOpBinary, hello.data(), hello.size(), false);
-            return true;
+            return;
         }
 
         if (!iequal(method, "GET")) {
             respond(c, 405, "Method Not Allowed", "text/plain", "only GET is served here\n");
-            return true;
+            return;
         }
 
         // ---- route ----
@@ -788,7 +788,7 @@ struct WebServer::Impl {
                                                               : "text/plain; charset=utf-8";
                 respond(c, 200, "OK", ct, body);
             }
-            return true;
+            return;
         }
 
         // The only file this server will ever read off disk is the display
@@ -798,10 +798,10 @@ struct WebServer::Impl {
         if (path == "/favicon.ico") {
             queue_raw(c, "HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
             c.want_close = true;
-            return true;
+            return;
         }
         respond(c, 404, "Not Found", "text/plain", "not found\n");
-        return true;
+        return;
     }
 
     //------------------------------------------------------------------
