@@ -74,11 +74,11 @@ CBD2,10n,0402,,
 RBO,1k,0402,,keeps the reading off the radio-frequency side
 RTA,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
 RTB,10k NTC,0402,NCP15XH103F03RC,how hot the board is beside the amplifier
-RX1_IN,142-0701-881,SMA end launch,Cinch 142-0701-881,"left edge, 0.062 in board"
-RX1_OUT,142-0701-881,SMA end launch,Cinch 142-0701-881,"right edge, 0.062 in board"
-RX1_INJ,142-0701-881,SMA end launch,Cinch 142-0701-881,"top edge, 0.062 in board"
-RX2_IN,142-0701-881,SMA end launch,Cinch 142-0701-881,"left edge, 0.062 in board"
-RX2_OUT,142-0701-881,SMA end launch,Cinch 142-0701-881,"right edge, 0.062 in board"
-RX2_INJ,142-0701-881,SMA end launch,Cinch 142-0701-881,"bottom edge, 0.062 in board"
+RX1_IN,142-0701-801,SMA end launch,Cinch 142-0701-801,"left edge, 0.062 in board"
+RX1_OUT,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+RX1_INJ,142-0701-801,SMA end launch,Cinch 142-0701-801,"top edge, 0.062 in board"
+RX2_IN,142-0701-801,SMA end launch,Cinch 142-0701-801,"left edge, 0.062 in board"
+RX2_OUT,142-0701-801,SMA end launch,Cinch 142-0701-801,"right edge, 0.062 in board"
+RX2_INJ,142-0701-801,SMA end launch,Cinch 142-0701-801,"bottom edge, 0.062 in board"
 H1-H6,M3 x 6 pan head and washer,M3,,the two middle ones sit beside the amplifiers
 TIM,"thermal pad 0.5 mm, 3 W/mK",10 x 10 mm,,"under each amplifier, between the bare underside and the chassis"

@@ -690,13 +690,13 @@ def build():
     for nm, x, y, side in b.ports:
         if side == "left":
             b._bom(nm, "SMA plug, edge launch", "0.062 in board", "",
-                   "MALE, the counterpart of the 142-0701-881 used "
+                   "MALE, the counterpart of the 142-0701-801 used "
                    "everywhere else on this radar: DC-18 GHz, tab-and-legs "
                    "end launch for 1.57 mm board, 4.10 mm tab pitch. It "
                    "screws straight onto the radio's own socket")
         else:
-            b._bom(nm, "142-0701-881", "SMA jack end launch",
-                   "Cinch 142-0701-881", "antenna cable; 0.062 in board")
+            b._bom(nm, "142-0701-801", "SMA jack end launch",
+                   "Cinch 142-0701-801", "antenna cable; 0.062 in board")
     b._bom("H1-H8", "M3 x 6 pan head and washer", "M3", "",
            "four of the eight sit beside the amplifiers and carry their heat")
     b._bom("TIM", "thermal pad 0.5 mm, 3 W/mK", "10 x 10 mm", "",
