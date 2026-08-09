@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-08-09T20:34:13",
+    "date": "2026-08-09T20:36:29",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -33,5 +33,52 @@
     "schematic_parity": [],
     "source": "radar_5g8_fe.kicad_pcb",
     "unconnected_items": [],
-    "violations": []
+    "violations": [
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text 'TX1_ANT' on F.Silkscreen",
+                    "pos": {
+                        "x": 86.0,
+                        "y": 87.2
+                    },
+                    "uuid": "97186498-d7af-4a66-8847-538e17ed3eaf"
+                },
+                {
+                    "description": "Pad 1 [TX1_CPL] of RAF on F.Cu",
+                    "pos": {
+                        "x": 85.371292,
+                        "y": 87.626138
+                    },
+                    "uuid": "c1bf1bcd-23f9-40f6-a909-7151a02b7ed4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text 'TX1_ANT' on F.Silkscreen",
+                    "pos": {
+                        "x": 86.0,
+                        "y": 87.2
+                    },
+                    "uuid": "97186498-d7af-4a66-8847-538e17ed3eaf"
+                },
+                {
+                    "description": "Pad 2 [GND] of RAF on F.Cu",
+                    "pos": {
+                        "x": 86.541292,
+                        "y": 87.626138
+                    },
+                    "uuid": "d4e9cfc8-0eab-41c8-9109-b2f4fbf9aae6"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        }
+    ]
 }
