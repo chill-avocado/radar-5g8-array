@@ -1183,19 +1183,17 @@ void SimSource::do_chirps(int begin, int end) {
                     if (p.cls != cls) continue;
                     const float* sr;
                     const float* si;
-                    int n0 = p.n0, n1 = ns;
+                    int shift = 0;
                     if (mode_ == DelayMode::Exact) {
                         sr = wr_.data(); si = wi_.data();
                     } else {
-                        // The bank is padded, so an integer shift is a pointer
-                        // move and never reads outside the buffer.
-                        const std::size_t off = std::size_t(p.frac) * tstride_ + kSincTaps;
-                        sr = tr_.data() + off - p.idel;
-                        si = ti_.data() + off - p.idel;
+                        const std::size_t off = std::size_t(p.frac) * tstride_;
+                        sr    = tr_.data() + off;
+                        si    = ti_.data() + off;
+                        shift = p.idel;
                     }
-                    const double w = std::atan2(double(p.ci), double(p.cr));
-                    accumulate(sc.accr.data(), sc.acci.data(), sr, si, n0, n1,
-                               p.ar, p.ai, std::cos(w), std::sin(w));
+                    accumulate(sc.accr.data(), sc.acci.data(), sr, si, shift,
+                               p.n0, ns, p.ar, p.ai, p.rot_r, p.rot_i);
                 }
 
                 // Range correlation: what survives is phi(t - tau) - phi(t).

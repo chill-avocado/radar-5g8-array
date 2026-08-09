@@ -999,6 +999,10 @@ void test_regs()
 
 } // namespace
 
+// Verilator's runtime asks the testbench what time it is.  Nothing here uses
+// $time, so a constant is honest and sufficient.
+double sc_time_stamp() { return 0.0; }
+
 //============================================================================
 int main(int argc, char** argv)
 {
