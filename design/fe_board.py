@@ -756,26 +756,26 @@ def report(b, ch):
           f"list, {len(b.vias)} holes\n")
 
     print("  transmit, each channel")
-    print(f"    in {c['pin_dbm']:+.1f} dBm -> out {c['pout_dbm']:+.2f} dBm "
-          f"({c['pout_w']:.3f} W), gain {c['gain_db']:.2f} dB")
+    print(f"    drive {c['drive_for_full_dbm']:+.1f} dBm -> out "
+          f"{c['out_connector_dbm']:+.2f} dBm "
+          f"({c['out_connector_w']:.3f} W), gain {c['gain_db']:.2f} dB")
     print(f"    level pad {TX_PAD_DEFAULT_DB:.0f} dB fitted, so the radio "
           f"cannot drive it past its rating")
     print(f"    filter measured {MEASURED['filter']['loss_5800']:.2f} dB in "
           f"band, {MEASURED['filter']['rej_2f0']:.1f} dB at the second "
           f"harmonic")
-    print(f"    final runs at {d['final_w']:.2f} W dissipated, die "
+    print(f"    final dissipates {d['final_w']:.2f} W, die "
           f"{t['t_die_c']:.0f} C, {t['die_margin_c']:.0f} C in hand\n")
 
     print("  receive, each channel")
     print(f"    gain {rx['gain_db']:+.2f} dB net, noise figure "
           f"{n['nf_db']:.2f} dB, {n['range_ratio']:.2f}x the range the radio "
           f"has on its own")
-    print(f"    limiter holds the amplifier at "
-          f"{LN.threats(RX_PAD_DEFAULT_DB)['worst_lna_dbm']:+.1f} dBm "
-          f"against its {LNA['pin_max_dbm']:+.0f} dBm rating")
-    print(f"    clamp holds the radio at "
-          f"{LN.threats(RX_PAD_DEFAULT_DB)['worst_radio_dbm']:+.1f} dBm "
-          f"against damage at {B210_MAX_DBM:+.0f} dBm")
+    print(f"    worst thing that can arrive holds the amplifier at "
+          f"{worst_lna:+.1f} dBm against its "
+          f"{LNA['pin_max_dbm']:+.0f} dBm rating")
+    print(f"    and holds the radio at {worst_radio:+.1f} dBm against "
+          f"damage at {B210_MAX_DBM:+.0f} dBm")
     print(f"    amplifier die {tl['t_die_c']:.0f} C, "
           f"{tl['die_margin_c']:.0f} C in hand\n")
 
