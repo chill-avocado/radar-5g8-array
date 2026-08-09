@@ -292,8 +292,22 @@ def plate_outline(p, r=3.0):
 
 # -------------------------------------------------------------------- SCAD
 def scad(tx, rx):
-    """Two printed halves that bolt together into one bracket."""
-    # tray extents in the assembly frame, array centre of each at y = 0
+    """Two printed halves that bolt together into one bracket.
+
+    The arrays are stacked, transmit above receive, on a mast that turns
+    through 360 degrees for coverage.  The stack direction is free: the
+    250 mm between the two boards is a common offset that falls straight out
+    of the angle measurement, confirmed by beamforming a simulated target.
+    What is NOT free is each board's own element axis -- transmit's pair must
+    stay horizontal to measure azimuth and receive's vertical to measure
+    elevation -- so the trays keep their orientation and only their placement
+    changes.
+
+    Everything below is generated in a frame where the two are side by side,
+    and the whole assembly is stood on its end at the very last step.  Doing
+    it that way keeps one set of lap-joint arithmetic rather than two.
+    """
+    # tray extents in the build frame, array centre of each at y = 0
     def tray_box(p, x0):
         ox = x0 - p["ac"][0]
         oy = -p["ac"][1]
