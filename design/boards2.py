@@ -236,8 +236,6 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
         cx, cy = e["centre"]
         occupied.append((cx - half - keep_p, cy - half - keep_p,
                          cx + half + keep_p, cy + half + keep_p))
-    for x, y, d, pad in _mounts(W, H, occupied):
-        b.mounts.append((x, y, d, pad))
     # Two fiducials, both on the connector edge and placed symmetrically
     # about the board's centre line.  They used to sit on opposite corners,
     # which put one of them 9 mm from a radiating patch edge with nothing
@@ -249,12 +247,6 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # Place it against a keep-out grown to the window, not to the copper.
     occ_f = [(a - 1.5, b_ - 1.5, c + 1.5, d + 1.5)
              for a, b_, c, d in occupied]
-    # The bolts are placed AFTER occupied is built, so they were invisible to
-    # the fiducial search -- which put both transmit fiducials inside mounting
-    # pads, where no camera can see them.  Add them now.
-    keep_f = MOUNT_PAD / 2 + 2.0 / 2 + 0.25
-    for mx, my, _d, _p in b.mounts:
-        occ_f.append((mx - keep_f, my - keep_f, mx + keep_f, my + keep_f))
     mid = (W if kind == "TX" else H) / 2.0
     placed = False
     for stand in (6.0, 7.5, 9.0, 10.5, 12.0):
@@ -270,6 +262,19 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
         if placed:
             break
 
+
+    # Bolts last.  There are hundreds of places a bolt will go and only a
+    # handful a fiducial will, so the fiducials choose first and the bolts
+    # work around them.  The other way round put both transmit fiducials
+    # inside mounting pads, where no camera can see them.
+    keep_f = MOUNT_PAD / 2 + 2.0 / 2 + 0.25
+    occ_m = list(occupied)
+    for p in b.gnd_top[-6:]:
+        xs = [q[0] for q in p]; ys = [q[1] for q in p]
+        cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
+        occ_m.append((cx - keep_f, cy - keep_f, cx + keep_f, cy + keep_f))
+    for x, y, d, pad in _mounts(W, H, occ_m):
+        b.mounts.append((x, y, d, pad))
     # Part labels come from the element builder marked for the top face, where
     # this board has almost no room that is not a radiating face.  Move them
     # all under, and drop any that would run off an edge.
