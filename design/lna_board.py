@@ -682,7 +682,7 @@ def build():
         (10.0, 20.0, "CHANNEL B", 1.1, "silk"),
     ]
     # the parts that are not soldered on but are needed to build it
-    for nm, x, y, side in b.ports:
+    for nm, x, y, side, _dy in b.ports:
         b._bom(nm, "142-0701-801", "SMA end launch", "Cinch 142-0701-801",
                f"{side} edge, 0.062 in board")
     b._bom("H1-H6", "M3 x 6 pan head and washer", "M3", "",
@@ -783,7 +783,7 @@ def report(b, ch):
     print(f"  {len(b.bom)} fitted, copper polygons {len(b.top)}, "
           f"vias {len(b.vias)}, holes {len(b.mounts)}")
     print("  connectors:")
-    for nm, x, y, side in b.ports:
+    for nm, x, y, side, _dy in b.ports:
         print(f"    {nm:10} {side:6} edge at x {x:7.3f}  y {y:7.3f}")
 
 

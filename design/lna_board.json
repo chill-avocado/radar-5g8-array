@@ -10615,37 +10615,43 @@
    "RX1_IN",
    0.0,
    58.0,
-   "left"
+   "left",
+   null
   ],
   [
    "RX1_OUT",
    92.0,
    58.0,
-   "right"
+   "right",
+   null
   ],
   [
    "RX1_INJ",
    65.9819579800067,
    68.0,
-   "top"
+   "top",
+   null
   ],
   [
    "RX2_IN",
    0.0,
    10.0,
-   "left"
+   "left",
+   null
   ],
   [
    "RX2_OUT",
    92.0,
    10.0,
-   "right"
+   "right",
+   null
   ],
   [
    "RX2_INJ",
    65.9819579800067,
    0.0,
-   "bottom"
+   "bottom",
+   null
   ]
  ],
  "parts": [

@@ -694,7 +694,7 @@ def build():
         (22.0, 60.5, "RX2", 1.0, "silk"),
         (8.0, 53.0, "USRP B210", 0.9, "silk"),
     ]
-    for nm, x, y, side in b.ports:
+    for nm, x, y, side, _dy in b.ports:
         if side == "left":
             b._bom(nm, "SMA plug, edge launch", "0.062 in board", "",
                    "MALE, the counterpart of the 142-0701-801 used "
