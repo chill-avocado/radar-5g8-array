@@ -178,6 +178,7 @@ RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
             if (static_cast<int>(cur.size()) == N) { r.frames.push_back(cur); cur.clear(); }
         }
         if (dut.overflow) r.overflow = true;
+        if (v) ++si;
         ++tick;
     }
     r.complete = (static_cast<int>(r.frames.size()) == n_check);

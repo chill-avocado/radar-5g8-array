@@ -115,14 +115,17 @@ double mono() {
 //============================================================================
 struct Pipeline::Impl {
     explicit Impl(const Config& c)
-        : cfg(c), wf(c), rm(c), cfar(c), aoa(c), clus(c), trk(c), md(c),
-          pool(c.worker_threads) {}
+        : cfg(c), wf(c), rm(c),
+          cfar(new Cfar2D(c)), aoa(new AoaEngine(c)),
+          clus(c), trk(c), md(c), pool(c.worker_threads) {}
 
     Config      cfg;
     Waveform    wf;
     RefModel    rm;
-    Cfar2D      cfar;
-    AoaEngine   aoa;
+    // Held by pointer because both hold atomics and so cannot be assigned;
+    // a runtime setting change rebuilds one of them in place.
+    std::unique_ptr<Cfar2D>    cfar;
+    std::unique_ptr<AoaEngine> aoa;
     Clusterer   clus;
     Tracker     trk;
     MicroDoppler md;
@@ -185,8 +188,8 @@ void Pipeline::Impl::apply_pending() {
                             || c.range_zero_bin != cfg.range_zero_bin;
     const bool aoa_changed  = c.aoa != cfg.aoa;
     cfg = c;
-    if (cfar_changed) cfar = Cfar2D(cfg);
-    if (aoa_changed)  aoa  = AoaEngine(cfg);
+    if (cfar_changed) cfar.reset(new Cfar2D(cfg));
+    if (aoa_changed)  aoa.reset(new AoaEngine(cfg));
 }
 
 //----------------------------------------------------------------------------
@@ -201,10 +204,10 @@ void Pipeline::Impl::back_end(RdFrame& f, double t0) {
     // detections, so re-running it here would be wasted work and would
     // disagree with what the FPGA decided.
     if (f.hits.empty()) {
-        cfar.detect(f, hits);
+        cfar->detect(f, hits);
         f.hits = hits;
     }
-    f.noise_floor = cfar.noise_floor();
+    f.noise_floor = cfar->noise_floor();
     stage[4] = mono() - t; t = mono();
 
     //-- Range, velocity, angle -------------------------------------------
@@ -228,14 +231,14 @@ void Pipeline::Impl::back_end(RdFrame& f, double t0) {
         }
 
         cal.apply(h.virt);
-        auto r = aoa.estimate(h.virt);
+        auto r = aoa->estimate(h.virt);
         if (r.valid) {
             // One refinement pass through the angle-dependent part of the
             // calibration. The residual is small against the beamwidth, so a
             // second pass would not move the answer.
             std::array<cf32, 4> v = h.virt;
             cal.apply_angular(v, r.az_deg, r.el_deg);
-            r = aoa.estimate(v);
+            r = aoa->estimate(v);
         }
         h.azimuth_deg   = r.az_deg;
         h.elevation_deg = r.el_deg;
