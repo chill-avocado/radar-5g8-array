@@ -569,8 +569,11 @@ def extender(tx_end, rx_end):
     310 mm and off the bed.  Each carries a tongue at both ends, on opposite
     sides, so a chain of them alternates and every joint is a proper lap.
     """
-    span = (tx_end - LAP_L) - (rx_end + LAP_L)
-    P = (span + 3 * LAP_L) / 2.0
+    # The chain has to reach from LAP_L inside the transmit arm to LAP_L
+    # inside the receive arm, and the two pieces themselves overlap by
+    # another LAP_L -- three overlaps, not one.
+    gap = tx_end - rx_end
+    P = (gap + 3 * LAP_L) / 2.0
     top = tx_end + LAP_L
     body = f"""
 module extender() {{
