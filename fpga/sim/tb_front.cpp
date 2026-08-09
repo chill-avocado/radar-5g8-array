@@ -374,10 +374,12 @@ void test_dechirp()
         }
         tick(dut);
 
-        if (measured_lat < 0 && dut->out_valid) measured_lat = (int)n;
+        // after tick n the model shows clock cycle n+1, so an output visible
+        // now belongs to the input presented on cycle n+1-LAT
+        if (measured_lat < 0 && dut->out_valid) measured_lat = (int)n + 1;
 
-        if (n >= (size_t)LAT) {
-            const size_t k = n - LAT;
+        if (n + 1 >= (size_t)LAT) {
+            const size_t k = n + 1 - LAT;
             if (k < N) {
                 const Vec& v = vecs[k];
                 const ci16 exp = radar::fx::cmul_conj_q15(ci16(v.ai, v.aq),
