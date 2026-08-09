@@ -516,22 +516,25 @@ print(f"  footprint library: {len(_seen)} canonical parts written from the board
 # it.  Ink behind a solid ground plane is RF-harmless -- the only thing that
 # matters here is metal meeting the plate, so give it whole bands.
 _lab = [l for l in D.get("labels", []) if len(l) > 4 and l[4] == "silk_b"]
-if _lab:
-    _ly = [l[1] for l in _lab]
-    _lo, _hi = min(_ly) - 2.2, max(_ly) + 2.6
-else:
-    _lo = _hi = None
-_open = []
+# one band per label, merged where they touch, then open every gap between
+_bands = sorted((l[1] - l[3] * 0.9 - 0.6, l[1] + l[3] * 0.9 + 0.6) for l in _lab)
+_merged = []
+for _b0, _b1 in _bands:
+    if _merged and _b0 <= _merged[-1][1] + 0.8:
+        _merged[-1][1] = max(_merged[-1][1], _b1)
+    else:
+        _merged.append([_b0, _b1])
 _bm = 1.0
-for _y0, _y1 in ([(_bm, _lo), (_hi, BH - _bm)] if _lo is not None
-                 else [(_bm, BH - _bm)]):
-    if _y1 - _y0 < 3.0:
-        continue
-    _open.append([(_bm, _y0), (BW - _bm, _y0), (BW - _bm, _y1), (_bm, _y1)])
+_edges = [_bm] + [v for band in _merged for v in band] + [BH - _bm]
+_open = []
+for _k in range(0, len(_edges) - 1, 2):
+    _y0, _y1 = _edges[_k], _edges[_k + 1]
+    if _y1 - _y0 >= 2.5:
+        _open.append([(_bm, _y0), (BW - _bm, _y0), (BW - _bm, _y1), (_bm, _y1)])
 _bare = 0.0
 for _p in _open:
     add_poly(_p, pcbnew.B_Mask)
-    _bare += abs(_p[1][0] - _p[0][0]) * abs(_p[2][1] - _p[1][1])
+    _bare += (_p[1][0] - _p[0][0]) * (_p[2][1] - _p[1][1])
 print(f"  back face: {len(_open)} opening(s), {_bare:.0f} mm2 bare copper "
       f"({100*_bare/(BW*BH):.0f}% of the board) clamping to the plate")
 
