@@ -576,7 +576,7 @@ struct WebServer::Impl {
     /// frame, and loses everything in between.  Control traffic is never
     /// dropped: a pong or a close is a handful of bytes and losing one breaks
     /// the connection rather than the picture.
-    void trim(Client& c) {
+    void trim_queue(Client& c) {
         if (c.out.size() <= max_frames && c.out_bytes <= max_bytes) return;
 
         std::deque<OutBuf> keep;
@@ -1034,7 +1034,7 @@ struct WebServer::Impl {
             Client& c = *up_c;
             if (!c.ws || c.dead || c.want_close) continue;
             for (const BufPtr& b : batch) queue(c, b, true);
-            trim(c);
+            trim_queue(c);
         }
     }
 
