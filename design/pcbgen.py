@@ -128,7 +128,16 @@ class Board:
         # evidence before the board is ever written.  A clean check on a board
         # built this way proves nothing.  So refuse, and say where.
         PLACEHOLDER = {"?", "sig", "", None}
-        pin_nets = {p[5] for p in self.pads if len(p) > 5} - PLACEHOLDER
+        # self.pads is a set of polygon indices here and a list of pad
+        # tuples in array.py; take the net name out of whichever it is.
+        pin_nets = set()
+        for p in self.pads:
+            if isinstance(p, int):
+                if 0 <= p < len(self.nets):
+                    pin_nets.add(self.nets[p])
+            elif len(p) > 5:
+                pin_nets.add(p[5])
+        pin_nets -= PLACEHOLDER
         shorts = {}
         for i in range(n):
             for j in range(i + 1, n):
