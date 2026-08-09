@@ -249,6 +249,12 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # Place it against a keep-out grown to the window, not to the copper.
     occ_f = [(a - 1.5, b_ - 1.5, c + 1.5, d + 1.5)
              for a, b_, c, d in occupied]
+    # The bolts are placed AFTER occupied is built, so they were invisible to
+    # the fiducial search -- which put both transmit fiducials inside mounting
+    # pads, where no camera can see them.  Add them now.
+    keep_f = MOUNT_PAD / 2 + 2.0 / 2 + 0.25
+    for mx, my, _d, _p in b.mounts:
+        occ_f.append((mx - keep_f, my - keep_f, mx + keep_f, my + keep_f))
     mid = (W if kind == "TX" else H) / 2.0
     placed = False
     for stand in (6.0, 7.5, 9.0, 10.5, 12.0):
