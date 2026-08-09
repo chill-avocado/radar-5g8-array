@@ -256,7 +256,12 @@ def build(kind, grow=(0.0, 0.0, 0.0, 0.0)):
     # thing.  Either edge satisfies both, and the receive board's connector
     # edge is full of launches, loads and limiter sites.
     far = (H if kind == "TX" else W)
-    stands = [3.5, 4.0, 5.0, 6.0, 7.5, 9.0, 10.5, 12.0]
+    # The dot trails a 3.9 mm neck BELOW it whichever edge it is on, so on
+    # the transmit board -- where the standoff IS the height -- it cannot sit
+    # below 5 mm.  On the receive board the standoff is an x offset and the
+    # neck is unaffected, so it can tuck in much closer to the edge.
+    stands = ([5.0, 6.0, 7.5, 9.0, 10.5, 12.0] if kind == "TX"
+              else [3.0, 4.0, 5.0, 6.0, 7.5, 9.0, 10.5, 12.0])
     stands += [far - v for v in stands]
     for stand in stands:
         for off in [x / 2.0 for x in range(52, 23, -1)]:
