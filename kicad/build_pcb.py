@@ -229,7 +229,12 @@ for cx, cy, a0 in ((BW - CR, CR, -90.0), (BW - CR, BH - CR, 0.0),
     for i in range(13):
         t = math.radians(a0 + 90.0 * i / 12.0)
         _bp.append((cx + _rb * math.cos(t), cy + _rb * math.sin(t)))
-add_poly(_bp, pcbnew.B_Mask)
+_bmask = pcbnew.SHAPE_POLY_SET()
+_bc = pcbnew.SHAPE_LINE_CHAIN()
+for x, y in _bp:
+    _bc.Append(P(x, y))
+_bc.SetClosed(True)
+_bmask.AddOutline(_bc)
 
 # ------------------------------------------------------- solder mask windows
 # The windows over the radiating faces are deliberately wide open -- resist
@@ -510,6 +515,36 @@ for _fp in board.GetFootprints():
     for _p, _n in _nets:
         _p.SetNetCode(_n)
 print(f"  footprint library: {len(_seen)} canonical parts written from the board")
+
+# Leave the legend sitting on mask rather than on bare copper: printed ink
+# on the face that clamps to the plate is both a poor electrical joint and
+# something for the board to rock on.
+_ink = 0
+for _it in board.GetDrawings():
+    if _it.GetLayer() != pcbnew.B_SilkS:
+        continue
+    _bb = _it.GetBoundingBox()
+    _k = pcbnew.SHAPE_POLY_SET()
+    _k.NewOutline()
+    _m = pcbnew.FromMM(0.25)
+    for _cx, _cy in ((_bb.GetLeft() - _m, _bb.GetTop() - _m),
+                     (_bb.GetRight() + _m, _bb.GetTop() - _m),
+                     (_bb.GetRight() + _m, _bb.GetBottom() + _m),
+                     (_bb.GetLeft() - _m, _bb.GetBottom() + _m)):
+        _k.Append(pcbnew.VECTOR2I(int(_cx), int(_cy)))
+    _bmask.BooleanSubtract(_k)
+    _ink += 1
+_bmask.Simplify()
+for _i in range(_bmask.OutlineCount()):
+    _o = pcbnew.SHAPE_POLY_SET()
+    _o.AddOutline(_bmask.Outline(_i))
+    for _j in range(_bmask.HoleCount(_i)):
+        _o.AddHole(_bmask.Hole(_i, _j), 0)
+    _sh = pcbnew.PCB_SHAPE(board, pcbnew.SHAPE_T_POLY)
+    _sh.SetPolyShape(_o); _sh.SetLayer(pcbnew.B_Mask)
+    _sh.SetFilled(True); _sh.SetWidth(0)
+    board.Add(_sh)
+print(f"  back face opened for the plate bond, {_ink} legend items kept on mask")
 
 print(f"  outline {BW} x {BH} mm, {len(D['top'])} signal polys, "
       f"{len(D['gnd_top'])} ground polys, {len(D['vias'])} vias, "
