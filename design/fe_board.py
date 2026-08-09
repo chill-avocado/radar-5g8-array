@@ -236,11 +236,9 @@ def tx_channel(b, s, tag, y, y_j, inward):
     # than brought out: the supply-current monitor already says the amplifier
     # is making its power, so the one thing worth a detector is what comes
     # BACK, which is how a fallen-off antenna announces itself.
-    b.line(fwd[0], fwd[1], fwd[0], fwd[1] + inward * 2.6, n_cpl, w=0.50)
-    b.line(fwd[0] - 2.4, fwd[1] + inward * 2.6, fwd[0],
-           fwd[1] + inward * 2.6, n_cpl, w=0.50)
-    b.shunt_0402(f"R{s}F", fwd[0] - 2.4, fwd[1] + inward * 2.6, "51R", n_cpl,
-                 -1, axis="x",
+    b.line(fwd[0], fwd[1], fwd[0], fwd[1] + inward * 1.6, n_cpl, w=0.50)
+    b.shunt_0402(f"R{s}F", fwd[0], fwd[1] + inward * 1.6, "51R", n_cpl,
+                 +1, axis="x",
                  note="loads the forward end of the sampling line")
     return dict(rev=rev, fwd=fwd, n_ring=n_ring, n_under=n_under,
                 rails=(r12, r5))
@@ -312,17 +310,15 @@ def rx_channel(b, s, tag, y, y_j, inward, rail):
     b.line(PULLBACK, y_j, X_JOG, y_j, n_o)
     b.sma_launch(f"{tag}_RADIO", (0.0, y_j), "left")
 
-    b.line(far[0], far[1], far[0], far[1] + inward * 2.6, n_cpl, w=0.50)
-    b.line(far[0] - 2.4, far[1] + inward * 2.6, far[0],
-           far[1] + inward * 2.6, n_cpl, w=0.50)
-    b.shunt_0402(f"R{s}F", far[0] - 2.4, far[1] + inward * 2.6, "51R", n_cpl,
+    b.line(far[0], far[1], far[0], far[1] + inward * 1.6, n_cpl, w=0.50)
+    b.shunt_0402(f"R{s}F", far[0], far[1] + inward * 1.6, "51R", n_cpl,
                  -1, axis="x", note="loads the far end of the sampling line")
     return dict(near=near, far=far, n_under=n_under, n_ring=n_ring,
                 nets=(n_in, n_lo, n_t, n_p, n_o))
 
 
 # ------------------------------------------------------------------ detectors
-def detector(b, s, tag, port, inward):
+def detector(b, s, tag, port, inward, off=Y_DET_OFF):
     """Radio-frequency power in, a slow voltage a computer can read out.
 
     A diode that needs no supply of its own rectifies the sample, three parts
@@ -333,7 +329,7 @@ def detector(b, s, tag, port, inward):
     """
     x, y = port
     n_rf, n_v, n_o = f"{tag}_CPL", f"{tag}_DETV", f"DET{s}"
-    y_run = y + inward * Y_DET_OFF
+    y_run = y + inward * off
     b.line(x, y, x, y_run, n_rf, w=0.60)
     b.shunt_0402(f"R{s}T", x, y_run, "51R", n_rf, +1, axis="x",
                  note="the sampling line's own load")
@@ -579,8 +575,8 @@ def build():
     en_src = input_block(b)
 
     # ------------------------------------------------------------ detectors
-    ch["A"]["det"] = detector(b, "A", "TX1", ch["A"]["rev"], +1)
-    ch["B"]["det"] = detector(b, "B", "TX2", ch["B"]["rev"], -1)
+    ch["A"]["det"] = detector(b, "A", "TX1", ch["A"]["rev"], +1, 5.0)
+    ch["B"]["det"] = detector(b, "B", "TX2", ch["B"]["rev"], -1, 5.0)
     ch["C"]["det"] = detector(b, "C", "RX1", ch["C"]["near"], +1)
     ch["D"]["det"] = detector(b, "D", "RX2", ch["D"]["near"], -1)
 
@@ -610,7 +606,7 @@ def build():
     # underside to the far one.  The underside is a ground plane and stays
     # one except for that stretch; giving it up costs nothing, because what
     # runs above it is referenced to the plane immediately below the surface.
-    b.dc("V12", [(16.0, 19.0), (16.0, 14.0), (X_V12_IN, 14.0),
+    b.dc("V12", [(16.0, 19.0), (16.0, 12.0), (X_V12_IN, 12.0),
                  (X_V12_IN, Y_PWR_A)], w=0.90, n_via=2)
     b.line(X_V12_IN, Y_PWR_A, X_V12_IN, Y_PWR_A + 2.2, "V12", w=0.90)
     b.hop("V12", (X_V12_IN, Y_PWR_A + 2.2), (X_V12_IN, Y_PWR_B - 2.2), w=1.20)
