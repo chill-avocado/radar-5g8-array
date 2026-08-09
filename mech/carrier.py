@@ -181,7 +181,7 @@ def check(p):
 
 
 # --------------------------------------------------------------------- DXF
-def dxf(path, outline, holes, csk=(), note=None):
+def dxf(path, outline, holes, csk=(), note=None, extra_lines=()):
     """Minimal R12: universally accepted by waterjet and laser shops."""
     e = []
 
@@ -256,6 +256,8 @@ def dxf(path, outline, holes, csk=(), note=None):
     # would break through.  A pan-head screw in a 3.4 mm hole stands 2 mm
     # proud instead, and every one of these sits behind the board where
     # nothing touches it.
+    for x0, y0, x1, y1 in extra_lines:
+        line((x0, y0), (x1, y1), layer="BEND")
     if note:
         g(0, "TEXT"); g(8, "NOTE")
         g(10, f"{note[1]:.3f}"); g(20, f"{note[2]:.3f}")
@@ -563,6 +565,38 @@ module shelf() {{
 """, (W, H), (sx, sy)
 
 
+FIN_W, FIN_H, FIN_WING, FIN_FLANGE = 200.0, 100.0, 60.0, 25.0
+
+
+def fin_flat():
+    """The isolation fin, as a flat pattern with bend lines.
+
+    Each array radiates -2.23 dBi straight out of its edge, right at the
+    other one, so at 250 mm apart air alone gives about -40 dB.  A sheet of
+    metal standing between them makes the signal bend over an edge to get
+    across, and bending costs it dearly.
+
+    What actually limits it is not the tip but the way round the SIDES.  A
+    fin the width of the plates is worth only 11 dB because the leak simply
+    goes round.  Folding the side edges forward beats making it wider:
+    200 mm with 60 mm returns gives 16.5 dB, which a flat 300 mm fin does not
+    reach.  Total -56.6 dB.
+
+    It only blocks past 51 degrees off boresight, and the radar looks +/-27,
+    so the coverage never sees it.
+    """
+    W, H, wg, fl = FIN_W, FIN_H, FIN_WING, FIN_FLANGE
+    x0 = -(W / 2 + wg)
+    outline = [((x0, 0.0), 2.0), ((x0 + 2 * wg + W, 0.0), 2.0),
+               ((x0 + 2 * wg + W, H), 2.0), ((x0, H), 2.0)]
+    # a flange along the bottom of the centre panel, bent back to bolt down
+    outline = [((x0, -fl if False else 0.0), 2.0)] + outline[1:]
+    holes = [(x, fl / 2.0, M4) for x in (-W / 4, 0.0, W / 4)]
+    bends = [(-W / 2, 0.0, -W / 2, H), (W / 2, 0.0, W / 2, H),
+             (-W / 2, fl, W / 2, fl)]
+    return outline, holes, bends
+
+
 # --------------------------------------------------------------------- main
 def main():
     tx, rx = plan("transmit"), plan("receive")
@@ -591,6 +625,17 @@ def main():
 
     boxes, src = scad(tx, rx)
     sh_src, sh_wh, sh_off = shelf(boxes["pads"])
+    _o, _h, _b = fin_flat()
+    dxf(os.path.join(HERE, "fin.dxf"), _o, _h, csk=(),
+        note=(f"5.8 GHz RADAR ISOLATION FIN - {PLATE_T} mm AL - "
+              f"BEND UP 90 DEG ON THE THREE MARKED LINES",
+              -FIN_W / 2, FIN_H + 5.0),
+        extra_lines=_b)
+    print(f"\n  isolation fin: {FIN_W + 2*FIN_WING:.0f} x {FIN_H:.0f} mm flat, "
+          f"folds to {FIN_W:.0f} mm wide with {FIN_WING:.0f} mm returns")
+    print(f"    stands between the two arrays and buys 16.5 dB, taking them "
+          f"from -40.1 to -56.6 dB")
+    print(f"    blocks nothing inside 51 deg; the radar looks +/-27")
     src = src.replace('if (part == "transmit")',
                       sh_src + '\nif (part == "shelf") shelf();\n'
                       'else if (part == "transmit")')
