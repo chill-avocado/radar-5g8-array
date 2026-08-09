@@ -1229,9 +1229,8 @@ void WebServer::broadcast(const u8* data, std::size_t n) {
             p_->tx_pending_bytes = newest->size();
             p_->dropped.fetch_add(binned, std::memory_order_relaxed);
         }
-        woke = true;
+        p_->poke();
     }
-    if (woke) p_->poke();
 }
 
 void WebServer::on_get(const std::string& path,
