@@ -430,7 +430,12 @@ module radar_fft_stage #(
         reg signed [TW_W-1:0] rom_c [0:DEPTH-1];
         reg signed [TW_W-1:0] rom_s [0:DEPTH-1];
 
-        integer t, ci, si;
+        integer t;
+        // Only the low TW_W bits of the rounded value are kept; it is already
+        // known to fit, so the upper bits are deliberately discarded.
+        /* verilator lint_off UNUSEDSIGNAL */
+        integer ci, si;
+        /* verilator lint_on UNUSEDSIGNAL */
         real    ang, cv, sv;
         initial begin
             for (t = 0; t < DEPTH; t = t + 1) begin

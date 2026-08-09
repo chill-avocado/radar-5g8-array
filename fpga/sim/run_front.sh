@@ -87,24 +87,18 @@ for m in $MODELS; do
     printf '    verilated %s\n' "$m"
 done
 
-# The Verilator runtime is shared by all six models, so compile it once here
-# rather than letting each generated makefile pull its own copy into an
-# archive -- six copies would collide at link time.
-GLOBALS=$(sed -n 's/^VM_GLOBAL_FAST[ \t]*=//p; s/^VM_GLOBAL_SLOW[ \t]*=//p' \
-          "$BUILD/obj_radar_nco/Vradar_nco.mk")
+# The Verilator runtime is shared by all six models, so build it once as its
+# own archive rather than letting each model's makefile fold a private copy
+# into V<name>__ALL.a -- six copies would collide at link time.
+make -s -C "$BUILD/obj_radar_nco" -f Vradar_nco.mk libverilated.a || {
+    echo "run_front.sh: building the Verilator runtime failed" >&2; exit 1; }
+RTOBJS=$BUILD/obj_radar_nco/libverilated.a
+printf '    built the Verilator runtime\n'
 
 VFLAGS="-std=c++17 -O2 -I$VROOT/include -I$VROOT/include/vltstd"
 TBFLAGS="$VFLAGS -Wall -Wextra -Wno-unused-parameter -I$SOFT"
 for m in $MODELS; do
     TBFLAGS="$TBFLAGS -I$BUILD/obj_$m"
-done
-
-RTOBJS=""
-for g in $GLOBALS; do
-    [ -f "$VROOT/include/$g.cpp" ] || continue
-    $CXX $VFLAGS -c "$VROOT/include/$g.cpp" -o "$BUILD/$g.o" || exit 1
-    RTOBJS="$RTOBJS $BUILD/$g.o"
-    printf '    compiled runtime %s\n' "$g"
 done
 
 # shellcheck disable=SC2086

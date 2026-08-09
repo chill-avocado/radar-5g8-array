@@ -415,15 +415,18 @@ private:
 //============================================================================
 // The kernel.
 //
-// acc[n] += p(n) * s[n], where p advances by a fixed rotation each sample.
-// Eight phasors are carried side by side so the inner statement has no
+// acc[n] += p(n) * s[n - shift], where p advances by a fixed rotation each
+// sample.  Eight phasors are carried side by side so the inner statement has no
 // loop-carried dependency and the compiler can put it in one AVX2 register;
 // that is worth roughly a factor of six over the obvious version.
 //============================================================================
 void accumulate(float* __restrict accr, float* __restrict acci,
-                const float* __restrict sr, const float* __restrict si,
-                int n0, int n1, float p0r, float p0i, double rot_re, double rot_im) {
+                const float* __restrict sr0, const float* __restrict si0,
+                int shift, int n0, int n1, float p0r, float p0i,
+                double rot_re, double rot_im) {
     if (n1 <= n0) return;
+    const float* __restrict sr = sr0 - shift;
+    const float* __restrict si = si0 - shift;
 
     // Phasors for the first eight samples, and the rotation that advances the
     // whole group by eight.
