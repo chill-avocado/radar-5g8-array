@@ -154,75 +154,44 @@ module half_rx() {
 }
 
 
-module shelf_pa() {
+module cradle() {
   difference() {
     union() {
-      cube([112.00, 96.00, 5.00]);
-      translate([42.000, 95.000, 0])
+      cube([107.50, 165.50, 9.00]);
+      // two tabs onto the spine's own mounting pad
+      translate([39.75, 164.50, 0])
         cube([28.0, 16.0, 5.00]);
     }
-    translate([11.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([11.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([11.000, 85.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([11.000, 85.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([42.500, 28.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([42.500, 28.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([42.500, 68.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([42.500, 68.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([101.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([101.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([101.000, 85.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([101.000, 85.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([48.000, 96.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([48.000, 109.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([64.000, 96.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([64.000, 109.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    for (i = [0 : 2]) for (j = [0 : 1])
-      translate([24.00 + i * 30, 26.00 + j * 30, -1])
-        cube([18, 20, 7.00]);
+    // the radio drops in from the front
+    translate([5.00, 5.00, 5.00])
+      cube([97.50, 155.50, 5.00]);
+    // and most of the back is open, so it can breathe and lose weight
+    translate([17.00, 17.00, -1])
+      cube([73.00, 131.00, 7.00]);
+    // four M4 onto the spine pad
+    for (dx = [-8, 8], dy = [6, 19])
+      translate([53.75 + dx, 165.50 + dy - 1, -1])
+        cylinder(d=4.50, h=7.00, $fn=24);
   }
+  // posts holding the outer edge of the front-end board
+  for (p = [21.0, 79.0])
+    translate([53.75 - 50.0 + 100.0 - 4.5, p + 5.00, 0])
+      difference() {
+        cylinder(d=9.0, h=15.00, $fn=32);
+        translate([0, 0, 12.00])
+          cylinder(d=7.159, h=3.80, $fn=6);
+        translate([0, 0, -1]) cylinder(d=3.40, h=17.00);
+      }
 }
 
-module shelf_lna() {
-  difference() {
-    union() {
-      cube([104.00, 80.00, 5.00]);
-      translate([38.000, 79.000, 0])
-        cube([28.0, 16.0, 5.00]);
-    }
-    translate([11.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([11.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([11.000, 69.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([11.000, 69.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([42.500, 24.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([42.500, 24.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([42.500, 56.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([42.500, 56.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([93.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([93.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([93.000, 69.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([93.000, 69.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([44.000, 80.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([44.000, 93.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([60.000, 80.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([60.000, 93.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    for (i = [0 : 2]) for (j = [0 : 1])
-      translate([24.00 + i * 30, 26.00 + j * 30, -1])
-        cube([18, 20, 7.00]);
-  }
-}
-
-if (part == "shelf_pa") shelf_pa();
-else if (part == "shelf_lna") shelf_lna();
+if (part == "cradle") cradle();
 else if (part == "transmit") half_tx();
 else if (part == "receive") half_rx();
 else {
   half_tx();
   half_rx();
-  translate([-66.500, -169.571, -5.00])
-    color("#4a6fa5") shelf_pa();
-  translate([-41.500, -283.571, -5.00])
-    color("#4a6fa5") shelf_lna();
+  translate([-64.250, -239.071, -5.00])
+    color("#4a6fa5") cradle();
 
   // the aluminium, and the boards sitting on it
   color("silver") translate([-45.921, -34.195, 5.00])

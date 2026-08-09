@@ -80,14 +80,13 @@ CONN_D = 11.0
 # shelf cannot drift from the boards it carries.
 SHELF_T = 5.0
 M4 = 4.5
-BOARDS = {
-    "pa":  dict(size=(100.0, 84.0),
-                holes=[(5, 5), (5, 79), (36.5, 22), (36.5, 62),
-                       (95, 5), (95, 79)]),
-    "lna": dict(size=(92.0, 68.0),
-                holes=[(5, 5), (5, 63), (36.5, 18), (36.5, 50),
-                       (87, 5), (87, 63)]),
-}
+# The radio, and the one front-end board that now bolts straight onto its
+# four sockets.  There used to be two amplifier boards on a shelf behind each
+# antenna; they are one board on the radio's face, so the shelves are gone
+# and this cradle replaces them.
+B210 = (97.0, 155.0)          # the bare board
+FE = 100.0                    # the front-end board, square
+FE_POSTS = [(95.5, 21.0), (95.5, 79.0)]   # its far-edge holes, for support
 
 
 # --------------------------------------------------------------- geometry
@@ -541,56 +540,54 @@ def fin_flat():
     return outline, holes, bends
 
 
-def shelf(pads):
-    """One tray behind each array for its own amplifier board.
+def cradle(pads):
+    """Holds the radio behind the spine, with the front-end board on its face.
 
-    Stacked, a single shelf spanning both arrays would be 247 mm long and off
-    the bed.  It is also the wrong shape: the amplifier belongs at the
-    transmit antenna and the receive board at the receive antenna, because
-    every millimetre of cable in front of a receive amplifier is noise figure
-    given away.  So there are two, one bolted to each end of the spine.
+    The board plugs into the radio's four sockets directly, so it needs no
+    tray of its own -- but a 100 mm square hanging off four coaxial joints
+    wants its outer edge supported, which is what the two posts are for.
 
-    Both sit BEHIND the plane of the arrays, where the ground plates shield
-    them and they take nothing out of the aperture.
+    The radio is captured by its edges rather than by its mounting holes:
+    the hole pattern is not something I can verify from here, and a frame
+    that grips a 97 x 155 mm board does not need it.
     """
-    out = []
-    for (px, py), key in zip(pads, ("pa", "lna")):
-        b = BOARDS[key]
-        W = b["size"][0] + 2 * 6.0
-        H = b["size"][1] + 2 * 6.0
-        body = []
-        for hx, hy in b["holes"]:
-            x, y = 6.0 + hx, 6.0 + hy
-            body.append(
-                f"    translate([{x:.3f}, {y:.3f}, -1]) "
-                f"cylinder(d={NUT_AF/math.cos(math.pi/6):.3f}, "
-                f"h={NUT_T+1:.2f}, $fn=6);\n"
-                f"    translate([{x:.3f}, {y:.3f}, -1]) "
-                f"cylinder(d={M3:.2f}, h={SHELF_T+2:.2f});")
-        # four clearance holes onto that arm's own mounting pad
-        tabs = [(W / 2 + dx, H + 7.0 + dy) for dx in (-8.0, 8.0)
-                for dy in (-6.5, 6.5)]
-        tab_s = "\n".join(
-            f"    translate([{x:.3f}, {y:.3f}, -1]) "
-            f"cylinder(d={M4:.2f}, h={SHELF_T+2:.2f}, $fn=24);" for x, y in tabs)
-        src = f"""
-module shelf_{key}() {{
+    (px, py), _ = pads
+    W, L = B210
+    wall, clr = 5.0, 0.5
+    OW, OL = W + 2 * wall + clr, L + 2 * wall + clr
+    lip = 4.0
+    body = f"""
+module cradle() {{
   difference() {{
     union() {{
-      cube([{W:.2f}, {H:.2f}, {SHELF_T:.2f}]);
-      translate([{W/2-14:.3f}, {H-1:.3f}, 0])
+      cube([{OW:.2f}, {OL:.2f}, {SHELF_T + lip:.2f}]);
+      // two tabs onto the spine's own mounting pad
+      translate([{OW/2 - 14:.2f}, {OL - 1:.2f}, 0])
         cube([28.0, 16.0, {SHELF_T:.2f}]);
     }}
-{chr(10).join(body)}
-{tab_s}
-    for (i = [0 : 2]) for (j = [0 : 1])
-      translate([{6.0+18:.2f} + i * 30, {6.0+20:.2f} + j * 30, -1])
-        cube([18, 20, {SHELF_T+2:.2f}]);
+    // the radio drops in from the front
+    translate([{wall:.2f}, {wall:.2f}, {SHELF_T:.2f}])
+      cube([{W + clr:.2f}, {L + clr:.2f}, {lip + 1:.2f}]);
+    // and most of the back is open, so it can breathe and lose weight
+    translate([{wall + 12:.2f}, {wall + 12:.2f}, -1])
+      cube([{W - 24:.2f}, {L - 24:.2f}, {SHELF_T + 2:.2f}]);
+    // four M4 onto the spine pad
+    for (dx = [-8, 8], dy = [6, 19])
+      translate([{OW/2:.2f} + dx, {OL:.2f} + dy - 1, -1])
+        cylinder(d={M4:.2f}, h={SHELF_T + 2:.2f}, $fn=24);
   }}
+  // posts holding the outer edge of the front-end board
+  for (p = [{FE_POSTS[0][1]:.1f}, {FE_POSTS[1][1]:.1f}])
+    translate([{OW/2:.2f} - {FE/2:.1f} + {FE:.1f} - 4.5, p + {wall:.2f}, 0])
+      difference() {{
+        cylinder(d=9.0, h={SHELF_T + 10:.2f}, $fn=32);
+        translate([0, 0, {SHELF_T + 10 - NUT_T - 0.2:.2f}])
+          cylinder(d={NUT_AF/math.cos(math.pi/6):.3f}, h={NUT_T + 1:.2f}, $fn=6);
+        translate([0, 0, -1]) cylinder(d={M3:.2f}, h={SHELF_T + 12:.2f});
+      }}
 }}
 """
-        out.append((key, src, (W, H + 23.0), (px - W / 2, py - H - 7.0)))
-    return out
+    return [("cradle", body, (OW, OL + 15.0), (px - OW / 2, py - OL - 7.0))]
 
 
 # --------------------------------------------------------------------- main
@@ -620,7 +617,7 @@ def main():
                   2.0, p["PH"] + 4.0))
 
     boxes, src = scad(tx, rx)
-    shelves = shelf(boxes["pads"])
+    shelves = cradle(boxes["pads"])
     sh_src = "".join(x[1] for x in shelves)
     _o, _h, _b = fin_flat()
     dxf(os.path.join(HERE, "fin.dxf"), _o, _h, csk=(),
@@ -635,15 +632,14 @@ def main():
     print(f"    blocks nothing inside 51 deg; the radar looks +/-27")
     src = src.replace(
         'if (part == "transmit")',
-        sh_src + '\nif (part == "shelf_pa") shelf_pa();\n'
-        'else if (part == "shelf_lna") shelf_lna();\n'
+        sh_src + '\nif (part == "cradle") cradle();\n'
         'else if (part == "transmit")')
     # show it in place in the assembly view, behind the arrays
     src = src.replace(
         '  half_tx();\n  half_rx();',
         '  half_tx();\n  half_rx();\n' + "".join(
             f'  translate([{o[0]:.3f}, {o[1]:.3f}, -{SHELF_T:.2f}])\n'
-            f'    color("#4a6fa5") shelf_{k}();\n'
+            f'    color("#4a6fa5") {k}();\n'
             for k, _s, _wh, o in shelves))
     sc = os.path.join(HERE, "carrier.scad")
     open(sc, "w").write(src)
@@ -669,8 +665,7 @@ def main():
     if os.path.exists(osc):
         for part, out in (("transmit", "half_transmit.stl"),
                           ("receive", "half_receive.stl"),
-                          ("shelf_pa", "shelf_pa.stl"),
-                          ("shelf_lna", "shelf_lna.stl")):
+                          ("cradle", "cradle.stl")):
             r = subprocess.run([osc, "-o", os.path.join(HERE, out),
                                 "-D", f'part="{part}"', sc],
                                capture_output=True, text=True)
