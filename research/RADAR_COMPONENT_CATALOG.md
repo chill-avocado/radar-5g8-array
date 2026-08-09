@@ -876,13 +876,9 @@ Research/academic references worth consulting directly:
 - "High-Level synthesis assisted design and verification framework for automotive radar processors"
   — HLS-based automotive radar, Kintex-7 XC7K480T (ScienceDirect S0141933120304191).
 
-Component selection by target scale:
-
-| Configuration | FPGA | SDR framework | RFNoC blocks | DSP library | Radar library | Interface |
-|---|---|---|---|---|---|---|
-| Small (2 TX, 2 RX, <50 MHz BW) | XC7K160T | GNU Radio + SoapySDR | Radio, DDC, FFT, FIR | KFR | OpenRadar | PCIe Gen2 x4 or USB 3.0 |
-| Medium (4 TX, 4 RX, <100 MHz BW) | XC7K325T | GNU Radio + RFNoC 4.0 | Radio, DUC, DDC, FFT, FIR, Replay | KFR + FFTW | RadarLib | PCIe Gen2 x8 |
-| Large (8+ TX, 8+ RX, >100 MHz BW) | XC7K410T / XC7K480T | GNU Radio + RFNoC 4.0 + custom | All available + custom | KFR + custom C++ | Custom + RadarLib | PCIe Gen3 x8 + 10G Ethernet (hybrid) |
+For a fixed 2 TX / 2 RX, USB 3.0-connected board such as the B210, the practical component pick is
+GNU Radio + RFNoC 4.0 for the framework, the Radio/DDC/FFT/FIR/Replay RFNoC blocks, KFR (or KFR +
+FFTW) for host DSP, and OpenRadar/RadarLib for the radar-specific processing chain.
 
 ---
 
