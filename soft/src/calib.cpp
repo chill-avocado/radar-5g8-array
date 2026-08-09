@@ -5,8 +5,29 @@
 
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <sstream>
 
 namespace radar {
+namespace {
+
+/// Read a whole file. Empty string on failure -- the caller reports the path.
+std::string read_file(const std::string& path) {
+    std::ifstream f(path, std::ios::binary);
+    if (!f) return {};
+    std::ostringstream ss;
+    ss << f.rdbuf();
+    return ss.str();
+}
+
+bool write_file(const std::string& path, const std::string& text) {
+    std::ofstream f(path, std::ios::binary | std::ios::trunc);
+    if (!f) return false;
+    f << text;
+    return bool(f);
+}
+
+} // namespace
 
 Calibration::Calibration() {
     for (auto& c : fixed_) c = cf32(1.0f, 0.0f);
