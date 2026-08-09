@@ -86,7 +86,14 @@ GMX = float(os.environ.get("GNDMX", GND_M))
 GMY = float(os.environ.get("GNDMY", GND_M))
 GMB = float(os.environ.get("GNDMB", 3.0))
 gx0, gx1 = bb[0] - GMX, bb[2] + GMX
-gy0, gy1 = el.input_pt[1] - GMB, bb[3] + GMY
+# The lower edge used to be pinned to the feed point, which on the flat-on
+# element hangs 26 mm below the patch and so happened to give a sensible
+# ground.  The diamond feeds from the side, level with the patch, so the same
+# rule gave it a 33 mm ground instead of the 70 mm the plate actually
+# provides -- and would have flattered nothing, it would have wrecked the
+# axial ratio.  Measure from the copper, not from the feed.
+gy0 = min(el.input_pt[1] - GMB, bb[1] - GMY)
+gy1 = bb[3] + GMY
 xmin, xmax = gx0 - AIR, gx1 + AIR
 ymin, ymax = gy0 - AIR, gy1 + AIR
 zmin, zmax = -AIR, H + AIR
