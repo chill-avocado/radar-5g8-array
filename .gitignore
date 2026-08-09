@@ -29,3 +29,6 @@ fpga/rtl/radar_b200_shim.v
 
 # Recordings. These get large quickly and disk is scarce on the build machine.
 *.rdr
+
+# Verilator scratch created by the fpga/sim run scripts
+fpga/build/*/
