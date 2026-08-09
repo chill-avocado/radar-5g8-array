@@ -123,6 +123,36 @@ class Board:
                         or d0 > b1 + 0.01 or d1 + 0.01 < b0):
                     union(i, j)
 
+        # A merge between two nets that BOTH land on a component pin is not
+        # two names for one node -- it is a short, and merging it deletes the
+        # evidence before the board is ever written.  A clean check on a board
+        # built this way proves nothing.  So refuse, and say where.
+        PLACEHOLDER = {"?", "sig", "", None}
+        pin_nets = {p[5] for p in self.pads if len(p) > 5} - PLACEHOLDER
+        shorts = {}
+        for i in range(n):
+            for j in range(i + 1, n):
+                if find(i) != find(j):
+                    continue
+                a, b = self.nets[i], self.nets[j]
+                if a == b or a in PLACEHOLDER or b in PLACEHOLDER:
+                    continue
+                if a in pin_nets and b in pin_nets:
+                    xs = [q[0] for q in self.top[i]]
+                    ys = [q[1] for q in self.top[i]]
+                    shorts.setdefault(tuple(sorted((a, b))),
+                                      (round(sum(xs) / len(xs), 2),
+                                       round(sum(ys) / len(ys), 2)))
+        if shorts:
+            msg = "\n".join(
+                f"    {a} shorted to {b}  near ({x}, {y}) mm"
+                for (a, b), (x, y) in sorted(shorts.items()))
+            raise SystemExit(
+                f"copper joins {len(shorts)} pair(s) of nets that each reach a "
+                f"component pin:\n{msg}\n"
+                "  These are shorts, not two names for one node.  Refusing to "
+                "write a board that would hide them from the checker.")
+
         RANK = {"GND": 0}
         groups = {}
         for i in range(n):
