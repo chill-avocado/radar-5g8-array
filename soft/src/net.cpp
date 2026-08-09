@@ -670,9 +670,9 @@ struct WebServer::Impl {
         respond(c, 200, "OK", "text/html; charset=utf-8", page);
     }
 
-    /// Parse one complete request out of c.in.  Returns false if the client
-    /// should be dropped.
-    bool handle_http(Client& c) {
+    /// Parse one complete request out of c.in and queue the response.  Leaves
+    /// the buffer alone and returns if the header block has not all arrived.
+    void handle_http(Client& c) {
         const u8*   base = c.in.data() + c.in_pos;
         const std::size_t avail = c.in.size() - c.in_pos;
 
