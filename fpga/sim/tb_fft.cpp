@@ -15,6 +15,7 @@
 #include "Vfft512.h"
 #include "Vfft256.h"
 #include "Vfft128.h"
+#include "Vfftrev1024.h"
 
 #include <verilated.h>
 
@@ -94,6 +95,13 @@ std::vector<ci> make_impulse(int n, double amp, double phase) {
     std::vector<ci> x(n, ci(0, 0));
     x[0] = ci(q15(amp * std::cos(phase)), q15(amp * std::sin(phase)));
     return x;
+}
+
+uint32_t bitrev(uint32_t v, int bits) {
+    uint32_t r = 0;
+    for (int b = 0; b < bits; ++b)
+        if (v & (1u << b)) r |= 1u << (bits - 1 - b);
+    return r;
 }
 
 //----------------------------------------------------------------------------

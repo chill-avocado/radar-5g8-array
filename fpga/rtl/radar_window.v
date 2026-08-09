@@ -67,7 +67,11 @@ module radar_window #(
 );
 
     localparam integer PROD_W = DATA_W + COEF_W;        // 32
-    localparam [IDX_W-1:0] DEPTH_V = DEPTH;
+
+    // widened so the depth comparisons are done against the integer parameter
+    // at its own width, with no truncation anywhere
+    wire [31:0] idx32   = {{(32-IDX_W){1'b0}}, sample_idx};
+    wire [31:0] waddr32 = {{(32-IDX_W){1'b0}}, coef_addr};
 
     localparam signed [PROD_W-1:0] SAT_HI =
         {{(PROD_W-DATA_W+1){1'b0}}, {(DATA_W-1){1'b1}}};
