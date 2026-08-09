@@ -132,10 +132,14 @@ struct RunOut {
 
 // gap_mod > 0 stalls the input by dropping in_valid on one clock in every
 // gap_mod, which must not change a single output bit.
+//
+// rev selects the NATURAL_OUT = 0 build, where the p-th sample of a frame is
+// bin bitrev(p).  Captured frames come back in natural bin order either way,
+// so everything downstream of here is identical for the two orderings.
 template <class DUT>
 RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
               const std::vector<std::vector<ci>>& in_frames, int n_check,
-              int gap_mod = 0) {
+              int gap_mod = 0, bool rev = false) {
     RunOut r;
 
     dut.rst       = 1;

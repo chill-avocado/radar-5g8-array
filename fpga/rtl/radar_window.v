@@ -112,12 +112,12 @@ module radar_window #(
     reg                     v_s1;
 
     always @(posedge clk) begin
-        if (coef_we && (coef_addr < DEPTH_V))
+        if (coef_we && (waddr32 < DEPTH))
             win[coef_addr[ADDR_W-1:0]] <= coef_data;
         coef_s1 <= win[sample_idx[ADDR_W-1:0]];
         d_i_s1  <= in_i;
         d_q_s1  <= in_q;
-        oob_s1  <= (sample_idx >= DEPTH_V);
+        oob_s1  <= (idx32 >= DEPTH);
         if (rst) v_s1 <= 1'b0;
         else     v_s1 <= in_valid;
     end
