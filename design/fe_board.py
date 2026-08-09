@@ -105,7 +105,7 @@ XR_TAP, XR_PAD, XR_CLAMP, XR_C4 = 39.5, 34.0, 27.5, 24.0
 # output always leaves on a lane clear of the row rather than through it.
 Y_PWR_A, Y_PWR_B = 28.0, 72.0
 Y_DEC_OFF = 1.4                         # decoupling row, off a feed's end
-Y_DET_OFF = 6.0                         # detector row, off a chain's line
+Y_DET_OFF = 3.5                         # detector row, off the sampling line
 X_V12_IN = 50.0                         # where the buried twelve volts lands
 X_V5_BR = 23.5                          # the receive amplifiers' supply branch
 
@@ -199,8 +199,10 @@ def tx_channel(b, s, tag, y, y_j, inward):
     y_iadj = y - inward * (FINAL["land_half"] + 1.20)
     b.line(X_PA - FINAL["pitch"], y - inward * FINAL["land_half"],
            X_PA - FINAL["pitch"], y_iadj, f"{tag}_IADJ", w=0.30)
-    b.smd_part(f"R{s}I", X_PA - FINAL["pitch"], y_iadj - inward * 0.60,
-               _chip((0.62, 0.62, 0.585), f"{tag}_IADJ", "GND", horiz=False),
+    ia = (("GND", f"{tag}_IADJ") if inward > 0
+          else (f"{tag}_IADJ", "GND"))
+    b.smd_part(f"R{s}I", X_PA - FINAL["pitch"], y_iadj - inward * 0.585,
+               _chip((0.62, 0.62, 0.585), *ia, horiz=False),
                pkg="0402", value="DNP", dnp=True)
     b.line(X_C2 + 0.585, y, X_PA - FINAL["land_half"] - 2.4, y, n_pi)
     b.taper(n_pi, X_PA - FINAL["land_half"] - 2.4, X_PA - FINAL["land_half"],
@@ -480,61 +482,71 @@ def input_block(b):
     transistor doing two jobs -- blocking a supply connected backwards, and
     being the switch the enable line works.  Beyond it the board's own twelve
     volts leaves on the buried layer and crosses under everything.
+
+    The corner is laid out in bands: supply in at the bottom, the fuse and the
+    clamp above it, the blocking transistor above that, the twelve-volt rail
+    and its bulk capacitors above that, and the gate network at the top.  Only
+    the enable line has to get from the bottom of the corner to the top past
+    all of it, and it does that underneath.
     """
     b.smd_part("J1", 9.0, 4.6,
                [(1, -2.54, 0.0, 1.70, 1.70, "VIN"),
                 (2, 2.54, 0.0, 1.70, 1.70, "GND")],
                pkg="5.08 mm screw terminal", value="2-way",
                note="twelve volts in, one and a quarter amps")
-    b.smd_part("F1", 8.5, 9.5, _chip(R1210, "VIN", "VF"), pkg="1210",
-               value="1.5 A", mpn="MF-MSMF150", note="resettable fuse")
-    b.line(6.46, 4.6, 6.46, 9.5, "VIN", w=0.90)
-    b.line(6.46, 9.5, 7.35, 9.5, "VIN", w=0.90)
-    b.shunt_0402("D5", 12.6, 9.5, "SMBJ15A", "VF", +1, mpn="SMBJ15A",
+    b.smd_part("F1", 5.0, 9.5, _chip(R1210, "VIN", "VF", horiz=False),
+               pkg="1210", value="1.5 A", mpn="MF-MSMF150",
+               note="resettable fuse")
+    b.line(6.46, 4.6, 6.46, 7.0, "VIN", w=0.90)
+    b.line(5.0, 7.0, 6.46, 7.0, "VIN", w=0.90)
+    b.line(5.0, 7.0, 5.0, 8.35, "VIN", w=0.90)
+    b.line(5.0, 10.65, 5.0, 12.0, "VF", w=0.90)
+    b.shunt_0402("D5", 9.0, 12.0, "SMBJ15A", "VF", +1, mpn="SMBJ15A",
                  pkg="SMB", axis="x",
                  note="clamps whatever the supply lead picks up")
-    b.line(9.65, 9.5, 12.6, 9.5, "VF", w=0.90)
+    b.line(5.0, 12.0, 9.0, 12.0, "VF", w=0.90)
     # Drain to the incoming side and source to the board, so the transistor's
-    # own body diode faces the way that blocks a reversed supply.  Turned so
-    # that the supply arrives at the bottom and leaves at the top, which is
-    # the way the rest of this corner runs.
-    b.smd_part("Q3", 7.0, 14.0, _sot23(("V12G", "V12", "VF")),
+    # own body diode faces the way that blocks a reversed supply.
+    b.smd_part("Q3", 6.0, 15.0, _sot23(("V12G", "V12", "VF")),
                pkg="SOT-23", mpn="AO3401A", flip_y=True,
                note="blocks a reversed supply and switches the board")
-    b.line(12.6, 9.5, 12.6, 11.6, "VF", w=0.70)
-    b.line(7.0, 11.6, 12.6, 11.6, "VF", w=0.70)
-    b.line(7.0, 11.6, 7.0, 13.06, "VF", w=0.70)
-    b.line(7.95, 14.94, 7.95, 18.6, "V12", w=0.70)
-    b.line(7.95, 18.6, 17.0, 18.6, "V12", w=0.90)
-    for val, pkg, x in (("22u", "1210", 10.2), ("22u", "1210", 13.6),
-                        ("100n", "0402", 16.2)):
-        b.shunt_0402(f"C2{x:.0f}", x, 18.6, val, "V12", -1, pkg=pkg)
+    b.line(6.0, 12.0, 6.0, 14.06, "VF", w=0.70)
+    b.line(6.95, 15.94, 6.95, 19.0, "V12", w=0.70)
+    b.line(6.95, 19.0, 16.0, 19.0, "V12", w=0.90)
+    for val, pkg, x in (("22u", "1210", 9.5), ("22u", "1210", 13.0),
+                        ("100n", "0402", 15.6)):
+        b.shunt_0402(f"C2{x:.0f}", x, 19.0, val, "V12", -1, pkg=pkg)
     # the gate network: one rail for the gate, one for the supply, three parts
     # bridging between them, and the transistor the host lets go of
-    b.line(6.05, 14.94, 6.05, 23.5, "V12G", w=0.35)
-    b.line(6.05, 23.5, 17.0, 23.5, "V12G", w=0.35)
+    b.line(4.2, 15.94, 4.2, 24.5, "V12G", w=0.35)
+    b.line(4.2, 15.94, 5.05, 15.94, "V12G", w=0.35)
+    b.line(4.2, 24.5, 15.5, 24.5, "V12G", w=0.35)
     for ref, x, val, mpn, note in (
-            ("R1", 9.5, "100k", "", "holds the switch on"),
-            ("C1", 12.0, "100n", "",
+            ("R1", 10.5, "100k", "", "holds the switch on"),
+            ("C1", 13.0, "100n", "",
              "brings the switch up over ten milliseconds"),
-            ("D6", 14.5, "10V", "BZX84C10",
+            ("D6", 15.5, "10V", "BZX84C10",
              "keeps the transistor's gate inside its rating")):
-        b.series_0402(ref, x, 21.05, val, "V12G", "V12", horiz=False,
+        b.series_0402(ref, x, 21.75, val, "V12", "V12G", horiz=False,
                       mpn=mpn, note=note)
-        b.line(x, 19.05, x, 19.88, "V12", w=0.35)
-        b.line(x, 22.22, x, 23.5, "V12G", w=0.35)
-    b.smd_part("Q4", 17.0, 21.0, _sot23(("EN", "GND", "V12G")),
+        b.line(x, 19.0, x, 21.165, "V12", w=0.35)
+        b.line(x, 22.335, x, 24.5, "V12G", w=0.35)
+    b.smd_part("Q4", 7.5, 21.75, _sot23(("EN", "GND", "V12G")),
                pkg="SOT-23", mpn="2N7002",
                note="holds the switch on; the enable line lets go of it")
-    b.line(17.0, 21.94, 17.0, 23.5, "V12G", w=0.35)
-    b.series_0402("R2", 3.8, 13.5, "100k", "EN", "VF", horiz=False)
-    b.shunt_0402("R3", 3.8, 16.5, "47k", "EN", +1, axis="x")
-    b.line(3.8, 11.6, 3.8, 12.915, "VF", w=0.50)
-    b.line(3.8, 11.6, 7.0, 11.6, "VF", w=0.50)
-    b.line(3.8, 14.085, 3.8, 25.4, "EN", w=0.35)
-    b.line(3.8, 25.4, 16.05, 25.4, "EN", w=0.35)
-    b.line(16.05, 20.06, 16.05, 25.4, "EN", w=0.35)
-    return (14.0, 25.4)
+    b.line(7.5, 22.69, 7.5, 24.5, "V12G", w=0.35)
+    b.smd_part("R2", 2.6, 13.0, _chip((0.62, 0.62, 0.585), "VF", "EN",
+                                      horiz=False),
+               pkg="0402", value="100k",
+               note="pulls the enable line up if nothing drives it")
+    b.line(2.6, 12.0, 2.6, 12.415, "VF", w=0.40)
+    b.line(2.6, 12.0, 5.0, 12.0, "VF", w=0.40)
+    b.shunt_0402("R3", 2.6, 16.0, "47k", "EN", -1, axis="x")
+    b.line(2.6, 13.585, 2.6, 16.0, "EN", w=0.35)
+    # the enable line is the one thing that has to get from the bottom of this
+    # corner to the top, so it goes underneath rather than round
+    b.dc("EN", [(2.6, 16.0), (2.6, 20.81), (6.55, 20.81)], w=0.40)
+    return (6.55, 20.81)
 
 
 # ======================================================================= build
@@ -588,7 +600,7 @@ def build():
     # underside to the far one.  The underside is a ground plane and stays
     # one except for that stretch; giving it up costs nothing, because what
     # runs above it is referenced to the plane immediately below the surface.
-    b.dc("V12", [(17.0, 18.6), (17.0, 14.0), (X_V12_IN, 14.0),
+    b.dc("V12", [(16.0, 19.0), (16.0, 14.0), (X_V12_IN, 14.0),
                  (X_V12_IN, Y_PWR_A)], w=0.90, n_via=2)
     b.line(X_V12_IN, Y_PWR_A, X_V12_IN, Y_PWR_A + 2.2, "V12", w=0.90)
     b.hop("V12", (X_V12_IN, Y_PWR_A + 2.2), (X_V12_IN, Y_PWR_B - 2.2), w=1.20)
