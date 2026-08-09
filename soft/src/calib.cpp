@@ -291,7 +291,7 @@ bool Calibration::save(const std::string& path, std::string* err) const {
         Json c = Json::object();
         c.set("re", double(fixed_[i].real()));
         c.set("im", double(fixed_[i].imag()));
-        fx.push(c);
+        fx.push_back(c);
     }
     j.set("fixed", fx);
     j.set("range_zero_bin", range_zero_bin_);
