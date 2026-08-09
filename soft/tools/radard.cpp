@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
     }
     if (!replay_path.empty()) { cfg.source = SourceKind::File; cfg.record_path = replay_path; }
     if (!calib_path.empty())  cfg.calib_path = calib_path;
-    if (!scene_path.empty())  cfg.web_root   = cfg.web_root;   // scene goes via the source
+    if (!scene_path.empty())  cfg.scene_path = scene_path;
     cfg.derive();
 
     if (const std::string bad = cfg.validate(); !bad.empty()) {
