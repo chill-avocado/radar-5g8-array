@@ -89,11 +89,22 @@ class Element:
 
     # ------------------------------------------------------------------
     def _plan(self):
-        hy = self.b / 2.0                       # the two feeds sit at +/- this
-        # where a horizontal line at that height crosses the patch's left edges
+        hy = self.b / 2.0                   # the ring's two outputs sit here
+        # The feed MUST land on the middle of its edge.  That is exactly where
+        # the other mode has its null, and it is the only place a feed drives
+        # one mode without driving the other.  Running the transformer
+        # horizontally put it 0.46 mm off centre -- 54.6 per cent along -- and
+        # measured 12 dB axial ratio on a patch whose two modes are identical
+        # to four decimals.  A perfect patch, wrecked by where it was fed.
+        #
+        # So the transformer runs from the ring's output to the edge midpoint
+        # instead, sloping about three degrees.  Electrically that is nothing;
+        # geometrically it is the whole difference.
+        self.edge_x = -self.Du / 4.0
+        self.edge_y = self.Dv / 4.0
+        dy = self.edge_y - hy
+        self.xT = self.edge_x - math.sqrt(max(self.lq ** 2 - dy ** 2, 0.01))
         self.feed_y = hy
-        self.edge_x = -(self.Du / 2.0) * (1.0 - hy / (self.Dv / 2.0))
-        self.xT = self.edge_x - self.lq         # transformers start here
         self.xr = self.xT                       # ring's right edge
         self.xl = self.xr - self.a
         # Ports are settled here, once.  build() used to flip them, which
@@ -103,7 +114,7 @@ class Element:
         self.iso_pt = (sx * self.xl, -hy)
         # how far along the edge the feed lands, from the top vertex;
         # 0.5 is dead centre and that is where the edge impedance is right
-        self.edge_frac = 1.0 - hy / (self.Dv / 2.0)
+        self.edge_frac = 0.5          # dead centre, by construction
 
     # ------------------------------------------------------------------
     def build(self):
@@ -111,7 +122,8 @@ class Element:
         polys = [diamond(0.0, 0.0, self.Lu)]                     # the patch
         for s in (+1, -1):
             polys.append(seg((self.xT - JOIN, s * hy),
-                             (self.edge_x + JOIN, s * hy), wq))  # transformer
+                             (self.edge_x + JOIN * 0.7,
+                              s * (self.edge_y - JOIN * 0.7)), wq))
         # the ring: two horizontal arms, two vertical
         polys.append(seg((self.xl, +hy), (self.xr, +hy), self.wah))
         polys.append(seg((self.xl, -hy), (self.xr, -hy), self.wah))
