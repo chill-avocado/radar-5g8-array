@@ -463,26 +463,31 @@ txt = txt.replace(key, key + STACKUP, 1)
 open(PCB, "w").write(txt)
 print("stackup written:", STACK["name"], STACK["h_mm"], "mm,", FIN)
 print("wrote", PCB)
-# Write the footprint library FROM the board, so the two can never drift.
-# They had drifted by 8 um -- the library still carried the amplifier boards'
-# launch gap -- and that is two DRC warnings per board every time.
-EXPORT_LIB = True
+# Write the footprint library from CANONICAL, unrotated copies of what the
+# board contains, using KiCad's own writer.  Hand-extracting the s-expression
+# did not work: every termination instance on the transmit board sits at 90
+# degrees, so the extracted part carried that rotation baked into its pads and
+# matched nothing.  Un-rotating a clone gives the part the board is actually
+# an instance of.
 _lib = os.path.join(OUT, "radar5g8.pretty")
-os.makedirs(_lib, exist_ok=True)
+if os.path.isdir(_lib):
+    for _f in os.listdir(_lib):
+        os.remove(os.path.join(_lib, _f))
+else:
+    os.makedirs(_lib, exist_ok=True)
 _seen = set()
 for _fp in board.GetFootprints():
-    _id = _fp.GetFPID().GetLibItemName()
-    if str(_id) in _seen:
+    _nm = str(_fp.GetFPID().GetLibItemName())
+    if _nm in _seen:
         continue
-    _seen.add(str(_id))
+    _seen.add(_nm)
     _c = _fp.Clone()
-    _c.SetPosition(pcbnew.VECTOR2I(0, 0))
     _c.SetOrientationDegrees(0)
-    try:
-        pcbnew.FootprintSave(_lib, _c)
-    except Exception:
-        pass
-print(f"  footprint library written from the board: {len(_seen)} parts")
+    _c.SetPosition(pcbnew.VECTOR2I(0, 0))
+    for _p in _c.Pads():
+        _p.SetNetCode(0)
+    pcbnew.FootprintSave(_lib, _c)
+print(f"  footprint library: {len(_seen)} canonical parts written from the board")
 
 print(f"  outline {BW} x {BH} mm, {len(D['top'])} signal polys, "
       f"{len(D['gnd_top'])} ground polys, {len(D['vias'])} vias, "
