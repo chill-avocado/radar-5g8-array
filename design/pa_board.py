@@ -1334,7 +1334,7 @@ def report(b, ch):
     print(f"  {len(b.bom)} fitted, copper polygons {len(b.top)}, "
           f"vias {len(b.vias)}, holes {len(b.mounts)}")
     print("  connectors:")
-    for n, x, y, s in b.ports:
+    for n, x, y, s, _dy in b.ports:
         print(f"    {n:10} {s:6} edge at x {x:7.3f}  y {y:7.3f}")
 
 
