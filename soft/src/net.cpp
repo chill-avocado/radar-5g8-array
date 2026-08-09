@@ -419,6 +419,7 @@ struct Client {
     bool dead = false;         ///< reap after this pass
     bool want_close = false;   ///< close the socket once the queue drains
     bool close_sent = false;
+    bool head_only  = false;   ///< the current request was a HEAD
 
     std::vector<u8>    in;
     std::size_t        in_pos = 0;
@@ -614,20 +615,22 @@ struct WebServer::Impl {
     // HTTP
     //------------------------------------------------------------------
     std::string http_response(int code, const char* reason, const std::string& ctype,
-                              const std::string& body) {
+                              const std::string& body, bool head_only) {
         std::string h = "HTTP/1.1 " + std::to_string(code) + " " + reason + "\r\n";
         h += "Content-Type: " + ctype + "\r\n";
         h += "Content-Length: " + std::to_string(body.size()) + "\r\n";
         h += "Cache-Control: no-store\r\n";
         h += "X-Content-Type-Options: nosniff\r\n";
         h += "Connection: close\r\n\r\n";
-        h += body;
+        // A HEAD reply carries the headers the GET would have carried, and
+        // nothing after them.  curl -I is how most people check a server is up.
+        if (!head_only) h += body;
         return h;
     }
 
     void respond(Client& c, int code, const char* reason, const std::string& ctype,
                  const std::string& body) {
-        queue_raw(c, http_response(code, reason, ctype, body));
+        queue_raw(c, http_response(code, reason, ctype, body, c.head_only));
         c.want_close = true;
     }
 
@@ -766,8 +769,10 @@ struct WebServer::Impl {
             return;
         }
 
-        if (!iequal(method, "GET")) {
-            respond(c, 405, "Method Not Allowed", "text/plain", "only GET is served here\n");
+        c.head_only = iequal(method, "HEAD");
+        if (!iequal(method, "GET") && !c.head_only) {
+            respond(c, 405, "Method Not Allowed", "text/plain",
+                    "only GET and HEAD are served here\n");
             return;
         }
 

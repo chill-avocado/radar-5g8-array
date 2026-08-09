@@ -608,6 +608,11 @@ std::string json_config(const Config& c) {
     o += kvn("aoa_el_span_deg", c.aoa_el_span_deg, 5) + ",";
     o += kv("track_confirm_n", std::to_string(c.track_confirm_n)) + ",";
     o += kv("track_drop_n", std::to_string(c.track_drop_n)) + ",";
+    o += kv("range_zero_bin", std::to_string(c.range_zero_bin)) + ",";
+    o += kv("worker_threads", std::to_string(c.worker_threads)) + ",";
+    o += kvs("clock_source", c.clock_source) + ",";
+    o += kvs("record_path", c.record_path)   + ",";
+    o += kvs("scene_path", c.scene_path)     + ",";
     o += kv("http_port", std::to_string(c.http_port)) + ",";
     o += "\"derived\":{";
     o += kvn("lambda_m", c.d.lambda_m, 8)           + ",";
