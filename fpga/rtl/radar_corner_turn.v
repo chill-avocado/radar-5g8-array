@@ -90,7 +90,7 @@ module radar_corner_turn #(
     localparam integer FIFO_D  = 4;                      // output skid depth
 
     localparam [AW-1:0] AONE   = {{(AW-1){1'b0}}, 1'b1};
-    localparam [4:0]    SUM_EXP = CT_WORDS_LOG2[4:0];
+    localparam [4:0]    SUM_EXP = CT_WORDS_LOG2;
 
     //------------------------------------------------------------------------
     // Configuration check.  A bad split holds the whole module in reset.
@@ -162,7 +162,7 @@ module radar_corner_turn #(
                 end
             end
             // A sample offered while both buffers are busy is a sample lost.
-            if (s_valid & ~s_ready & ~rst) overflow <= 1'b1;
+            if (s_valid & ~s_ready) overflow <= 1'b1;
         end
     end
 

@@ -552,10 +552,16 @@ AoaEngine::Result AoaEngine::run_spectrum(const cf64 R[kM][kM], int n_snap_eff,
                 acc += 2.0 * (mp[t].real() * gr - mp[t].imag() * gi);
             }
             if (acc < 0.0) acc = 0.0;      // Hermitian form, so only rounding
-            wk.quad[p] = acc;
-            const double dbv = invert_spectrum ? -10.0 * std::log10(acc + 1e-30)
-                                               :  10.0 * std::log10(acc + 1e-30);
-            wk.spec[p] = float(dbv);
+            wk.quad[p] = acc;              // raw, for the sub-cell fit below
+            // The displayed spectrum is floored 120 dB under the trace.  A
+            // MUSIC null on noise-free data goes to zero exactly, and an
+            // infinite peak is neither drawable nor a meaningful quality
+            // figure; 120 dB is far more dynamic range than any real
+            // measurement carries.
+            const double lo  = m_trace * 1e-12;
+            const double amp = std::max(acc, lo);
+            wk.spec[p] = float(invert_spectrum ? -10.0 * std::log10(amp)
+                                               :  10.0 * std::log10(amp));
             if (invert_spectrum ? (acc < best) : (acc > best)) { best = acc; best_p = int(p); }
         }
     }
