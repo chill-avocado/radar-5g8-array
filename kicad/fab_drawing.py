@@ -15,7 +15,8 @@ DESIGN = os.path.abspath(os.path.join(HERE, "..", "design"))
 VAR = sys.argv[1] if len(sys.argv) > 1 else "transmit"
 D = json.load(open(os.path.join(
     DESIGN, {"RO4350B": "board.json"}.get(VAR, f"board_{VAR}.json"))))
-S = json.load(open(os.path.join(DESIGN, "synthesis.json")))[VAR]
+S = json.load(open(os.path.join(DESIGN, "synthesis.json")))[
+    VAR if VAR in ("RO4350B", "FR4") else "ZYF300CA"]
 OUT = os.path.join(HERE, f"radar_5g8_{VAR.lower()}")
 BW, BH = D["outline"]
 sub = D["stack"]
