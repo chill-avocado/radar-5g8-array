@@ -55,7 +55,7 @@ tag = sys.argv[1] if len(sys.argv) > 1 else "c2"
 # element 0 has its neighbour's feed network 2.8 mm from its patch,
 # while element 1 has only open board on its far side.
 DRIVE = int(os.environ.get("DRIVE", 0))
-PITCH = 299792458.0 / F0 / 2.0 * 1e3          # 25.8442 mm, as on the board
+PITCH = float(os.environ.get("PITCH_MM", 0)) or 299792458.0 / F0 / 2.0 * 1e3
 
 # The pair is mirror-symmetric: element 2 is the mirrored variant, so the two
 # feed networks face outward and the two patches face each other across clear
