@@ -397,10 +397,11 @@ for lb in D["labels"]:
     t.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_CENTER)
     board.Add(t)
 
-for n, x, y, side in D["ports"]:
+for prt in D["ports"]:
+    n, x, y, side = prt[:4]
     t = pcbnew.PCB_TEXT(board)
     t.SetText(n)
-    dx, dy = {"left": (14.0, 4.8), "right": (-14.0, 4.8),
+    dx, dy = {"left": (14.0, 3.2), "right": (-14.0, 3.2),
               "top": (0.0, -2.6), "bottom": (0.0, 2.6)}[side]
     if n.endswith("_FWD") or n.endswith("_INJ"):
         # the sample connector's label goes on whichever side of its line the
