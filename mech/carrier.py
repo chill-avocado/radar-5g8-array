@@ -452,6 +452,7 @@ module arm_{tag}() {{{{
                ('pad', bar_x1, pad_rx - PAD_L / 2,
                 bar_x1 + (PAD_D - HALF), pad_rx + PAD_L / 2)],
         'holes': (tx_holes, rx_holes),
+        'tx_end': lap_lo, 'rx_end': rlap_hi,
         'pads': ((x_split - PAD_D / 2.0, pad_tx),
                  (x_split + PAD_D / 2.0, pad_rx)),
     }
@@ -550,6 +551,53 @@ def fin_flat():
     return outline, holes, bends
 
 
+def extender(tx_end, rx_end):
+    """Two identical spacers that lengthen the spine from 280 mm to 400 mm.
+
+    The two halves lap directly for 220 to 280 mm, which is all the bracket
+    needed until the front-end board arrived.  That board puts both chains on
+    one laminate beside the radio, and its leak budget wants the arrays
+    further apart: at 250 mm the radio has 1.8 dB in hand before it
+    compresses, at 400 mm it has 4.1.  That is not about damage -- it is
+    dynamic range.  A leak sitting just under the converter's ceiling uses up
+    the converter, and what is left has to hold the echo.
+
+    Past about 450 mm the front-end board's own path across its laminate
+    becomes the floor and more distance buys nothing, so 400 is the knee.
+
+    Two identical pieces rather than one, because a single spacer would be
+    310 mm and off the bed.  Each carries a tongue at both ends, on opposite
+    sides, so a chain of them alternates and every joint is a proper lap.
+    """
+    span = (tx_end - LAP_L) - (rx_end + LAP_L)
+    P = (span + 3 * LAP_L) / 2.0
+    top = tx_end + LAP_L
+    body = f"""
+module extender() {{
+  difference() {{
+    union() {{
+      // the half-depth tongue that laps whatever is above it
+      translate([{0.0:.2f}, {-LAP_L:.2f}, 0])
+        cube([{HALF:.2f}, {LAP_L:.2f}, {BAR_T:.2f}]);
+      // full depth through the middle
+      translate([{-HALF:.2f}, {-(P - LAP_L):.2f}, 0])
+        cube([{BAR_D:.2f}, {P - 2 * LAP_L:.2f}, {BAR_T:.2f}]);
+      // and the tongue that laps whatever is below, on the other side
+      translate([{-HALF:.2f}, {-P:.2f}, 0])
+        cube([{HALF:.2f}, {LAP_L:.2f}, {BAR_T:.2f}]);
+    }}
+""" + "\n".join(
+        f"    translate([{-HALF-1:.2f}, {-y:.2f}, {BAR_T/2:.2f}]) "
+        f"rotate([0,90,0]) cylinder(d={M3:.2f}, h={BAR_D+2:.2f}, $fn=24);"
+        for y in [STEP * (i + 1) for i in range(int((LAP_L - STEP) // STEP))]
+        + [P - LAP_L + STEP * (i + 1)
+           for i in range(int((LAP_L - STEP) // STEP))]) + f"""
+  }}
+}}
+"""
+    return body, P, top
+
+
 def cradle(pads):
     """Holds the radio behind the spine, with the front-end board on its face.
 
@@ -629,6 +677,8 @@ def main():
     boxes, src = scad(tx, rx)
     shelves = cradle(boxes["pads"])
     sh_src = "".join(x[1] for x in shelves)
+    ext_src, ext_len, ext_top = extender(boxes["tx_end"], boxes["rx_end"])
+    sh_src += ext_src
     _o, _h, _b = fin_flat()
     dxf(os.path.join(HERE, "fin.dxf"), _o, _h, csk=(),
         note=(f"5.8 GHz RADAR ISOLATION FIN - {PLATE_T} mm AL - "
@@ -643,6 +693,7 @@ def main():
     src = src.replace(
         'if (part == "transmit")',
         sh_src + '\nif (part == "cradle") cradle();\n'
+        'else if (part == "extender") extender();\n'
         'else if (part == "transmit")')
     # show it in place in the assembly view, behind the arrays
     src = src.replace(
@@ -675,7 +726,8 @@ def main():
     if os.path.exists(osc):
         for part, out in (("transmit", "half_transmit.stl"),
                           ("receive", "half_receive.stl"),
-                          ("cradle", "cradle.stl")):
+                          ("cradle", "cradle.stl"),
+                          ("extender", "extender.stl")):
             r = subprocess.run([osc, "-o", os.path.join(HERE, out),
                                 "-D", f'part="{part}"', sc],
                                capture_output=True, text=True)
