@@ -334,12 +334,13 @@ int main(int argc, char** argv) {
         if (now >= next_line) {
             next_line = now + 2.0;
             const Stats s = pipe.stats();
+            char viewers[32] = "";
+            if (web) std::snprintf(viewers, sizeof(viewers), "  %d viewing", web->clients());
             LOG_I("%6llu frames  %5.1f fps  cpu %4.1f%%  %2d tracks  "
                   "%llu overflow  %llu dropped%s",
                   (unsigned long long)s.frames, s.frame_rate_hz, s.cpu_frac * 100.0,
                   s.n_tracks, (unsigned long long)s.overflows,
-                  (unsigned long long)s.dropped,
-                  web ? ("  " + std::to_string(web->clients()) + " viewing").c_str() : "");
+                  (unsigned long long)s.dropped, viewers);
         }
         if (stop_after_frames && long(frames_done.load()) >= stop_after_frames) break;
         if (stop_after_s > 0 && (now - t_start) >= stop_after_s) break;
