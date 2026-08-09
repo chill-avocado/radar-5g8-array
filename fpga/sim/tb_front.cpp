@@ -475,7 +475,11 @@ DecimMeas measure_tone(Vradar_decim4* dut, double f_hz, double amp,
     dut->in_valid = 0;
 
     const double gain = std::abs(acc) / (amp * wsum);
-    return {f_hz / 1e6, f_out / 1e6, 20.0 * std::log10(gain + 1e-300)};
+    // a gain of exactly zero means every output sample was zero: the tone was
+    // annihilated below one LSB rather than merely attenuated
+    const bool silent = (gain == 0.0);
+    return {f_hz / 1e6, f_out / 1e6,
+            silent ? -300.0 : 20.0 * std::log10(gain), silent};
 }
 
 void test_decim4()
