@@ -78,8 +78,8 @@ canvas{display:block}
 
 /* --------------------------------------------------------------- status */
 .chip{
-  display:flex;flex-direction:column;justify-content:center;
-  padding:0 11px;border-right:1px solid var(--line);min-width:0;
+  display:flex;flex-direction:column;justify-content:center;flex:0 0 auto;
+  padding:0 11px;border-right:1px solid var(--line);white-space:nowrap;
 }
 .chip .k{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);line-height:1.25}
 .chip .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;line-height:1.25;color:var(--ink)}
@@ -90,10 +90,10 @@ canvas{display:block}
 .chip.okish .v{color:var(--good)}
 .chip.flash{animation:flash .9s steps(1,end) 3}
 @keyframes flash{0%,49%{background:rgba(255,95,86,.42)}50%,100%{background:rgba(255,95,86,.10)}}
-#brand{display:flex;flex-direction:column;justify-content:center;padding:0 13px;border-right:1px solid var(--line2)}
+#brand{display:flex;flex-direction:column;justify-content:center;flex:0 0 auto;padding:0 13px;border-right:1px solid var(--line2)}
 #brand .t{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700}
 #brand .s{font-size:9px;color:var(--ink3);letter-spacing:.08em}
-#status .spacer{flex:1 1 auto;border:0}
+#status .spacer{flex:1 1 auto;border:0;min-width:8px}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .dot.on{background:var(--good);box-shadow:0 0 7px var(--good)}
 .dot.off{background:var(--bad);box-shadow:0 0 7px var(--bad)}
@@ -186,7 +186,6 @@ button.wide{width:100%;margin-top:5px}
 }
 #help td.d{color:var(--ink2)}
 #help .close{margin-top:15px;text-align:right}
-.kbd-hint{position:absolute;right:8px;bottom:7px;font-size:9.5px;color:var(--ink3);pointer-events:none}
 ::-webkit-scrollbar{width:9px;height:9px}
 ::-webkit-scrollbar-track{background:#080b10}
 ::-webkit-scrollbar-thumb{background:#1d2836;border-radius:5px}
@@ -232,7 +231,6 @@ button.wide{width:100%;margin-top:5px}
           <div class="big pulse">waiting for radar</div>
           <div class="sm" id="rd-empty-sub">No range&ndash;Doppler frames yet. The display reconnects on its own; nothing here needs restarting.</div>
         </div>
-        <div class="kbd-hint">press <kbd>?</kbd> for keys</div>
       </div>
     </section>
 
@@ -592,6 +590,17 @@ function readTracks(dv, p, nb){
   for (const id of Array.from(S.specs.keys())) if (!live.has(id)) S.specs.delete(id);
   S.tracks = out;
   if (S.selected !== null && !live.has(S.selected)) S.selected = null;
+  if (S.selected === null && out.length){
+    // Nothing chosen yet: show the strongest track that has a spectrogram,
+    // so the micro-Doppler panel is doing something useful from the start.
+    let best = null;
+    for (const t of out){
+      if (!t.specT) continue;
+      if (!best || t.snr > best.snr) best = t;
+    }
+    if (!best) for (const t of out) if (!best || t.snr > best.snr) best = t;
+    if (best) S.selected = best.id;
+  }
 }
 
 function readSpec(dv, ab, p, nb){
@@ -1175,10 +1184,10 @@ const Plan = (() => {
       c.textAlign = "left"; c.textBaseline = "middle";
       const tag = "T" + t.id + (t.label ? " " + t.label : "");
       c.fillStyle = sel ? "#ffd479" : "rgba(201,214,230,0.9)";
-      c.fillText(tag, px + 9, py - 7);
+      c.fillText(tag, px + 9, py - 8);
       if (S.grid){
         c.fillStyle = "rgba(127,144,166,0.9)";
-        c.fillText(t.range.toFixed(0) + " m  " + (t.speed).toFixed(1) + " m/s", px + 9, py + 5);
+        c.fillText(t.range.toFixed(0) + " m  " + (t.speed).toFixed(1) + " m/s", px + 9, py + 6);
       }
     }
 
@@ -2155,7 +2164,7 @@ function frameLoop(now){
     $("rd-meta").textContent =
       S.map.nr + " × " + S.map.nd + "   " +
       w.lo.toFixed(0) + " to " + w.hi.toFixed(0) + " dB   " +
-      (RD.usingGL ? "webgl2" : "canvas2d");
+      (RD.usingGL ? "webgl2" : "canvas2d") + "   ·   ? for keys";
   }
   Plan.draw();
   Micro.draw();
