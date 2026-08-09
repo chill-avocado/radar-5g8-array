@@ -381,7 +381,7 @@ void run_size(int N, int NLOG2) {
         const int expect = 3 * NLOG2 + 2 * N - 1;
         std::snprintf(line, sizeof line,
                       "N=%-4d %-22s  %d clocks first in_valid to first out_valid "
-                      "(3*NLOG2 + 2N - 2 = %d)",
+                      "(3*NLOG2 + 2N - 1 = %d)",
                       N, "latency", latency, expect);
         report(latency == expect, line);
     }
