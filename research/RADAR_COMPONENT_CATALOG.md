@@ -355,8 +355,6 @@ blocks:
 | FIR Filter Compiler | Pulse compression, filtering | |
 | DDS Compiler | Digital chirp/tone generation | 32-bit frequency/phase resolution, 200+ MHz output |
 | DDR3 Memory Interface (`mig_7series`) | External memory controller | Up to 12.8 GB/s (64-bit @ 200 MHz), <10 clock cycle latency |
-| PCI Express (`pcie_7x`) | Host interface | Gen1/2/3, x1/x4/x8, AXI4, DMA + interrupt support |
-| 10G Ethernet (`temac`, `gtemac`) | Host interface | 10 Gbps line rate |
 | AXI Interconnect / AXI DMA | On-chip data movement | |
 | Clocking Wizard / Reset Generator | Clock/reset infrastructure | |
 
