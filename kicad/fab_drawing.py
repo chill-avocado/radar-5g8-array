@@ -17,7 +17,7 @@ D = json.load(open(os.path.join(
     DESIGN, {"RO4350B": "board.json"}.get(VAR, f"board_{VAR}.json"))))
 S = json.load(open(os.path.join(DESIGN, "synthesis.json")))[
     VAR if VAR in ("RO4350B", "FR4") else "ZYF300CA"]
-OUT = os.path.join(HERE, f"radar_5g8_{VAR.lower()}")
+OUT = os.path.join(HERE, f"radar_5g8_{VAR.lower()}_array")
 BW, BH = D["outline"]
 sub = D["stack"]
 T = S["tuned"]

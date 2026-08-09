@@ -165,7 +165,7 @@ def report():
                 "is common to all four and cancels out of any angle estimate",
             "transmit_polarisation": "RHCP",
             "receive_polarisation": "LHCP",
-            "nearest_tx_rx_mm": B["report"]["nearest_tx_rx_mm"],
+            "nearest_tx_rx_mm": B["report"].get("nearest_tx_rx_mm", 0.0),
         },
         "elements": [{"name": e["name"], "hand": e["hand"],
                       "phase_centre_mm": e["centre"],
