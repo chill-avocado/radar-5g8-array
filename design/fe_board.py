@@ -653,6 +653,10 @@ def build():
                  (95.5, 21.0), (95.5, 79.0), (30.0, 50.0), (10.0, 90.0)):
         b.mounts.append((x, y, MOUNT_D, MOUNT_PAD))
 
+    # two corners the stitching grid cannot reach, tied by hand so no scrap of
+    # ground is left floating between the connector and the board edge
+    for cx, cy in ((96.6, 1.8), (96.6, 98.2)):
+        b._via(cx, cy, pcbgen.VIA_D, pcbgen.VIA_PAD, "GND")
     b.unify_nets()
     b.pour()
     # the underside is left bare under each amplifier, so its heat meets the
@@ -668,15 +672,15 @@ def build():
     for x, y in ((6.0, 97.0), (94.0, 97.0), (60.0, 3.2)):
         b.fiducial(x, y)
     b.labels += [
-        (14.0, 97.5, "5.8 GHz RADAR FRONT END", 1.2, "silk"),
-        (14.0, 95.0, "TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A", 0.8,
+        (69.0, 97.5, "5.8 GHz RADAR FRONT END", 1.2, "silk"),
+        (69.0, 95.0, "TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A", 0.8,
          "silk"),
         (70.0, 45.0, "J5  enable + monitors", 0.8, "silk"),
         (24.0, 13.5, "TX1  0.75 W", 1.0, "silk"),
         (24.0, 86.5, "TX2  0.75 W", 1.0, "silk"),
-        (20.0, 39.5, "RX1", 1.0, "silk"),
-        (20.0, 60.5, "RX2", 1.0, "silk"),
-        (2.3, 50.0, "USRP B210", 0.9, "silk"),
+        (22.0, 39.5, "RX1", 1.0, "silk"),
+        (22.0, 60.5, "RX2", 1.0, "silk"),
+        (8.0, 53.0, "USRP B210", 0.9, "silk"),
     ]
     for nm, x, y, side in b.ports:
         if side == "left":
