@@ -1574,13 +1574,13 @@ Representative full-system numbers for the 2x2 TDM-MIMO baseline described throu
 | Virtual array topology | 4-element ULA (2 Tx x 2 Rx) | lambda/2 spacing, 28.6-degree Rayleigh resolution |
 | Super-resolution angular accuracy | <1.5 degrees az/el | 2D MUSIC eigen-subspace decomposition |
 | Raw ADC data throughput | 6.4 Gbps (200 MSps x 32-bit) | Kintex-7 on-chip bus |
-| Host PCIe stream throughput | 100.0 MB/s (25 MSps decimated) | UHD DPDK zero-copy transport |
+| Host USB 3.0 stream throughput | 100.0 MB/s (25 MSps decimated) | UHD USB 3.0 zero-copy transport |
 | Hardware processing latency | <5.0 us | FPGA pipeline delay |
 | End-to-end system latency | <8.33 ms | Full acquisition to 3D point-cloud render |
 
 Technology stack: SystemVerilog (IEEE 1800-2012) / Verilog-2005 firmware; Xilinx Vivado 2022.2 or
-2023.1 with Ettus RFNoC 4.0; C++17 (GCC 11+/Clang 13+) host driver with DPDK 22.11 and POSIX
-real-time extensions; ZeroMQ 4.3.4 and VITA-49.0/49.2 CHDR transport for IPC; Eigen3 3.4+, FFTW3 or
+2023.1 with Ettus RFNoC 4.0; C++17 (GCC 11+/Clang 13+) host driver over UHD's USB 3.0 transport with
+POSIX real-time extensions; ZeroMQ 4.3.4 and VITA-49.0/49.2 CHDR transport for IPC; Eigen3 3.4+, FFTW3 or
 Intel MKL, PyTorch 2.0+, ONNX Runtime 1.15+, TensorRT 8.6+ for host DSP/ML; Python 3.10+, NumPy
 1.24+, SciPy 1.10+ for prototyping.
 
