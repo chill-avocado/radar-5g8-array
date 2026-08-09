@@ -537,7 +537,11 @@ struct WebServer::Impl {
         return true;
     }
 
+    /// Wake the poll thread.  Called with tx_mu held, which is also the lock
+    /// stop() takes before it closes the pipe, so this can never write to a
+    /// descriptor that has been closed and recycled underneath it.
     void poke() {
+        if (wake_w < 0) return;
         const u8 b = 1;
         ssize_t rc;
         do { rc = ::write(wake_w, &b, 1); } while (rc < 0 && errno == EINTR);
