@@ -139,7 +139,6 @@ void MicroDoppler::analyse(const cf32* slow_time, int n, Track& t) const {
 
     Scratch& s = scratch();
     const int    n_frames = (n - W) / H + 1;
-    const double stft_bin = prf_hz_ / W;
     const double fine_bin = prf_hz_ / n_cpi_;
     const double frame_hz = prf_hz_ / H;
     const double ms_per_hz = lambda_m_ / 2.0;   // Doppler hertz to metres per second

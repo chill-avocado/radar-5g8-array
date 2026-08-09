@@ -374,6 +374,37 @@ void run_size(int N, int NLOG2) {
     }
 
     //------------------------------------------------------------------------
+    // A stalled input must not change the answer.  Everything in the datapath
+    // is clock-enabled by in_valid, so dropping one clock in five has to give
+    // bit-identical results -- if any register were left free-running this is
+    // where it would show.
+    //------------------------------------------------------------------------
+    {
+        std::vector<std::vector<ci>> in;
+        for (int f = 0; f < n_frames; ++f) in.push_back(make_tone(N, bin, full, 0.7 * f));
+
+        RunOut a = stream(dut, N, NLOG2, sch_half, in, n_check, 0);
+        RunOut b = stream(dut, N, NLOG2, sch_half, in, n_check, 5);
+
+        long diffs = 0;
+        if (a.complete && b.complete) {
+            for (int f = 0; f < n_check; ++f)
+                for (int k = 0; k < N; ++k)
+                    if (a.frames[f][k] != b.frames[f][k]) ++diffs;
+        } else {
+            diffs = -1;
+        }
+
+        char line[256];
+        std::snprintf(line, sizeof line,
+                      "N=%-4d %-22s  1 stall clock in 5, %ld of %d bins differ from the "
+                      "continuous run  idx=%s last=%s",
+                      N, "stalled input", diffs, n_check * N,
+                      b.idx_ok ? "ok" : "BAD", b.last_ok ? "ok" : "BAD");
+        report(diffs == 0 && b.idx_ok && b.last_ok, line);
+    }
+
+    //------------------------------------------------------------------------
     // (f) latency
     //------------------------------------------------------------------------
     {
