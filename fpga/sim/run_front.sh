@@ -78,13 +78,16 @@ if [ -z "$VROOT" ] || [ ! -d "$VROOT/include" ]; then
 fi
 
 for m in $MODELS; do
+    log=$BUILD/build_$m.log
     # shellcheck disable=SC2046
-    "$VERILATOR" --cc -I"$RTL" --top-module "$m" --prefix "V$m" \
-                 --Mdir "$BUILD/obj_$m" $(srcs_for "$m") || {
-        echo "run_front.sh: verilating $m failed" >&2; exit 1; }
-    make -s -C "$BUILD/obj_$m" -f "V$m.mk" "V${m}__ALL.a" || {
-        echo "run_front.sh: compiling model $m failed" >&2; exit 1; }
-    printf '    verilated %s\n' "$m"
+    if ! "$VERILATOR" --cc --quiet -I"$RTL" --top-module "$m" --prefix "V$m" \
+                      --Mdir "$BUILD/obj_$m" $(srcs_for "$m") > "$log" 2>&1; then
+        cat "$log"; echo "run_front.sh: verilating $m failed" >&2; exit 1
+    fi
+    if ! make -s -C "$BUILD/obj_$m" -f "V$m.mk" "V${m}__ALL.a" >> "$log" 2>&1; then
+        cat "$log"; echo "run_front.sh: compiling model $m failed" >&2; exit 1
+    fi
+    printf '    verilated and compiled %s\n' "$m"
 done
 
 # The Verilator runtime is shared by all six models, so build it once as its
