@@ -1,0 +1,2199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>5.8 GHz MIMO radar — operator display</title>
+<!--
+  One file, no fetches of any kind: no fonts, no images, no libraries.  The
+  display has to come up on a machine with no route to the internet, next to a
+  radar, in a shielded room, and it has to come up every time.
+
+  It speaks the binary protocol in soft/include/radar/proto.hpp directly out of
+  a DataView.  Open it with ?demo=1 to drive it from a synthetic scene made in
+  the browser -- the demo builds real wire packets and pushes them through the
+  same parser the live link uses, so what you see is what the daemon will get.
+-->
+<style>
+:root{
+  --bg:#080b10;      --panel:#0d1219;   --panel2:#0a0e14;
+  --line:#1a2330;    --line2:#243146;
+  --ink:#c9d6e6;     --ink2:#7f90a6;    --ink3:#55647a;
+  --accent:#6fd0ff;  --accent2:#3aa0d8;
+  --good:#4fd6a0;    --warn:#ffb454;    --bad:#ff5f56;    --sel:#ffd479;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font:12px/1.45 var(--ui);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------------------------------------------------------------- layout */
+#app{display:flex;flex-direction:column;height:100%}
+#status{
+  display:flex;align-items:stretch;gap:0;flex:0 0 38px;
+  background:linear-gradient(#101722,#0b1017);
+  border-bottom:1px solid var(--line2);
+  overflow-x:auto;overflow-y:hidden;white-space:nowrap;
+}
+#grid{
+  flex:1 1 auto;display:grid;gap:8px;padding:8px;min-height:0;
+  grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 286px;
+  grid-template-rows:minmax(0,1fr) minmax(240px,0.62fr);
+}
+#p-rd{grid-column:1;grid-row:1/3}
+#p-plan{grid-column:2;grid-row:1}
+#p-micro{grid-column:2;grid-row:2}
+#p-ctl{grid-column:3;grid-row:1/3;overflow-y:auto}
+@media (max-width:1100px){
+  #grid{grid-template-columns:minmax(0,1fr) 262px;grid-template-rows:minmax(320px,1fr) minmax(260px,0.8fr) minmax(240px,0.7fr)}
+  #p-rd{grid-column:1;grid-row:1}
+  #p-plan{grid-column:1;grid-row:2}
+  #p-micro{grid-column:1;grid-row:3}
+  #p-ctl{grid-column:2;grid-row:1/4}
+}
+
+/* ---------------------------------------------------------------- panels */
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  display:flex;flex-direction:column;min-width:0;min-height:0;position:relative;
+}
+.phead{
+  flex:0 0 25px;display:flex;align-items:center;gap:10px;padding:0 9px;
+  border-bottom:1px solid var(--line);background:var(--panel2);
+  border-radius:3px 3px 0 0;
+}
+.ptitle{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.pmeta{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbody{flex:1 1 auto;position:relative;min-height:0;min-width:0}
+canvas{display:block}
+#rd-gl,#rd-ov,#plan-cv,#mic-cv{position:absolute;top:0;left:0}
+#rd-gl{background:#04070b}
+
+/* --------------------------------------------------------------- status */
+.chip{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:0 11px;border-right:1px solid var(--line);min-width:0;
+}
+.chip .k{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);line-height:1.25}
+.chip .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;line-height:1.25;color:var(--ink)}
+.chip.wide .v{font-size:11px}
+.chip.alert{background:rgba(255,95,86,.14)}
+.chip.alert .v{color:var(--bad)}
+.chip.warnish .v{color:var(--warn)}
+.chip.okish .v{color:var(--good)}
+.chip.flash{animation:flash .9s steps(1,end) 3}
+@keyframes flash{0%,49%{background:rgba(255,95,86,.42)}50%,100%{background:rgba(255,95,86,.10)}}
+#brand{display:flex;flex-direction:column;justify-content:center;padding:0 13px;border-right:1px solid var(--line2)}
+#brand .t{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700}
+#brand .s{font-size:9px;color:var(--ink3);letter-spacing:.08em}
+#status .spacer{flex:1 1 auto;border:0}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.dot.on{background:var(--good);box-shadow:0 0 7px var(--good)}
+.dot.off{background:var(--bad);box-shadow:0 0 7px var(--bad)}
+.dot.wait{background:var(--warn);box-shadow:0 0 7px var(--warn)}
+.cpubar{width:74px;height:5px;background:#1b2430;border-radius:3px;overflow:hidden;margin-top:3px}
+.cpubar i{display:block;height:100%;width:0;background:var(--good);transition:width .2s linear}
+
+/* -------------------------------------------------------------- controls */
+.ctl{padding:9px 10px 12px;border-bottom:1px solid var(--line)}
+.ctl:last-child{border-bottom:0}
+.ctl h4{margin:0 0 7px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.row{display:flex;align-items:center;gap:7px;margin:6px 0}
+.row label{flex:0 0 74px;font-size:10.5px;color:var(--ink2)}
+.row .val{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink);min-width:56px;text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1 1 auto;height:16px;background:transparent;cursor:pointer;min-width:0}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:#1e2836;border-radius:2px}
+input[type=range]::-moz-range-track{height:3px;background:#1e2836;border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-4.5px;border-radius:50%;background:var(--accent);border:0}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);border:0}
+select,input[type=number]{
+  flex:1 1 auto;min-width:0;background:#111823;color:var(--ink);border:1px solid var(--line2);
+  border-radius:3px;padding:3px 5px;font-family:var(--mono);font-size:11px;
+}
+button{
+  background:#131b26;color:var(--ink);border:1px solid var(--line2);border-radius:3px;
+  padding:5px 9px;font-size:11px;font-family:var(--ui);cursor:pointer;
+}
+button:hover{background:#18222f;border-color:#33465f}
+button:active{background:#0f151d}
+button.hot{background:rgba(255,180,84,.16);border-color:var(--warn);color:var(--warn)}
+button.wide{width:100%;margin-top:5px}
+.btnrow{display:flex;gap:6px;margin-top:6px}
+.btnrow button{flex:1 1 0}
+.hint{font-size:9.5px;color:var(--ink3);margin-top:6px;line-height:1.5}
+
+/* ------------------------------------------------------------ track list */
+#tracklist{display:flex;flex-direction:column;gap:3px}
+.trk{
+  display:grid;grid-template-columns:30px 1fr auto;gap:6px;align-items:center;
+  padding:4px 6px;border:1px solid transparent;border-radius:3px;cursor:pointer;
+  font-family:var(--mono);font-size:10.5px;background:#0b1017;
+}
+.trk:hover{border-color:var(--line2)}
+.trk.sel{border-color:var(--sel);background:rgba(255,212,121,.09)}
+.trk .id{color:var(--accent)}
+.trk.tent .id{color:var(--ink3)}
+.trk .lb{color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trk .rg{color:var(--ink)}
+.empty-note{color:var(--ink3);font-size:10.5px;font-style:italic;padding:2px}
+
+/* ------------------------------------------------------------ micro nums */
+#mic-num{
+  position:absolute;right:8px;top:8px;background:rgba(8,12,18,.82);
+  border:1px solid var(--line2);border-radius:3px;padding:7px 9px;
+  font-family:var(--mono);font-size:10.5px;line-height:1.7;pointer-events:none;
+  min-width:132px;
+}
+#mic-num b{color:var(--ink3);font-weight:400;display:inline-block;width:66px}
+#mic-num s{text-decoration:none;color:var(--ink)}
+
+/* --------------------------------------------------------------- overlay */
+.empty{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:9px;color:var(--ink3);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  background:repeating-linear-gradient(45deg,#080b10,#080b10 11px,#0a0e14 11px,#0a0e14 22px);
+  pointer-events:none;text-align:center;padding:16px;
+}
+.empty .big{font-size:14px;color:var(--ink2);letter-spacing:.22em}
+.empty .sm{font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--ink3);max-width:340px;line-height:1.6}
+.pulse{animation:pulse 1.9s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.42}50%{opacity:1}}
+#help{
+  position:fixed;inset:0;background:rgba(4,6,10,.86);z-index:50;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+#help[hidden]{display:none}
+#help .card{
+  background:var(--panel);border:1px solid var(--line2);border-radius:6px;
+  padding:20px 24px;max-width:640px;width:100%;max-height:86vh;overflow:auto;
+}
+#help h3{margin:0 0 3px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+#help p.lead{margin:0 0 15px;color:var(--ink3);font-size:11px}
+#help table{width:100%;border-collapse:collapse;font-size:11.5px}
+#help td{padding:3px 6px;border-bottom:1px solid #131b26;vertical-align:top}
+#help td.k{width:96px}
+#help kbd{
+  font-family:var(--mono);font-size:10.5px;background:#141d29;border:1px solid var(--line2);
+  border-bottom-width:2px;border-radius:3px;padding:1px 5px;color:var(--accent);
+}
+#help td.d{color:var(--ink2)}
+#help .close{margin-top:15px;text-align:right}
+.kbd-hint{position:absolute;right:8px;bottom:7px;font-size:9.5px;color:var(--ink3);pointer-events:none}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:#080b10}
+::-webkit-scrollbar-thumb{background:#1d2836;border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:#2a3a4f}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ==================================================== status bar -->
+  <div id="status">
+    <div id="brand">
+      <div class="t">5.8 GHz MIMO</div>
+      <div class="s">2&times;2 &middot; 4 virtual</div>
+    </div>
+    <div class="chip" id="c-link"><div class="k">Link</div><div class="v"><span class="dot wait"></span><span id="v-link">connecting</span></div></div>
+    <div class="chip" id="c-src"><div class="k">Source</div><div class="v" id="v-src">&mdash;</div></div>
+    <div class="chip" id="c-fps"><div class="k">Frame rate</div><div class="v"><span id="v-fps">--.-</span> <span style="color:var(--ink3);font-size:10px">Hz</span></div></div>
+    <div class="chip" id="c-cpu"><div class="k">Pipeline CPU</div><div class="v" id="v-cpu">--%<div class="cpubar"><i id="v-cpubar"></i></div></div></div>
+    <div class="chip" id="c-ovf"><div class="k">Overflows</div><div class="v" id="v-ovf">0</div></div>
+    <div class="chip" id="c-drp"><div class="k">Dropped</div><div class="v" id="v-drp">0</div></div>
+    <div class="chip" id="c-skip"><div class="k">Display skip</div><div class="v" id="v-skip">0</div></div>
+    <div class="chip" id="c-bps"><div class="k">Link rate</div><div class="v" id="v-bps">0.00 MB/s</div></div>
+    <div class="chip" id="c-trk"><div class="k">Tracks</div><div class="v" id="v-trk">0</div></div>
+    <div class="chip wide" id="c-frame"><div class="k">Frame</div><div class="v" id="v-frame">0</div></div>
+    <div class="spacer"></div>
+    <div class="chip" id="c-render"><div class="k">Render</div><div class="v" id="v-render">-- fps</div></div>
+    <div class="chip" id="c-mode"><div class="k">State</div><div class="v" id="v-mode">live</div></div>
+  </div>
+
+  <div id="grid">
+
+    <!-- ============================================ range-Doppler map -->
+    <section class="panel" id="p-rd">
+      <div class="phead">
+        <span class="ptitle">Range &ndash; Doppler</span>
+        <span class="pmeta" id="rd-meta">no data</span>
+      </div>
+      <div class="pbody" id="rd-body">
+        <canvas id="rd-gl"></canvas>
+        <canvas id="rd-ov"></canvas>
+        <div class="empty" id="rd-empty">
+          <div class="big pulse">waiting for radar</div>
+          <div class="sm" id="rd-empty-sub">No range&ndash;Doppler frames yet. The display reconnects on its own; nothing here needs restarting.</div>
+        </div>
+        <div class="kbd-hint">press <kbd>?</kbd> for keys</div>
+      </div>
+    </section>
+
+    <!-- ===================================================== plan view -->
+    <section class="panel" id="p-plan">
+      <div class="phead">
+        <span class="ptitle">Plan view</span>
+        <span class="pmeta" id="plan-meta">boresight up</span>
+      </div>
+      <div class="pbody" id="plan-body">
+        <canvas id="plan-cv"></canvas>
+        <div class="empty" id="plan-empty"><div class="big pulse">no scene</div></div>
+      </div>
+    </section>
+
+    <!-- ================================================= micro-Doppler -->
+    <section class="panel" id="p-micro">
+      <div class="phead">
+        <span class="ptitle">Micro-Doppler</span>
+        <span class="pmeta" id="mic-meta">no track selected</span>
+      </div>
+      <div class="pbody" id="mic-body">
+        <canvas id="mic-cv"></canvas>
+        <div id="mic-num" hidden></div>
+        <div class="empty" id="mic-empty">
+          <div class="big">no track selected</div>
+          <div class="sm">Click a track in the plan view, or press <kbd>n</kbd> to step through them.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================== controls -->
+    <aside class="panel" id="p-ctl">
+      <div class="phead"><span class="ptitle">Control</span><span class="pmeta" id="ctl-meta">local</span></div>
+
+      <div class="ctl">
+        <h4>Display</h4>
+        <div class="row">
+          <label for="i-span">Dyn. range</label>
+          <input type="range" id="i-span" min="15" max="110" step="1" value="70">
+          <span class="val" id="v-span">70 dB</span>
+        </div>
+        <div class="row">
+          <label for="i-ref">Reference</label>
+          <input type="range" id="i-ref" min="-40" max="20" step="1" value="0">
+          <span class="val" id="v-ref">peak +0</span>
+        </div>
+        <div class="row">
+          <label for="i-cmap">Colour</label>
+          <select id="i-cmap"><option value="0">turbo</option><option value="1">viridis</option><option value="2">grey</option></select>
+        </div>
+        <div class="row">
+          <label for="i-grid">Grid</label>
+          <select id="i-grid"><option value="1">on</option><option value="0">off</option></select>
+        </div>
+      </div>
+
+      <div class="ctl">
+        <h4>Detection</h4>
+        <div class="row">
+          <label for="i-pfa">CFAR P<sub>fa</sub></label>
+          <input type="range" id="i-pfa" min="-9" max="-2" step="0.25" value="-5">
+          <span class="val" id="v-pfa">1.0e-5</span>
+        </div>
+        <div class="row">
+          <label for="i-cfar">CFAR</label>
+          <select id="i-cfar">
+            <option value="CA">cell averaging</option>
+            <option value="GO">greatest of</option>
+            <option value="SO">smallest of</option>
+            <option value="OS">ordered statistic</option>
+            <option value="none">off</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="i-aoa">Angle</label>
+          <select id="i-aoa">
+            <option value="monopulse">monopulse</option>
+            <option value="bartlett">Bartlett</option>
+            <option value="capon">Capon</option>
+            <option value="music" selected>MUSIC</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="i-blank">Zero-Dopp</label>
+          <input type="number" id="i-blank" min="0" max="32" step="1" value="2">
+          <span class="val">bins</span>
+        </div>
+        <div class="hint">Blanking hides <span id="v-blankms" class="num">&plusmn;0.3 m/s</span> either side of DC, where the transmit leakage and everything nailed down live.</div>
+      </div>
+
+      <div class="ctl">
+        <h4>Session</h4>
+        <div class="btnrow">
+          <button id="b-freeze">Freeze</button>
+          <button id="b-shot">Screenshot</button>
+        </div>
+        <div class="btnrow">
+          <button id="b-reconnect">Reconnect</button>
+          <button id="b-help">Keys</button>
+        </div>
+      </div>
+
+      <div class="ctl">
+        <h4>Tracks</h4>
+        <div id="tracklist"><div class="empty-note">none</div></div>
+      </div>
+
+      <div class="ctl">
+        <h4>Operating point</h4>
+        <div id="cfgdump" class="num" style="font-size:10px;line-height:1.75;color:var(--ink2)">waiting for configuration&hellip;</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ========================================================= help overlay -->
+<div id="help" hidden>
+  <div class="card">
+    <h3>Keyboard</h3>
+    <p class="lead">Everything on this page can be driven from the keyboard, because one hand is usually on something else.</p>
+    <table>
+      <tr><td class="k"><kbd>?</kbd></td><td class="d">Show or hide this list</td></tr>
+      <tr><td class="k"><kbd>space</kbd></td><td class="d">Freeze / resume the display. The radar keeps running; only the picture stops.</td></tr>
+      <tr><td class="k"><kbd>m</kbd></td><td class="d">Cycle the colour map: turbo, viridis, grey</td></tr>
+      <tr><td class="k"><kbd>[</kbd> <kbd>]</kbd></td><td class="d">Narrow / widen the dynamic range</td></tr>
+      <tr><td class="k"><kbd>-</kbd> <kbd>=</kbd></td><td class="d">Lower / raise the reference level against the peak</td></tr>
+      <tr><td class="k"><kbd>,</kbd> <kbd>.</kbd></td><td class="d">Plan view: zoom out / in</td></tr>
+      <tr><td class="k"><kbd>n</kbd></td><td class="d">Select the next track</td></tr>
+      <tr><td class="k"><kbd>esc</kbd></td><td class="d">Deselect</td></tr>
+      <tr><td class="k"><kbd>g</kbd></td><td class="d">Grid and axis ticks on / off</td></tr>
+      <tr><td class="k"><kbd>h</kbd></td><td class="d">Track history trails on / off</td></tr>
+      <tr><td class="k"><kbd>d</kbd></td><td class="d">Detection markers on the map on / off</td></tr>
+      <tr><td class="k"><kbd>s</kbd></td><td class="d">Save a PNG of the whole display</td></tr>
+      <tr><td class="k"><kbd>r</kbd></td><td class="d">Reconnect to the daemon now</td></tr>
+    </table>
+    <div class="close"><button id="b-helpclose">Close</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+//===========================================================================
+// 0. Wire format -- must match soft/include/radar/proto.hpp exactly
+//===========================================================================
+const MAGIC = 0x52414441;              // "RADA"
+const HDR   = 28;
+const MSG   = {HELLO:1, RDMAP:2, HITS:3, TRACKS:4, STATS:5, SPEC:6, CONFIG:7};
+const FLAG  = {OVERFLOW:1, CUBE:2, FROZEN:4, EOF:8};
+const HIT_SZ = 32, TGT_SZ = 44, TRK_SZ = 104;
+const SRC_NAME = ["simulate", "hardware", "replay"];
+const CFAR_NAME = ["CA", "GO", "SO", "OS", "none"];
+const AOA_NAME  = ["monopulse", "bartlett", "capon", "music"];
+
+//===========================================================================
+// 1. State
+//===========================================================================
+const S = {
+  cfg: null,
+  map: null,            // {nr, nd, min_db, max_db, data:Uint8Array}
+  mapSeq: 0,            // bumped on every new map, so the renderer can skip
+  mapDrawn: -1,
+  hits: [], targets: [], tracks: [],
+  specs: new Map(),     // track id -> spectrogram
+  hist: new Map(),      // track id -> [[x,y], ...]
+  stats: null,
+  frame: 0, tNs: 0,
+  overflowFlag: false,
+  selected: null,
+  frozen: false,
+  linkState: "connecting",
+  linkSince: performance.now(),
+  bytes: 0, bytesRate: 0,
+  dataFrames: 0, dataFps: 0,
+  skipped: 0,
+  demo: false,
+  build: "",
+  // display settings
+  span: 70, ref: 0, cmap: 0, grid: true, trails: true, marks: true,
+  planRange: 0,         // metres, 0 = follow the configuration
+  pointer: null,        // {x, y} in plot pixels, over the range-Doppler map
+};
+
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+
+//===========================================================================
+// 2. Colour maps.  The same polynomials the shader uses, evaluated once into
+//    a 256-entry table for the 2D canvases (spectrogram, fallback renderer).
+//===========================================================================
+function turbo(t){
+  t = clamp(t, 0, 1);
+  const t2 = t*t, t3 = t2*t, t4 = t2*t2, t5 = t4*t;
+  return [
+    0.13572138 +  4.61539260*t -  42.66032258*t2 + 132.13108234*t3 - 152.94239396*t4 + 59.28637943*t5,
+    0.09140261 +  2.19418839*t +   4.84296658*t2 -  14.18503333*t3 +   4.27729857*t4 +  2.82956604*t5,
+    0.10667330 + 12.64194608*t -  60.58204836*t2 + 110.36276771*t3 -  89.90310912*t4 + 27.34824973*t5];
+}
+function viridis(t){
+  t = clamp(t, 0, 1);
+  const c=[[0.27772733,0.00540734,0.33409981],[0.10509304,1.40461353,1.38459016],
+           [-0.33086183,0.21484756,0.09509516],[-4.63423050,-5.79910097,-19.33244096],
+           [6.22826994,14.17993337,56.69055260],[4.77638500,-13.74514538,-65.35303263],
+           [-5.43545586,4.64585261,26.31243525]];
+  const o=[0,0,0];
+  for(let k=0;k<3;k++){ let v=c[6][k]; for(let i=5;i>=0;i--) v=v*t+c[i][k]; o[k]=v; }
+  return o;
+}
+function greymap(t){ t = clamp(t,0,1); const g = 0.06 + 0.94*Math.pow(t,0.85); return [g,g,g]; }
+const CMAPS = [turbo, viridis, greymap];
+
+const LUTS = CMAPS.map(fn => {
+  const l = new Uint8Array(256*3);
+  for (let i = 0; i < 256; i++){
+    const c = fn(i/255);
+    l[i*3]   = clamp(Math.round(c[0]*255),0,255);
+    l[i*3+1] = clamp(Math.round(c[1]*255),0,255);
+    l[i*3+2] = clamp(Math.round(c[2]*255),0,255);
+  }
+  return l;
+});
+
+//===========================================================================
+// 3. Packet parsing.  One DataView walk, no object churn on the hot path.
+//===========================================================================
+function onPacket(ab){
+  const dv = new DataView(ab);
+  let off = 0;
+  let sawMap = false;
+  while (off + HDR <= ab.byteLength){
+    if (dv.getUint32(off, true) !== MAGIC) break;
+    const type  = dv.getUint16(off+4, true);
+    const flags = dv.getUint16(off+6, true);
+    const frame = Number(dv.getBigUint64(off+8, true));
+    const tNs   = Number(dv.getBigUint64(off+16, true));
+    const nb    = dv.getUint32(off+24, true);
+    const p     = off + HDR;
+    if (p + nb > ab.byteLength) break;
+
+    if (!S.frozen){
+      S.frame = frame; S.tNs = tNs;
+      S.overflowFlag = (flags & FLAG.OVERFLOW) !== 0;
+      switch (type){
+        case MSG.HELLO:  readHello(dv, p, nb); break;
+        case MSG.RDMAP:  readMap(dv, ab, p, nb); sawMap = true; break;
+        case MSG.HITS:   readHits(dv, p, nb); break;
+        case MSG.TRACKS: readTracks(dv, p, nb); break;
+        case MSG.SPEC:   readSpec(dv, ab, p, nb); break;
+        case MSG.STATS:  readStats(dv, p, nb); break;
+        case MSG.CONFIG: readConfig(dv, p, nb); break;
+        default: break;
+      }
+    }
+    off = p + nb;
+  }
+  if (sawMap){
+    S.dataFrames++;
+    if (S.mapSeq - S.mapDrawn > 1) S.skipped++;   // arrived faster than we drew
+  }
+}
+
+function readHello(dv, p, nb){
+  if (nb < 48) return;
+  let b = "";
+  for (let i = 0; i < 32; i++){
+    const c = dv.getUint8(p+16+i);
+    if (!c) break;
+    b += String.fromCharCode(c);
+  }
+  S.build = b;
+}
+
+function readMap(dv, ab, p, nb){
+  if (nb < 12) return;
+  const nr = dv.getUint16(p, true), nd = dv.getUint16(p+2, true);
+  const cells = nr*nd;
+  if (nb < 12 + cells) return;
+  if (!S.map || S.map.nr !== nr || S.map.nd !== nd){
+    S.map = {nr, nd, min_db:0, max_db:0, data:new Uint8Array(cells)};
+    RD.resize(nr, nd);
+  }
+  S.map.min_db = dv.getFloat32(p+4, true);
+  S.map.max_db = dv.getFloat32(p+8, true);
+  S.map.data.set(new Uint8Array(ab, p+12, cells));
+  S.mapSeq++;
+}
+
+function readHits(dv, p, nb){
+  if (nb < 8) return;
+  const nh = dv.getUint32(p, true), nt = dv.getUint32(p+4, true);
+  if (nb < 8 + nh*HIT_SZ + nt*TGT_SZ) return;
+  const hits = new Array(nh);
+  let o = p + 8;
+  for (let i = 0; i < nh; i++, o += HIT_SZ){
+    hits[i] = {
+      rb: dv.getUint16(o, true), db: dv.getInt16(o+2, true),
+      range: dv.getFloat32(o+4, true), vel: dv.getFloat32(o+8, true),
+      snr: dv.getFloat32(o+12, true), az: dv.getFloat32(o+16, true),
+      el: dv.getFloat32(o+20, true), q: dv.getFloat32(o+24, true),
+      ok: dv.getUint8(o+28) !== 0,
+    };
+  }
+  const tgts = new Array(nt);
+  for (let i = 0; i < nt; i++, o += TGT_SZ){
+    tgts[i] = {
+      range: dv.getFloat32(o, true), vel: dv.getFloat32(o+4, true),
+      az: dv.getFloat32(o+8, true), el: dv.getFloat32(o+12, true),
+      snr: dv.getFloat32(o+16, true),
+      x: dv.getFloat32(o+20, true), y: dv.getFloat32(o+24, true), z: dv.getFloat32(o+28, true),
+      extent: dv.getFloat32(o+32, true), spread: dv.getFloat32(o+36, true),
+      n: dv.getUint16(o+40, true),
+    };
+  }
+  S.hits = hits; S.targets = tgts;
+}
+
+function readTracks(dv, p, nb){
+  if (nb < 4) return;
+  const n = dv.getUint32(p, true);
+  if (nb < 4 + n*TRK_SZ) return;
+  const out = new Array(n);
+  let o = p + 4;
+  const live = new Set();
+  for (let i = 0; i < n; i++, o += TRK_SZ){
+    const id = dv.getUint32(o, true);
+    const nameLen = dv.getUint8(o+81);
+    let label = "";
+    for (let k = 0; k < nameLen && k < 22; k++) label += String.fromCharCode(dv.getUint8(o+82+k));
+    const t = {
+      id,
+      x: dv.getFloat32(o+4, true),  y: dv.getFloat32(o+8, true),  z: dv.getFloat32(o+12, true),
+      vx: dv.getFloat32(o+16, true), vy: dv.getFloat32(o+20, true), vz: dv.getFloat32(o+24, true),
+      pxx: dv.getFloat32(o+28, true), pxy: dv.getFloat32(o+32, true), pxz: dv.getFloat32(o+36, true),
+      pyy: dv.getFloat32(o+40, true), pyz: dv.getFloat32(o+44, true), pzz: dv.getFloat32(o+48, true),
+      snr: dv.getFloat32(o+52, true), age: dv.getFloat32(o+56, true),
+      microBw: dv.getFloat32(o+60, true), blade: dv.getFloat32(o+64, true),
+      conf: dv.getFloat32(o+68, true),
+      hits: dv.getUint16(o+72, true), misses: dv.getUint16(o+74, true),
+      specT: dv.getUint16(o+76, true), specF: dv.getUint16(o+78, true),
+      confirmed: dv.getUint8(o+80) !== 0,
+      label,
+    };
+    t.range = Math.hypot(t.x, t.y, t.z);
+    t.speed = Math.hypot(t.vx, t.vy, t.vz);
+    t.az = Math.atan2(t.x, t.y) * 180/Math.PI;
+    out[i] = t;
+    live.add(id);
+    let h = S.hist.get(id);
+    if (!h){ h = []; S.hist.set(id, h); }
+    const last = h[h.length-1];
+    if (!last || Math.hypot(last[0]-t.x, last[1]-t.y) > 0.05){
+      h.push([t.x, t.y]);
+      if (h.length > 90) h.shift();
+    }
+  }
+  for (const id of Array.from(S.hist.keys())) if (!live.has(id)) S.hist.delete(id);
+  for (const id of Array.from(S.specs.keys())) if (!live.has(id)) S.specs.delete(id);
+  S.tracks = out;
+  if (S.selected !== null && !live.has(S.selected)) S.selected = null;
+}
+
+function readSpec(dv, ab, p, nb){
+  if (nb < 24) return;
+  const id = dv.getUint32(p, true);
+  const nt = dv.getUint16(p+4, true), nf = dv.getUint16(p+6, true);
+  const cells = nt*nf;
+  if (nb < 24 + cells) return;
+  S.specs.set(id, {
+    id, nt, nf,
+    min_db: dv.getFloat32(p+8, true), max_db: dv.getFloat32(p+12, true),
+    hz: dv.getFloat32(p+16, true), dt: dv.getFloat32(p+20, true),
+    data: new Uint8Array(ab.slice(p+24, p+24+cells)),
+    dirty: true,
+  });
+}
+
+function readStats(dv, p, nb){
+  if (nb < 96) return;
+  const st = {
+    frames: Number(dv.getBigUint64(p, true)),
+    overflows: Number(dv.getBigUint64(p+8, true)),
+    dropped: Number(dv.getBigUint64(p+16, true)),
+    bytesIn: Number(dv.getBigUint64(p+24, true)),
+    bytesSent: Number(dv.getBigUint64(p+32, true)),
+    netDropped: Number(dv.getBigUint64(p+40, true)),
+    cpu: dv.getFloat32(p+48, true),
+    fps: dv.getFloat32(p+52, true),
+    stage: [],
+    nTracks: dv.getUint16(p+88, true),
+    clients: dv.getUint16(p+90, true),
+    source: dv.getUint16(p+92, true),
+    flags: dv.getUint16(p+94, true),
+  };
+  for (let i = 0; i < 8; i++) st.stage.push(dv.getFloat32(p+56+i*4, true));
+  S.stats = st;
+}
+
+function readConfig(dv, p, nb){
+  if (nb < 92) return;
+  S.cfg = {
+    fc: dv.getFloat64(p, true), fs: dv.getFloat64(p+8, true),
+    bw: dv.getFloat64(p+16, true), pfa: dv.getFloat64(p+24, true),
+    rangeBin: dv.getFloat32(p+32, true), rangeMax: dv.getFloat32(p+36, true),
+    rangeRes: dv.getFloat32(p+40, true), velRes: dv.getFloat32(p+44, true),
+    velMax: dv.getFloat32(p+48, true), fps: dv.getFloat32(p+52, true),
+    tCpi: dv.getFloat32(p+56, true),
+    azSpan: dv.getFloat32(p+60, true), elSpan: dv.getFloat32(p+64, true),
+    txGain: dv.getFloat32(p+68, true), rxGain: dv.getFloat32(p+72, true),
+    nRange: dv.getUint16(p+76, true), nDopp: dv.getUint16(p+78, true),
+    nChirp: dv.getUint16(p+80, true), maxHits: dv.getUint16(p+82, true),
+    blank: dv.getUint16(p+84, true),
+    cfar: dv.getUint8(p+86), aoa: dv.getUint8(p+87), source: dv.getUint8(p+88),
+    mimo: dv.getUint8(p+89), nVirt: dv.getUint8(p+90), tx: dv.getUint8(p+91) !== 0,
+  };
+  syncControlsFromConfig();
+}
+
+//===========================================================================
+// 4. Range-Doppler renderer.  WebGL2 with a one-channel texture and the
+//    colour map evaluated in the fragment shader; a 2D canvas path with the
+//    same maths if WebGL2 is not there.
+//===========================================================================
+const RD = (() => {
+  const glc = $("rd-gl"), ovc = $("rd-ov");
+  const M = {l: 58, r: 16, t: 12, b: 34};      // axis gutters, CSS pixels
+  let gl = null, prog = null, tex = null, vao = null, u = {};
+  let ctx2d = null, img = null, off = null, offCtx = null;
+  let texW = 0, texH = 0;
+  let plot = {x: 0, y: 0, w: 10, h: 10};
+  let dpr = 1;
+
+  const VS = `#version 300 es
+precision highp float;
+const vec2 P[4] = vec2[4](vec2(-1.,-1.), vec2(1.,-1.), vec2(-1.,1.), vec2(1.,1.));
+out vec2 uv;
+void main(){
+  vec2 p = P[gl_VertexID];
+  // v runs bottom-to-top so range increases upward on the screen
+  uv = vec2(p.x*0.5+0.5, p.y*0.5+0.5);
+  gl_Position = vec4(p, 0., 1.);
+}`;
+
+  const FS = `#version 300 es
+precision highp float;
+uniform sampler2D uMap;
+uniform float uA, uB;          // byte -> display fraction
+uniform int   uCmap;
+in  vec2 uv;
+out vec4 frag;
+
+vec3 turbo(float x){
+  x = clamp(x, 0.0, 1.0);
+  vec4 v4 = vec4(1.0, x, x*x, x*x*x);
+  vec2 v2 = v4.zw * v4.z;
+  return vec3(
+    dot(v4, vec4(0.13572138, 4.61539260, -42.66032258, 132.13108234)) + dot(v2, vec2(-152.94239396, 59.28637943)),
+    dot(v4, vec4(0.09140261, 2.19418839,   4.84296658, -14.18503333)) + dot(v2, vec2(   4.27729857,  2.82956604)),
+    dot(v4, vec4(0.10667330,12.64194608, -60.58204836, 110.36276771)) + dot(v2, vec2( -89.90310912, 27.34824973)));
+}
+vec3 viridis(float x){
+  x = clamp(x, 0.0, 1.0);
+  const vec3 c0 = vec3(0.27772733, 0.00540734, 0.33409981);
+  const vec3 c1 = vec3(0.10509304, 1.40461353, 1.38459016);
+  const vec3 c2 = vec3(-0.33086183, 0.21484756, 0.09509516);
+  const vec3 c3 = vec3(-4.63423050,-5.79910097,-19.33244096);
+  const vec3 c4 = vec3(6.22826994, 14.17993337, 56.69055260);
+  const vec3 c5 = vec3(4.77638500,-13.74514538,-65.35303263);
+  const vec3 c6 = vec3(-5.43545586, 4.64585261, 26.31243525);
+  return c0+x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*c6)))));
+}
+void main(){
+  float v = texture(uMap, uv).r;        // 0..1, the quantised dB cell
+  float t = clamp(v*uA + uB, 0.0, 1.0);
+  vec3 c;
+  if (uCmap == 0)      c = turbo(t);
+  else if (uCmap == 1) c = viridis(t);
+  else { float g = 0.06 + 0.94*pow(t, 0.85); c = vec3(g); }
+  frag = vec4(clamp(c, 0.0, 1.0), 1.0);
+}`;
+
+  function initGL(){
+    try {
+      gl = glc.getContext("webgl2", {antialias:false, depth:false, alpha:false,
+                                     preserveDrawingBuffer:true, powerPreference:"high-performance"});
+    } catch(e){ gl = null; }
+    if (!gl) return false;
+    const sh = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)){
+        console.warn("shader:", gl.getShaderInfoLog(s));
+        gl.deleteShader(s); return null;
+      }
+      return s;
+    };
+    const vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) { gl = null; return false; }
+    prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)){
+      console.warn("link:", gl.getProgramInfoLog(prog)); gl = null; return false;
+    }
+    gl.useProgram(prog);
+    u.uMap  = gl.getUniformLocation(prog, "uMap");
+    u.uA    = gl.getUniformLocation(prog, "uA");
+    u.uB    = gl.getUniformLocation(prog, "uB");
+    u.uCmap = gl.getUniformLocation(prog, "uCmap");
+    vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+    tex = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.uniform1i(u.uMap, 0);
+    return true;
+  }
+
+  function init2D(){
+    ctx2d = glc.getContext("2d");
+    return !!ctx2d;
+  }
+
+  const usingGL = initGL() || (init2D(), false);
+
+  function resize(nr, nd){
+    texW = nd; texH = nr;
+    if (gl){
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, texW, texH, 0, gl.RED, gl.UNSIGNED_BYTE, null);
+    } else if (ctx2d){
+      off = document.createElement("canvas");
+      off.width = texW; off.height = texH;
+      offCtx = off.getContext("2d");
+      img = offCtx.createImageData(texW, texH);
+      for (let i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+    }
+  }
+
+  function layout(){
+    const body = $("rd-body");
+    const w = body.clientWidth, h = body.clientHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    plot.x = M.l; plot.y = M.t;
+    plot.w = Math.max(20, w - M.l - M.r);
+    plot.h = Math.max(20, h - M.t - M.b);
+    glc.style.left = plot.x + "px"; glc.style.top = plot.y + "px";
+    glc.style.width = plot.w + "px"; glc.style.height = plot.h + "px";
+    const pw = Math.max(1, Math.round(plot.w*dpr)), ph = Math.max(1, Math.round(plot.h*dpr));
+    if (glc.width !== pw || glc.height !== ph){ glc.width = pw; glc.height = ph; }
+    if (ovc.width !== Math.round(w*dpr) || ovc.height !== Math.round(h*dpr)){
+      ovc.width = Math.round(w*dpr); ovc.height = Math.round(h*dpr);
+      ovc.style.width = w+"px"; ovc.style.height = h+"px";
+    }
+  }
+
+  // Display window in dB, from the frame's own quantisation window plus the
+  // operator's reference and span.  Returned so the axis labels and the
+  // crosshair agree with what the shader did.
+  function window_db(){
+    if (!S.map) return {lo:-100, hi:0};
+    const hi = S.map.max_db + S.ref;
+    return {lo: hi - S.span, hi};
+  }
+
+  function drawMap(){
+    if (!S.map) return;
+    const {lo, hi} = window_db();
+    const span = S.map.max_db - S.map.min_db;
+    const A = span / (hi - lo);
+    const B = (S.map.min_db - lo) / (hi - lo);
+    if (gl){
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, texW, texH, gl.RED, gl.UNSIGNED_BYTE, S.map.data);
+      gl.viewport(0, 0, glc.width, glc.height);
+      gl.useProgram(prog);
+      gl.bindVertexArray(vao);
+      gl.uniform1f(u.uA, A);
+      gl.uniform1f(u.uB, B);
+      gl.uniform1i(u.uCmap, S.cmap);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    } else if (ctx2d && img){
+      const lut = LUTS[S.cmap] || LUTS[0];
+      const d = img.data, src = S.map.data;
+      const nd = S.map.nd, nr = S.map.nr;
+      for (let r = 0; r < nr; r++){
+        const srow = r*nd;
+        const drow = (nr-1-r)*nd;         // flip so range grows upward
+        for (let c = 0; c < nd; c++){
+          const t = clamp(src[srow+c]*(1/255)*A + B, 0, 1);
+          const k = (t*255)|0, o = (drow+c)*4;
+          d[o] = lut[k*3]; d[o+1] = lut[k*3+1]; d[o+2] = lut[k*3+2];
+        }
+      }
+      offCtx.putImageData(img, 0, 0);
+      ctx2d.imageSmoothingEnabled = true;
+      ctx2d.clearRect(0,0,glc.width,glc.height);
+      ctx2d.drawImage(off, 0, 0, glc.width, glc.height);
+    }
+  }
+
+  // Pixel <-> physical mappings for the plot rectangle.
+  function velOf(px){
+    if (!S.map) return 0;
+    const vres = S.cfg ? S.cfg.velRes : 0.157;
+    const d = (px / plot.w) * S.map.nd;
+    return (d - S.map.nd/2) * vres;
+  }
+  function rangeOf(py){
+    if (!S.map) return 0;
+    const rbin = S.cfg ? S.cfg.rangeBin : 0.75;
+    const r = (1 - py/plot.h) * S.map.nr;
+    return r * rbin;
+  }
+  function pxOfDoppBin(d){ return (d / S.map.nd) * plot.w; }
+  function pyOfRangeBin(r){ return (1 - r / S.map.nr) * plot.h; }
+
+  function ticks(lo, hi, want){
+    const raw = (hi-lo)/want;
+    const mag = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1e-9))));
+    const norm = raw/mag;
+    const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+    const out = [];
+    for (let v = Math.ceil(lo/step)*step; v <= hi + step*1e-6; v += step) out.push(v);
+    return {list: out, step};
+  }
+
+  function drawOverlay(){
+    const c = ovc.getContext("2d");
+    c.setTransform(dpr,0,0,dpr,0,0);
+    c.clearRect(0,0,ovc.width,ovc.height);
+    if (!S.map){ return; }
+
+    const nd = S.map.nd, nr = S.map.nr;
+    const vres = S.cfg ? S.cfg.velRes : 0.157;
+    const rbin = S.cfg ? S.cfg.rangeBin : 0.75;
+    const vLo = -nd/2*vres, vHi = (nd/2)*vres;
+    const rLo = 0, rHi = nr*rbin;
+
+    c.save();
+    c.translate(plot.x, plot.y);
+
+    // ---- grid over the map -------------------------------------------
+    const vt = ticks(vLo, vHi, 8), rt = ticks(rLo, rHi, 7);
+    if (S.grid){
+      c.strokeStyle = "rgba(200,225,255,0.085)";
+      c.lineWidth = 1;
+      c.beginPath();
+      for (const v of vt.list){
+        const x = Math.round(pxOfDoppBin(v/vres + nd/2)) + 0.5;
+        if (x > 0 && x < plot.w){ c.moveTo(x, 0); c.lineTo(x, plot.h); }
+      }
+      for (const r of rt.list){
+        const y = Math.round(pyOfRangeBin(r/rbin)) + 0.5;
+        if (y > 0 && y < plot.h){ c.moveTo(0, y); c.lineTo(plot.w, y); }
+      }
+      c.stroke();
+    }
+
+    // zero-Doppler blanking band -- the part of the map nobody may trust
+    if (S.cfg && S.cfg.blank > 0){
+      const half = S.cfg.blank;
+      const x0 = pxOfDoppBin(nd/2 - half), x1 = pxOfDoppBin(nd/2 + half + 1);
+      c.fillStyle = "rgba(255,95,86,0.10)";
+      c.fillRect(x0, 0, x1-x0, plot.h);
+      c.strokeStyle = "rgba(255,95,86,0.35)";
+      c.setLineDash([3,3]);
+      c.beginPath(); c.moveTo(x0+0.5,0); c.lineTo(x0+0.5,plot.h);
+      c.moveTo(x1-0.5,0); c.lineTo(x1-0.5,plot.h); c.stroke();
+      c.setLineDash([]);
+    }
+
+    // ---- detections ---------------------------------------------------
+    if (S.marks){
+      c.lineWidth = 1.25;
+      for (const h of S.hits){
+        const x = pxOfDoppBin(h.db + nd/2 + 0.5);
+        const y = pyOfRangeBin(h.rb + 0.5);
+        if (x < -8 || x > plot.w+8 || y < -8 || y > plot.h+8) continue;
+        const s = clamp(3 + h.snr*0.18, 3, 9);
+        c.strokeStyle = h.ok ? "rgba(255,255,255,0.92)" : "rgba(255,180,84,0.85)";
+        c.beginPath();
+        c.moveTo(x-s, y); c.lineTo(x-s*0.35, y);
+        c.moveTo(x+s*0.35, y); c.lineTo(x+s, y);
+        c.moveTo(x, y-s); c.lineTo(x, y-s*0.35);
+        c.moveTo(x, y+s*0.35); c.lineTo(x, y+s);
+        c.stroke();
+      }
+      // clusters get a ring so it is obvious which detections were merged
+      c.strokeStyle = "rgba(111,208,255,0.9)";
+      c.lineWidth = 1.4;
+      for (const t of S.targets){
+        if (!S.cfg) break;
+        const x = pxOfDoppBin(t.vel/vres + nd/2);
+        const y = pyOfRangeBin(t.range/rbin);
+        if (x < -12 || x > plot.w+12 || y < -12 || y > plot.h+12) continue;
+        c.beginPath(); c.arc(x, y, 7, 0, Math.PI*2); c.stroke();
+      }
+    }
+
+    // ---- frame ---------------------------------------------------------
+    c.strokeStyle = "rgba(140,175,215,0.42)";
+    c.lineWidth = 1;
+    c.strokeRect(0.5, 0.5, plot.w-1, plot.h-1);
+
+    // ---- axes ----------------------------------------------------------
+    c.fillStyle = "#7f90a6";
+    c.font = "10px ui-monospace,SFMono-Regular,Menlo,monospace";
+    c.textAlign = "center"; c.textBaseline = "top";
+    for (const v of vt.list){
+      const x = pxOfDoppBin(v/vres + nd/2);
+      if (x < -2 || x > plot.w+2) continue;
+      c.strokeStyle = "rgba(140,175,215,0.5)";
+      c.beginPath(); c.moveTo(Math.round(x)+0.5, plot.h); c.lineTo(Math.round(x)+0.5, plot.h+4); c.stroke();
+      c.fillText(Math.abs(v) < 1e-9 ? "0" : v.toFixed(vt.step < 1 ? 1 : 0), x, plot.h+6);
+    }
+    c.textAlign = "right"; c.textBaseline = "middle";
+    for (const r of rt.list){
+      const y = pyOfRangeBin(r/rbin);
+      if (y < -2 || y > plot.h+2) continue;
+      c.strokeStyle = "rgba(140,175,215,0.5)";
+      c.beginPath(); c.moveTo(-4, Math.round(y)+0.5); c.lineTo(0, Math.round(y)+0.5); c.stroke();
+      c.fillText(r.toFixed(rt.step < 1 ? 1 : 0), -7, y);
+    }
+    c.fillStyle = "#55647a";
+    c.textAlign = "center"; c.textBaseline = "top";
+    c.fillText("velocity, m/s  (+ approaching)", plot.w/2, plot.h+18);
+    c.save();
+    c.translate(-46, plot.h/2); c.rotate(-Math.PI/2);
+    c.fillText("range, m", 0, 0);
+    c.restore();
+
+    // ---- colour bar -----------------------------------------------------
+    const {lo, hi} = window_db();
+    const cbW = 9, cbH = Math.min(148, plot.h*0.5), cbX = plot.w - cbW - 8, cbY = 10;
+    const lut = LUTS[S.cmap] || LUTS[0];
+    for (let i = 0; i < cbH; i++){
+      const t = 1 - i/(cbH-1);
+      const k = clamp(Math.round(t*255),0,255);
+      c.fillStyle = "rgb("+lut[k*3]+","+lut[k*3+1]+","+lut[k*3+2]+")";
+      c.fillRect(cbX, cbY+i, cbW, 1);
+    }
+    c.strokeStyle = "rgba(140,175,215,0.45)";
+    c.strokeRect(cbX-0.5, cbY-0.5, cbW+1, cbH+1);
+    c.fillStyle = "#9fb0c4";
+    c.textAlign = "right"; c.textBaseline = "top";
+    c.fillText(hi.toFixed(0), cbX-4, cbY-2);
+    c.textBaseline = "bottom";
+    c.fillText(lo.toFixed(0), cbX-4, cbY+cbH+2);
+    c.textBaseline = "middle";
+    c.save();
+    c.translate(cbX+cbW+11, cbY+cbH/2); c.rotate(Math.PI/2);
+    c.textAlign = "center";
+    c.fillText("dB", 0, 0);
+    c.restore();
+
+    // ---- crosshair -------------------------------------------------------
+    if (S.pointer){
+      const px = S.pointer.x, py = S.pointer.y;
+      if (px >= 0 && px <= plot.w && py >= 0 && py <= plot.h){
+        c.strokeStyle = "rgba(255,255,255,0.5)";
+        c.setLineDash([2,3]); c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(px, 0); c.lineTo(px, plot.h);
+        c.moveTo(0, py); c.lineTo(plot.w, py);
+        c.stroke(); c.setLineDash([]);
+
+        const v = velOf(px), rg = rangeOf(py);
+        const dbin = clamp(Math.floor(px/plot.w*nd), 0, nd-1);
+        const rbi  = clamp(Math.floor((1-py/plot.h)*nr), 0, nr-1);
+        const q = S.map.data[rbi*nd + dbin];
+        const dbv = S.map.min_db + (S.map.max_db - S.map.min_db)*(q/255);
+        const lines = [
+          rg.toFixed(1) + " m",
+          (v >= 0 ? "+" : "") + v.toFixed(2) + " m/s",
+          dbv.toFixed(1) + " dB",
+          "bin " + rbi + "," + (dbin - (nd>>1)),
+        ];
+        c.font = "10.5px ui-monospace,SFMono-Regular,Menlo,monospace";
+        let bw = 0;
+        for (const l of lines) bw = Math.max(bw, c.measureText(l).width);
+        bw += 12;
+        const bh = lines.length*14 + 8;
+        let bx = px + 12, by = py + 12;
+        if (bx + bw > plot.w) bx = px - bw - 12;
+        if (by + bh > plot.h) by = py - bh - 12;
+        c.fillStyle = "rgba(8,12,18,0.88)";
+        c.strokeStyle = "rgba(111,208,255,0.55)";
+        c.fillRect(bx, by, bw, bh); c.strokeRect(bx+0.5, by+0.5, bw-1, bh-1);
+        c.fillStyle = "#dfe9f5";
+        c.textAlign = "left"; c.textBaseline = "top";
+        lines.forEach((l, i) => c.fillText(l, bx+6, by+5+i*14));
+      }
+    }
+    c.restore();
+  }
+
+  ovc.addEventListener("mousemove", (e) => {
+    const r = ovc.getBoundingClientRect();
+    S.pointer = {x: e.clientX - r.left - plot.x, y: e.clientY - r.top - plot.y};
+  });
+  ovc.addEventListener("mouseleave", () => { S.pointer = null; });
+
+  return {
+    resize, layout, drawMap, drawOverlay, window_db, usingGL,
+    get plot(){ return plot; },
+  };
+})();
+
+//===========================================================================
+// 5. Plan view
+//===========================================================================
+const Plan = (() => {
+  const cv = $("plan-cv");
+  let dpr = 1, W = 10, H = 10, cx = 0, cy = 0, scale = 1, maxR = 200;
+
+  function layout(){
+    const body = $("plan-body");
+    W = body.clientWidth; H = body.clientHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)){
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      cv.style.width = W+"px"; cv.style.height = H+"px";
+    }
+  }
+
+  function project(x, y){ return [cx + x*scale, cy - y*scale]; }
+
+  function draw(){
+    const c = cv.getContext("2d");
+    c.setTransform(dpr,0,0,dpr,0,0);
+    c.clearRect(0,0,W,H);
+
+    maxR = S.planRange > 0 ? S.planRange : (S.cfg ? S.cfg.rangeMax : 200);
+    if (!(maxR > 0)) maxR = 200;
+    const pad = 20;
+    cx = W/2; cy = H - pad;
+    scale = Math.min((W/2 - pad) / (maxR*Math.sin(Math.PI/4)), (H - 2*pad) / maxR);
+    if (!isFinite(scale) || scale <= 0) scale = 1;
+
+    // ---- field of view --------------------------------------------------
+    const fov = 45*Math.PI/180;
+    c.save();
+    c.beginPath();
+    c.moveTo(cx, cy);
+    c.arc(cx, cy, maxR*scale, -Math.PI/2 - fov, -Math.PI/2 + fov);
+    c.closePath();
+    const g = c.createRadialGradient(cx, cy, 0, cx, cy, maxR*scale);
+    g.addColorStop(0, "rgba(111,208,255,0.13)");
+    g.addColorStop(1, "rgba(111,208,255,0.02)");
+    c.fillStyle = g; c.fill();
+    c.strokeStyle = "rgba(111,208,255,0.30)"; c.lineWidth = 1; c.stroke();
+    c.restore();
+
+    // the angle span the estimator actually searches, if it differs
+    if (S.cfg && Math.abs(S.cfg.azSpan - 45) > 0.5){
+      const a = clamp(S.cfg.azSpan, 1, 89)*Math.PI/180;
+      c.strokeStyle = "rgba(111,208,255,0.30)";
+      c.setLineDash([4,4]);
+      for (const s of [-1, 1]){
+        c.beginPath(); c.moveTo(cx, cy);
+        c.lineTo(cx + Math.sin(s*a)*maxR*scale, cy - Math.cos(s*a)*maxR*scale);
+        c.stroke();
+      }
+      c.setLineDash([]);
+    }
+
+    // ---- range rings ----------------------------------------------------
+    const step = niceStep(maxR/4);
+    c.font = "9.5px ui-monospace,SFMono-Regular,Menlo,monospace";
+    c.textAlign = "left"; c.textBaseline = "bottom";
+    for (let r = step; r <= maxR + 1e-6; r += step){
+      c.beginPath();
+      c.arc(cx, cy, r*scale, -Math.PI, 0);
+      c.strokeStyle = "rgba(160,190,220,0.13)"; c.lineWidth = 1; c.stroke();
+      if (S.grid){
+        c.fillStyle = "rgba(127,144,166,0.85)";
+        c.fillText(r.toFixed(r < 10 ? 1 : 0) + " m", cx + 4, cy - r*scale - 2);
+      }
+    }
+    // boresight
+    c.strokeStyle = "rgba(160,190,220,0.20)";
+    c.setLineDash([2,4]);
+    c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx, cy - maxR*scale); c.stroke();
+    c.setLineDash([]);
+    // the array itself
+    c.fillStyle = "#6fd0ff";
+    c.beginPath(); c.moveTo(cx-6, cy+4); c.lineTo(cx+6, cy+4); c.lineTo(cx, cy-6); c.closePath(); c.fill();
+
+    // ---- clustered targets ---------------------------------------------
+    for (const t of S.targets){
+      const [px, py] = project(t.x, t.y);
+      if (px < -20 || px > W+20 || py < -20 || py > H+20) continue;
+      const rad = clamp(2 + t.snr*0.13, 2, 8);
+      c.fillStyle = "rgba(255,255,255,0.55)";
+      c.beginPath(); c.arc(px, py, rad, 0, Math.PI*2); c.fill();
+    }
+
+    // ---- tracks ---------------------------------------------------------
+    for (const t of S.tracks){
+      const sel = (S.selected === t.id);
+      const [px, py] = project(t.x, t.y);
+      const col = sel ? "#ffd479" : (t.confirmed ? "#4fd6a0" : "#7f90a6");
+
+      // history trail
+      if (S.trails){
+        const h = S.hist.get(t.id);
+        if (h && h.length > 1){
+          c.beginPath();
+          for (let i = 0; i < h.length; i++){
+            const [hx, hy] = project(h[i][0], h[i][1]);
+            if (i === 0) c.moveTo(hx, hy); else c.lineTo(hx, hy);
+          }
+          c.strokeStyle = sel ? "rgba(255,212,121,0.55)" : "rgba(79,214,160,0.35)";
+          c.lineWidth = 1.2; c.stroke();
+        }
+      }
+
+      // uncertainty ellipse, 2 sigma, from the position block of P
+      drawEllipse(c, t, px, py, col);
+
+      // velocity arrow: where it gets to in two seconds
+      if (t.confirmed || sel){
+        const [ax, ay] = project(t.x + t.vx*2, t.y + t.vy*2);
+        arrow(c, px, py, ax, ay, col);
+      }
+
+      c.fillStyle = col;
+      c.beginPath(); c.arc(px, py, sel ? 4.5 : 3.2, 0, Math.PI*2); c.fill();
+      if (sel){
+        c.strokeStyle = "#ffd479"; c.lineWidth = 1;
+        c.beginPath(); c.arc(px, py, 10, 0, Math.PI*2); c.stroke();
+      }
+
+      // label
+      c.font = "10px ui-monospace,SFMono-Regular,Menlo,monospace";
+      c.textAlign = "left"; c.textBaseline = "middle";
+      const tag = "T" + t.id + (t.label ? " " + t.label : "");
+      c.fillStyle = sel ? "#ffd479" : "rgba(201,214,230,0.9)";
+      c.fillText(tag, px + 9, py - 7);
+      if (S.grid){
+        c.fillStyle = "rgba(127,144,166,0.9)";
+        c.fillText(t.range.toFixed(0) + " m  " + (t.speed).toFixed(1) + " m/s", px + 9, py + 5);
+      }
+    }
+
+    // ---- scale note -----------------------------------------------------
+    c.fillStyle = "rgba(85,100,122,0.95)";
+    c.font = "9.5px ui-monospace,SFMono-Regular,Menlo,monospace";
+    c.textAlign = "right"; c.textBaseline = "bottom";
+    c.fillText(maxR.toFixed(0) + " m full scale  ±45° shaded", W-6, H-4);
+  }
+
+  function drawEllipse(c, t, px, py, col){
+    const a = t.pxx, b = t.pxy, d = t.pyy;
+    if (!(a > 0) || !(d > 0)) return;
+    const tr = a + d, det = a*d - b*b;
+    const disc = Math.sqrt(Math.max(tr*tr/4 - det, 0));
+    const l1 = tr/2 + disc, l2 = Math.max(tr/2 - disc, 1e-6);
+    const th = 0.5*Math.atan2(2*b, a - d);
+    const ra = 2*Math.sqrt(Math.max(l1, 0))*scale;
+    const rb = 2*Math.sqrt(Math.max(l2, 0))*scale;
+    if (!isFinite(ra) || !isFinite(rb) || ra > 4000) return;
+    c.save();
+    c.translate(px, py);
+    c.rotate(-th);                    // screen y is flipped relative to world y
+    c.beginPath();
+    c.ellipse(0, 0, Math.max(ra, 1.2), Math.max(rb, 1.2), 0, 0, Math.PI*2);
+    c.strokeStyle = col === "#ffd479" ? "rgba(255,212,121,0.75)" : "rgba(79,214,160,0.42)";
+    c.setLineDash([3,2]);
+    c.lineWidth = 1; c.stroke();
+    c.setLineDash([]);
+    c.restore();
+  }
+
+  function arrow(c, x0, y0, x1, y1, col){
+    const dx = x1-x0, dy = y1-y0;
+    const len = Math.hypot(dx, dy);
+    if (len < 3) return;
+    const ux = dx/len, uy = dy/len;
+    c.strokeStyle = col; c.lineWidth = 1.4;
+    c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+    c.beginPath();
+    c.moveTo(x1, y1);
+    c.lineTo(x1 - ux*7 - uy*3.6, y1 - uy*7 + ux*3.6);
+    c.lineTo(x1 - ux*7 + uy*3.6, y1 - uy*7 - ux*3.6);
+    c.closePath();
+    c.fillStyle = col; c.fill();
+  }
+
+  function niceStep(raw){
+    const mag = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1e-6))));
+    const n = raw/mag;
+    return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
+  }
+
+  cv.addEventListener("click", (e) => {
+    const r = cv.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    let best = null, bestD = 22;
+    for (const t of S.tracks){
+      const [px, py] = project(t.x, t.y);
+      const d = Math.hypot(px-mx, py-my);
+      if (d < bestD){ bestD = d; best = t.id; }
+    }
+    selectTrack(best);
+  });
+
+  return {layout, draw};
+})();
+
+//===========================================================================
+// 6. Micro-Doppler panel
+//===========================================================================
+const Micro = (() => {
+  const cv = $("mic-cv");
+  let dpr = 1, W = 10, H = 10;
+  let off = null, offCtx = null, offKey = "";
+  const M = {l: 52, r: 12, t: 10, b: 28};
+
+  function layout(){
+    const body = $("mic-body");
+    W = body.clientWidth; H = body.clientHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)){
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      cv.style.width = W+"px"; cv.style.height = H+"px";
+    }
+  }
+
+  function build(sp){
+    const key = sp.id + ":" + sp.nt + "x" + sp.nf + ":" + S.cmap + ":" + S.span + ":" + S.ref;
+    if (!off || off.width !== sp.nt || off.height !== sp.nf){
+      off = document.createElement("canvas");
+      off.width = sp.nt; off.height = sp.nf;
+      offCtx = off.getContext("2d");
+      offKey = "";
+    }
+    if (key === offKey && !sp.dirty) return;
+    offKey = key; sp.dirty = false;
+    const img = offCtx.createImageData(sp.nt, sp.nf);
+    const d = img.data, lut = LUTS[S.cmap] || LUTS[0];
+    // stored row major as [time][freq]; drawn with time across, frequency up
+    for (let t = 0; t < sp.nt; t++){
+      for (let f = 0; f < sp.nf; f++){
+        const v = sp.data[t*sp.nf + f];
+        const o = ((sp.nf-1-f)*sp.nt + t)*4;
+        d[o] = lut[v*3]; d[o+1] = lut[v*3+1]; d[o+2] = lut[v*3+2]; d[o+3] = 255;
+      }
+    }
+    offCtx.putImageData(img, 0, 0);
+  }
+
+  function draw(){
+    const c = cv.getContext("2d");
+    c.setTransform(dpr,0,0,dpr,0,0);
+    c.clearRect(0,0,W,H);
+    const t = S.tracks.find(x => x.id === S.selected);
+    const sp = (t && S.specs.get(t.id)) || null;
+    const numBox = $("mic-num");
+    const emptyBox = $("mic-empty");
+
+    if (!t){
+      emptyBox.hidden = false; numBox.hidden = true;
+      $("mic-meta").textContent = "no track selected";
+      return;
+    }
+    emptyBox.hidden = true;
+    numBox.hidden = false;
+    $("mic-meta").textContent = "track " + t.id + (t.label ? " · " + t.label : "") +
+                                " · " + t.range.toFixed(0) + " m";
+
+    const rpm = t.blade > 0 ? t.blade*60 : 0;
+    numBox.innerHTML =
+      "<div><b>micro BW</b><s>" + fmt(t.microBw, 1) + " Hz</s></div>" +
+      "<div><b>blade rate</b><s>" + (t.blade > 0 ? fmt(t.blade,1) + " Hz" : "—") + "</s></div>" +
+      "<div><b>&nbsp;</b><s>" + (rpm > 0 ? fmt(rpm,0) + " rpm" : "") + "</s></div>" +
+      "<div><b>class</b><s>" + (t.label || "unclassified") + "</s></div>" +
+      "<div><b>confidence</b><s>" + (t.conf*100).toFixed(0) + " %</s></div>" +
+      "<div><b>bulk vel</b><s>" + fmt(radialSpeed(t), 2) + " m/s</s></div>";
+
+    const px = M.l, py = M.t;
+    const pw = Math.max(10, W - M.l - M.r), ph = Math.max(10, H - M.t - M.b);
+
+    if (!sp){
+      c.fillStyle = "rgba(127,144,166,0.8)";
+      c.font = "11px ui-monospace,SFMono-Regular,Menlo,monospace";
+      c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillText("no spectrogram for this track yet", px+pw/2, py+ph/2);
+      return;
+    }
+
+    build(sp);
+    c.imageSmoothingEnabled = true;
+    c.drawImage(off, px, py, pw, ph);
+    c.strokeStyle = "rgba(140,175,215,0.42)";
+    c.strokeRect(px+0.5, py+0.5, pw-1, ph-1);
+
+    // axes
+    const totalS = sp.nt*sp.dt;
+    const halfHz = sp.nf/2*sp.hz;
+    c.fillStyle = "#7f90a6";
+    c.font = "9.5px ui-monospace,SFMono-Regular,Menlo,monospace";
+    c.textAlign = "center"; c.textBaseline = "top";
+    for (let i = 0; i <= 4; i++){
+      const fx = px + pw*i/4;
+      const tv = -totalS + totalS*i/4;
+      c.strokeStyle = "rgba(140,175,215,0.45)";
+      c.beginPath(); c.moveTo(fx, py+ph); c.lineTo(fx, py+ph+3); c.stroke();
+      c.fillText(tv.toFixed(1), fx, py+ph+5);
+    }
+    c.textAlign = "right"; c.textBaseline = "middle";
+    for (let i = 0; i <= 4; i++){
+      const fy = py + ph*i/4;
+      const hz = halfHz - 2*halfHz*i/4;
+      c.strokeStyle = "rgba(140,175,215,0.45)";
+      c.beginPath(); c.moveTo(px-3, fy); c.lineTo(px, fy); c.stroke();
+      c.fillText(hz.toFixed(0), px-6, fy);
+    }
+    c.fillStyle = "#55647a";
+    c.textAlign = "center"; c.textBaseline = "top";
+    c.fillText("time, s", px+pw/2, py+ph+15);
+    c.save();
+    c.translate(px-40, py+ph/2); c.rotate(-Math.PI/2);
+    c.fillText("Doppler, Hz", 0, 0);
+    c.restore();
+
+    // zero-Doppler line and the bulk-motion line
+    c.strokeStyle = "rgba(255,255,255,0.25)";
+    c.setLineDash([3,3]);
+    c.beginPath(); c.moveTo(px, py+ph/2); c.lineTo(px+pw, py+ph/2); c.stroke();
+    c.setLineDash([]);
+    if (t.microBw > 0 && halfHz > 0){
+      const half = clamp(t.microBw/2/halfHz, 0, 0.5)*ph;
+      c.strokeStyle = "rgba(255,212,121,0.55)";
+      c.setLineDash([2,4]);
+      c.beginPath();
+      c.moveTo(px, py+ph/2-half); c.lineTo(px+pw, py+ph/2-half);
+      c.moveTo(px, py+ph/2+half); c.lineTo(px+pw, py+ph/2+half);
+      c.stroke(); c.setLineDash([]);
+    }
+  }
+
+  function radialSpeed(t){
+    const r = Math.max(t.range, 1e-6);
+    return -(t.x*t.vx + t.y*t.vy + t.z*t.vz)/r;   // positive = approaching
+  }
+
+  return {layout, draw};
+})();
+
+function fmt(v, dp){
+  if (!isFinite(v)) return "—";
+  return v.toFixed(dp);
+}
+
+//===========================================================================
+// 7. Status bar
+//===========================================================================
+const Status = (() => {
+  let lastOvf = 0, lastDrp = 0;
+  function flash(el){
+    el.classList.remove("flash");
+    void el.offsetWidth;
+    el.classList.add("flash");
+  }
+  function draw(){
+    const st = S.stats;
+    const link = $("c-link"), dot = link.querySelector(".dot");
+    $("v-link").textContent = S.linkState;
+    dot.className = "dot " + (S.linkState === "connected" ? "on" :
+                              S.linkState === "offline" ? "off" : "wait");
+    link.classList.toggle("alert", S.linkState === "offline");
+
+    const srcName = S.cfg ? (SRC_NAME[S.cfg.source] || "unknown")
+                  : (st ? (SRC_NAME[st.source] || "unknown") : "—");
+    $("v-src").textContent = S.demo ? "demo scene" : srcName;
+    $("c-src").classList.toggle("warnish", S.demo || srcName === "simulate");
+    $("c-src").classList.toggle("okish", !S.demo && srcName === "hardware");
+
+    $("v-fps").textContent = st ? st.fps.toFixed(1) : (S.dataFps ? S.dataFps.toFixed(1) : "--.-");
+    const cpu = st ? st.cpu : 0;
+    $("v-cpu").firstChild.nodeValue = (cpu*100).toFixed(0) + "%";
+    const bar = $("v-cpubar");
+    bar.style.width = clamp(cpu*100, 0, 100).toFixed(0) + "%";
+    bar.style.background = cpu > 0.9 ? "var(--bad)" : cpu > 0.7 ? "var(--warn)" : "var(--good)";
+    $("c-cpu").classList.toggle("alert", cpu > 0.95);
+
+    const ovf = st ? st.overflows : 0;
+    const drp = st ? st.dropped + st.netDropped : 0;
+    $("v-ovf").textContent = ovf;
+    $("v-drp").textContent = drp;
+    $("c-ovf").classList.toggle("alert", ovf > 0 || S.overflowFlag);
+    $("c-drp").classList.toggle("alert", drp > 0);
+    if (ovf > lastOvf){ flash($("c-ovf")); }
+    if (drp > lastDrp){ flash($("c-drp")); }
+    lastOvf = ovf; lastDrp = drp;
+
+    $("v-skip").textContent = S.skipped;
+    $("c-skip").classList.toggle("warnish", S.skipped > 0);
+    $("v-bps").textContent = (S.bytesRate/1e6).toFixed(2) + " MB/s";
+    $("v-trk").textContent = S.tracks.length + (st ? "" : "");
+    $("v-frame").textContent = S.frame.toLocaleString("en-GB");
+    $("v-mode").textContent = S.frozen ? "FROZEN" : "live";
+    $("c-mode").classList.toggle("warnish", S.frozen);
+  }
+  return {draw};
+})();
+
+//===========================================================================
+// 8. Controls
+//===========================================================================
+function send(obj){
+  if (Link.ws && Link.ws.readyState === 1){
+    try { Link.ws.send(JSON.stringify(obj)); } catch(e){ /* socket went away */ }
+  }
+}
+
+function selectTrack(id){
+  S.selected = id;
+  if (id !== null) send({cmd:"select", track:id});
+  renderTrackList();
+}
+
+function renderTrackList(){
+  const box = $("tracklist");
+  if (!S.tracks.length){
+    box.innerHTML = '<div class="empty-note">none</div>';
+    return;
+  }
+  const rows = S.tracks.slice().sort((a,b) => a.range - b.range).map(t => {
+    const sel = S.selected === t.id ? " sel" : "";
+    const tent = t.confirmed ? "" : " tent";
+    return '<div class="trk'+sel+tent+'" data-id="'+t.id+'">'
+         + '<span class="id">T'+t.id+'</span>'
+         + '<span class="lb">'+(t.label || (t.confirmed ? "unclassified" : "tentative"))+'</span>'
+         + '<span class="rg">'+t.range.toFixed(0)+'m</span></div>';
+  });
+  box.innerHTML = rows.join("");
+  for (const el of box.querySelectorAll(".trk")){
+    el.addEventListener("click", () => selectTrack(parseInt(el.dataset.id, 10)));
+  }
+}
+
+function syncControlsFromConfig(){
+  if (!S.cfg) return;
+  const pfaLog = Math.log10(Math.max(S.cfg.pfa, 1e-12));
+  $("i-pfa").value = clamp(pfaLog, -9, -2);
+  $("v-pfa").textContent = S.cfg.pfa.toExponential(1);
+  $("i-cfar").value = CFAR_NAME[S.cfg.cfar] || "CA";
+  $("i-aoa").value  = AOA_NAME[S.cfg.aoa] || "music";
+  $("i-blank").value = S.cfg.blank;
+  updateBlankNote();
+  $("cfgdump").innerHTML = [
+    ["carrier",   (S.cfg.fc/1e9).toFixed(3) + " GHz"],
+    ["sweep",     (S.cfg.bw/1e6).toFixed(1) + " MHz"],
+    ["range res", S.cfg.rangeRes.toFixed(2) + " m"],
+    ["range max", S.cfg.rangeMax.toFixed(0) + " m"],
+    ["vel res",   S.cfg.velRes.toFixed(3) + " m/s"],
+    ["vel max",   "±" + S.cfg.velMax.toFixed(1) + " m/s"],
+    ["grid",      S.cfg.nRange + " × " + S.cfg.nDopp],
+    ["chirps",    S.cfg.nChirp + " / CPI"],
+    ["CPI",       (S.cfg.tCpi*1e3).toFixed(1) + " ms"],
+    ["virtual",   S.cfg.nVirt + " channels"],
+    ["TX",        S.cfg.tx ? S.cfg.txGain.toFixed(0) + " dB" : "off"],
+    ["RX",        S.cfg.rxGain.toFixed(0) + " dB"],
+  ].map(r => '<div><span style="display:inline-block;width:74px;color:var(--ink3)">'+r[0]+'</span>'+r[1]+'</div>').join("");
+}
+
+function updateBlankNote(){
+  const bins = parseInt($("i-blank").value, 10) || 0;
+  const vres = S.cfg ? S.cfg.velRes : 0.157;
+  $("v-blankms").textContent = "±" + (bins*vres).toFixed(2) + " m/s";
+}
+
+function bindControls(){
+  $("i-span").addEventListener("input", (e) => {
+    S.span = parseFloat(e.target.value);
+    $("v-span").textContent = S.span.toFixed(0) + " dB";
+  });
+  $("i-ref").addEventListener("input", (e) => {
+    S.ref = parseFloat(e.target.value);
+    $("v-ref").textContent = "peak " + (S.ref >= 0 ? "+" : "") + S.ref.toFixed(0);
+  });
+  $("i-cmap").addEventListener("change", (e) => { S.cmap = parseInt(e.target.value, 10); markSpecsDirty(); });
+  $("i-grid").addEventListener("change", (e) => { S.grid = e.target.value === "1"; });
+
+  $("i-pfa").addEventListener("input", (e) => {
+    const pfa = Math.pow(10, parseFloat(e.target.value));
+    $("v-pfa").textContent = pfa.toExponential(1);
+  });
+  $("i-pfa").addEventListener("change", (e) => {
+    send({cmd:"set", pfa: Math.pow(10, parseFloat(e.target.value))});
+  });
+  $("i-cfar").addEventListener("change", (e) => send({cmd:"set", cfar: e.target.value}));
+  $("i-aoa").addEventListener("change",  (e) => send({cmd:"set", aoa: e.target.value}));
+  $("i-blank").addEventListener("change", (e) => {
+    const v = clamp(parseInt(e.target.value, 10) || 0, 0, 32);
+    e.target.value = v;
+    if (S.cfg) S.cfg.blank = v;
+    updateBlankNote();
+    send({cmd:"set", zero_dopp_blank: v});
+  });
+
+  $("b-freeze").addEventListener("click", toggleFreeze);
+  $("b-shot").addEventListener("click", screenshot);
+  $("b-reconnect").addEventListener("click", () => Link.reconnectNow());
+  $("b-help").addEventListener("click", () => toggleHelp());
+  $("b-helpclose").addEventListener("click", () => toggleHelp(false));
+  $("help").addEventListener("click", (e) => { if (e.target.id === "help") toggleHelp(false); });
+}
+
+function markSpecsDirty(){ for (const s of S.specs.values()) s.dirty = true; }
+
+function toggleFreeze(){
+  S.frozen = !S.frozen;
+  $("b-freeze").textContent = S.frozen ? "Resume" : "Freeze";
+  $("b-freeze").classList.toggle("hot", S.frozen);
+  send({cmd:"freeze", on: S.frozen});
+}
+
+function toggleHelp(force){
+  const h = $("help");
+  h.hidden = (force === undefined) ? !h.hidden : !force;
+}
+
+function nextTrack(){
+  if (!S.tracks.length){ selectTrack(null); return; }
+  const ids = S.tracks.map(t => t.id);
+  const i = ids.indexOf(S.selected);
+  selectTrack(ids[(i + 1) % ids.length]);
+}
+
+document.addEventListener("keydown", (e) => {
+  const tag = (e.target && e.target.tagName) || "";
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+  switch (e.key){
+    case "?": case "/": toggleHelp(); e.preventDefault(); break;
+    case " ": toggleFreeze(); e.preventDefault(); break;
+    case "m": {
+      S.cmap = (S.cmap + 1) % CMAPS.length;
+      $("i-cmap").value = String(S.cmap);
+      markSpecsDirty();
+      break;
+    }
+    case "[": setSpan(S.span - 5); break;
+    case "]": setSpan(S.span + 5); break;
+    case "-": case "_": setRef(S.ref - 2); break;
+    case "=": case "+": setRef(S.ref + 2); break;
+    case ",": zoomPlan(1.3); break;
+    case ".": zoomPlan(1/1.3); break;
+    case "n": nextTrack(); break;
+    case "Escape": selectTrack(null); toggleHelp(false); break;
+    case "g": S.grid = !S.grid; $("i-grid").value = S.grid ? "1" : "0"; break;
+    case "h": S.trails = !S.trails; break;
+    case "d": S.marks = !S.marks; break;
+    case "s": screenshot(); break;
+    case "r": Link.reconnectNow(); break;
+    default: break;
+  }
+});
+
+function setSpan(v){
+  S.span = clamp(v, 15, 110);
+  $("i-span").value = S.span;
+  $("v-span").textContent = S.span.toFixed(0) + " dB";
+}
+function setRef(v){
+  S.ref = clamp(v, -40, 20);
+  $("i-ref").value = S.ref;
+  $("v-ref").textContent = "peak " + (S.ref >= 0 ? "+" : "") + S.ref.toFixed(0);
+}
+function zoomPlan(f){
+  const base = S.planRange > 0 ? S.planRange : (S.cfg ? S.cfg.rangeMax : 200);
+  S.planRange = clamp(base*f, 10, 4000);
+}
+
+//===========================================================================
+// 9. Screenshot -- the whole display, exactly as it looks, as a PNG
+//===========================================================================
+function screenshot(){
+  const rdBody = $("rd-body"), planBody = $("plan-body"), micBody = $("mic-body");
+  const pad = 14, head = 46, gap = 12;
+  const wL = rdBody.clientWidth, hL = rdBody.clientHeight;
+  const wR = Math.max(planBody.clientWidth, micBody.clientWidth);
+  const hR = planBody.clientHeight + gap + micBody.clientHeight;
+  const W = pad*2 + wL + gap + wR;
+  const H = head + pad + Math.max(hL, hR) + pad;
+  const s = 2;
+
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(W*s); cv.height = Math.round(H*s);
+  const c = cv.getContext("2d");
+  c.scale(s, s);
+  c.fillStyle = "#080b10"; c.fillRect(0, 0, W, H);
+
+  c.fillStyle = "#6fd0ff";
+  c.font = "600 13px ui-monospace,SFMono-Regular,Menlo,monospace";
+  c.textAlign = "left"; c.textBaseline = "top";
+  c.fillText("5.8 GHz MIMO RADAR", pad, 12);
+  c.fillStyle = "#7f90a6";
+  c.font = "11px ui-monospace,SFMono-Regular,Menlo,monospace";
+  const st = S.stats;
+  const line = [
+    new Date().toISOString().replace("T"," ").slice(0,19) + "Z",
+    "frame " + S.frame,
+    "source " + (S.demo ? "demo" : (S.cfg ? SRC_NAME[S.cfg.source] : "?")),
+    st ? st.fps.toFixed(1) + " Hz" : "",
+    st ? "cpu " + (st.cpu*100).toFixed(0) + "%" : "",
+    st ? "overflow " + st.overflows : "",
+    st ? "dropped " + (st.dropped + st.netDropped) : "",
+    S.tracks.length + " tracks",
+  ].filter(Boolean).join("   ·   ");
+  c.fillText(line, pad, 29);
+
+  const drawPanel = (title, x, y, w, h, paint) => {
+    c.strokeStyle = "#1a2330"; c.lineWidth = 1;
+    c.strokeRect(x-0.5, y-0.5, w+1, h+1);
+    c.fillStyle = "#6fd0ff";
+    c.font = "600 9px ui-monospace,SFMono-Regular,Menlo,monospace";
+    c.fillText(title.toUpperCase(), x, y - 12);
+    paint(x, y, w, h);
+  };
+
+  const y0 = head + pad;
+  drawPanel("range - doppler", pad, y0, wL, hL, (x, y) => {
+    const glc = $("rd-gl"), ovc = $("rd-ov");
+    const p = RD.plot;
+    try { c.drawImage(glc, x + p.x, y + p.y, p.w, p.h); } catch(e){}
+    try { c.drawImage(ovc, x, y, wL, hL); } catch(e){}
+  });
+  drawPanel("plan view", pad + wL + gap, y0, wR, planBody.clientHeight, (x, y, w, h) => {
+    try { c.drawImage($("plan-cv"), x, y, w, h); } catch(e){}
+  });
+  drawPanel("micro-doppler", pad + wL + gap, y0 + planBody.clientHeight + gap, wR, micBody.clientHeight,
+    (x, y, w, h) => { try { c.drawImage($("mic-cv"), x, y, w, h); } catch(e){} });
+
+  cv.toBlob((blob) => {
+    if (!blob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "radar-" + new Date().toISOString().replace(/[:.]/g,"-").slice(0,19) + ".png";
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }, "image/png");
+}
+
+//===========================================================================
+// 10. Link -- WebSocket with automatic reconnection
+//===========================================================================
+const Link = (() => {
+  let ws = null, backoff = 400, timer = null, closed = false;
+
+  function url(){
+    const host = location.host || "127.0.0.1:8730";
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    return proto + "//" + host + "/ws";
+  }
+
+  function setState(s){
+    S.linkState = s;
+    S.linkSince = performance.now();
+  }
+
+  function connect(){
+    if (S.demo) return;
+    clearTimeout(timer);
+    try {
+      ws = new WebSocket(url());
+    } catch (e){
+      setState("offline");
+      schedule();
+      return;
+    }
+    ws.binaryType = "arraybuffer";
+    API.ws = ws;
+    setState("connecting");
+
+    ws.onopen = () => {
+      backoff = 400;
+      setState("connected");
+      send({cmd:"hello", client:"operator-display", protocol:1});
+    };
+    ws.onmessage = (ev) => {
+      if (typeof ev.data === "string") return;      // the daemon only sends binary
+      S.bytes += ev.data.byteLength;
+      try { onPacket(ev.data); }
+      catch (err){ console.warn("bad packet:", err); }
+    };
+    ws.onerror = () => { /* onclose always follows; nothing useful to add here */ };
+    ws.onclose = () => {
+      API.ws = null;
+      if (closed) return;
+      setState("offline");
+      schedule();
+    };
+  }
+
+  function schedule(){
+    clearTimeout(timer);
+    timer = setTimeout(connect, backoff);
+    backoff = Math.min(backoff*1.8, 8000);
+  }
+
+  function reconnectNow(){
+    backoff = 400;
+    if (ws){ try { ws.close(); } catch(e){} }
+    if (S.demo) return;
+    setState("connecting");
+    clearTimeout(timer);
+    timer = setTimeout(connect, 60);
+  }
+
+  const API = {ws: null, connect, reconnectNow, schedule};
+  return API;
+})();
+
+//===========================================================================
+// 11. Demo scene.  Builds real wire packets in the browser so the page can be
+//     checked, and developed against, with no daemon anywhere.
+//===========================================================================
+const Demo = (() => {
+  const NR = 256, ND = 256;
+  const RANGE_BIN = 0.7495, VEL_RES = 0.1573, FPS = 25;
+  const SPEC_T = 96, SPEC_F = 128, SPEC_HZ = 12.0, SPEC_DT = 0.032;
+
+  let t = 0, frame = 0;
+  let rngState = 0x2f6e2b1;
+  const specRing = new Float32Array(SPEC_T*SPEC_F);
+  let specFilled = 0;
+
+  function rnd(){                                   // xorshift, deterministic
+    rngState ^= rngState << 13; rngState >>>= 0;
+    rngState ^= rngState >> 17;
+    rngState ^= rngState << 5;  rngState >>>= 0;
+    return rngState / 4294967296;
+  }
+  function gauss(){ return (rnd()+rnd()+rnd()+rnd()+rnd()+rnd()-3)*0.7; }
+
+  // The scene: a weaving quadrotor, a receding vehicle, a crossing bird,
+  // ground clutter at zero Doppler and thermal noise everywhere.
+  function scene(){
+    const drone = {
+      range: 88 - 5.5*t + 6*Math.sin(t*0.22),
+      vel:   5.5 - 6*0.22*Math.cos(t*0.22),
+      az:    -14 + 17*Math.sin(t*0.31),
+      snr:   23 + 3*Math.sin(t*1.7),
+      spread: 3.1, label: "quadrotor", blade: 71 + 4*Math.sin(t*0.5),
+    };
+    const car = {
+      range: 132 + 11*t*0.35,
+      vel:   -11.4,
+      az:    22 + 2*Math.sin(t*0.13),
+      snr:   31, spread: 0.5, label: "vehicle", blade: 0,
+    };
+    const bird = {
+      range: 46 + 5*Math.cos(t*0.4),
+      vel:   -2.0*Math.sin(t*0.4)*5,
+      az:    30*Math.sin(t*0.18 + 1.1),
+      snr:   12 + 2.5*Math.sin(t*2.3),
+      spread: 1.4, label: "", blade: 9.5,
+    };
+    return [drone, car, bird].filter(o => o.range > 4 && o.range < NR*RANGE_BIN - 6);
+  }
+
+  // ---- range-Doppler map, in dB, then quantised exactly as proto.cpp does
+  const dbBuf = new Float32Array(NR*ND);
+  function buildMap(objs){
+    // thermal noise, with a little speckle so it looks like a radar and not
+    // like a diagram
+    for (let i = 0; i < NR*ND; i++) dbBuf[i] = -96 + gauss()*2.4;
+
+    // ground clutter: a ridge at zero Doppler falling off with range
+    const dc = ND >> 1;
+    for (let r = 0; r < NR; r++){
+      const rm = Math.max(r*RANGE_BIN, 1);
+      const amp = -18 - 34*Math.log10(rm/8) + gauss()*2.5;
+      for (let d = dc-4; d <= dc+4; d++){
+        const w = Math.exp(-0.55*(d-dc)*(d-dc));
+        const v = amp + 10*Math.log10(w + 1e-9);
+        const k = r*ND + d;
+        dbBuf[k] = Math.max(dbBuf[k], v);
+      }
+    }
+    // transmit leakage at the near bins
+    for (let r = 0; r < 3; r++)
+      for (let d = dc-6; d <= dc+6; d++)
+        dbBuf[r*ND+d] = Math.max(dbBuf[r*ND+d], -6 - r*7 - Math.abs(d-dc)*1.5);
+
+    for (const o of objs){
+      const rb = o.range/RANGE_BIN;
+      const db0 = dc + o.vel/VEL_RES;
+      const peak = -96 + o.snr + 6;
+      splat(rb, db0, peak, 1.1, 1.2);
+      // rotor sidebands: pairs either side of the body line
+      if (o.blade > 0){
+        const hz2ms = 0.0258442;                    // lambda/2, metres per Hz
+        for (let k = 1; k <= 5; k++){
+          const off = o.blade*k*hz2ms/VEL_RES;
+          const a = peak - 7 - 3.4*k;
+          splat(rb, db0 + off, a, 1.0, 1.0);
+          splat(rb, db0 - off, a, 1.0, 1.0);
+        }
+        // the smeared blade-flash continuum
+        const w = o.spread/VEL_RES;
+        for (let d = -w; d <= w; d += 1){
+          splat(rb, db0 + d, peak - 14 - Math.abs(d)/w*7, 0.9, 0.9);
+        }
+      }
+    }
+    return dbBuf;
+  }
+
+  function splat(rb, db, peak, sr, sd){
+    const r0 = Math.max(0, Math.floor(rb-4)), r1 = Math.min(NR-1, Math.ceil(rb+4));
+    const d0 = Math.max(0, Math.floor(db-4)), d1 = Math.min(ND-1, Math.ceil(db+4));
+    for (let r = r0; r <= r1; r++){
+      const dr = (r-rb)/sr;
+      for (let d = d0; d <= d1; d++){
+        const dd = (d-db)/sd;
+        const v = peak - 4.34*(dr*dr + dd*dd);
+        const k = r*ND + d;
+        if (v > dbBuf[k]) dbBuf[k] = v;
+      }
+    }
+  }
+
+  // ---- packet builders -------------------------------------------------
+  function head(dv, off, type, flags, frameNo, tNs, bytes){
+    dv.setUint32(off, MAGIC, true);
+    dv.setUint16(off+4, type, true);
+    dv.setUint16(off+6, flags, true);
+    dv.setBigUint64(off+8, BigInt(frameNo), true);
+    dv.setBigUint64(off+16, BigInt(tNs), true);
+    dv.setUint32(off+24, bytes, true);
+    return off + HDR;
+  }
+
+  function configPacket(tNs){
+    const b = new ArrayBuffer(HDR + 92), dv = new DataView(b);
+    let o = head(dv, 0, MSG.CONFIG, FLAG.EOF, frame, tNs, 92);
+    dv.setFloat64(o, 5.8e9, true);        dv.setFloat64(o+8, 61.44e6, true);
+    dv.setFloat64(o+16, 50e6, true);      dv.setFloat64(o+24, 1e-5, true);
+    dv.setFloat32(o+32, RANGE_BIN, true); dv.setFloat32(o+36, NR*RANGE_BIN, true);
+    dv.setFloat32(o+40, 2.998, true);     dv.setFloat32(o+44, VEL_RES, true);
+    dv.setFloat32(o+48, ND/2*VEL_RES, true); dv.setFloat32(o+52, FPS, true);
+    dv.setFloat32(o+56, 0.032, true);
+    dv.setFloat32(o+60, 90, true);        dv.setFloat32(o+64, 45, true);
+    dv.setFloat32(o+68, 70, true);        dv.setFloat32(o+72, 40, true);
+    dv.setUint16(o+76, NR, true);         dv.setUint16(o+78, ND, true);
+    dv.setUint16(o+80, 256, true);        dv.setUint16(o+82, 512, true);
+    dv.setUint16(o+84, 2, true);
+    dv.setUint8(o+86, 0); dv.setUint8(o+87, 3); dv.setUint8(o+88, 0);
+    dv.setUint8(o+89, 0); dv.setUint8(o+90, 4); dv.setUint8(o+91, 1);
+    return b;
+  }
+
+  function mapPacket(tNs, db, overflow){
+    const cells = NR*ND;
+    const b = new ArrayBuffer(HDR + 12 + cells), dv = new DataView(b);
+    let hi = -1e30;
+    for (let i = 0; i < cells; i++) if (db[i] > hi) hi = db[i];
+    const lo = hi - 80;
+    let o = head(dv, 0, MSG.RDMAP, overflow ? FLAG.OVERFLOW : 0, frame, tNs, 12 + cells);
+    dv.setUint16(o, NR, true); dv.setUint16(o+2, ND, true);
+    dv.setFloat32(o+4, lo, true); dv.setFloat32(o+8, hi, true);
+    const q = new Uint8Array(b, o+12, cells);
+    const inv = 255/(hi-lo);
+    for (let i = 0; i < cells; i++){
+      let v = (db[i]-lo)*inv;
+      q[i] = v <= 0 ? 0 : (v >= 255 ? 255 : (v+0.5)|0);
+    }
+    return b;
+  }
+
+  function hitsPacket(tNs, objs){
+    const hits = [];
+    for (const o of objs){
+      const n = o.snr > 20 ? 3 : 1;
+      for (let k = 0; k < n; k++){
+        hits.push({
+          rb: Math.round(o.range/RANGE_BIN) + (k-1),
+          db: Math.round(o.vel/VEL_RES) + (k===2 ? 1 : 0),
+          range: o.range + (k-1)*RANGE_BIN,
+          vel: o.vel,
+          snr: o.snr - k*2.5,
+          az: o.az, el: 1.5*Math.sin(t*0.2),
+          q: 8 + 3*rnd(), ok: 1,
+        });
+      }
+      if (o.blade > 0){
+        const hz2ms = 0.0258442;
+        for (const s of [1,-1]){
+          hits.push({
+            rb: Math.round(o.range/RANGE_BIN),
+            db: Math.round((o.vel + s*o.blade*hz2ms)/VEL_RES),
+            range: o.range, vel: o.vel + s*o.blade*hz2ms,
+            snr: o.snr - 9, az: o.az, el: 0, q: 5, ok: 1,
+          });
+        }
+      }
+    }
+    const tgts = objs.map(o => ({
+      range: o.range, vel: o.vel, az: o.az, el: 1.0,
+      snr: o.snr,
+      x: o.range*Math.sin(o.az*Math.PI/180),
+      y: o.range*Math.cos(o.az*Math.PI/180),
+      z: o.range*0.02,
+      extent: 1.2, spread: o.spread, n: o.snr > 20 ? 5 : 2,
+    }));
+    const bytes = 8 + hits.length*HIT_SZ + tgts.length*TGT_SZ;
+    const b = new ArrayBuffer(HDR + bytes), dv = new DataView(b);
+    let o = head(dv, 0, MSG.HITS, 0, frame, tNs, bytes);
+    dv.setUint32(o, hits.length, true); dv.setUint32(o+4, tgts.length, true);
+    let p = o + 8;
+    for (const h of hits){
+      dv.setUint16(p, Math.max(0,h.rb), true); dv.setInt16(p+2, h.db, true);
+      dv.setFloat32(p+4, h.range, true); dv.setFloat32(p+8, h.vel, true);
+      dv.setFloat32(p+12, h.snr, true);  dv.setFloat32(p+16, h.az, true);
+      dv.setFloat32(p+20, h.el, true);   dv.setFloat32(p+24, h.q, true);
+      dv.setUint8(p+28, h.ok);
+      p += HIT_SZ;
+    }
+    for (const g of tgts){
+      dv.setFloat32(p, g.range, true);    dv.setFloat32(p+4, g.vel, true);
+      dv.setFloat32(p+8, g.az, true);     dv.setFloat32(p+12, g.el, true);
+      dv.setFloat32(p+16, g.snr, true);
+      dv.setFloat32(p+20, g.x, true);     dv.setFloat32(p+24, g.y, true);
+      dv.setFloat32(p+28, g.z, true);
+      dv.setFloat32(p+32, g.extent, true); dv.setFloat32(p+36, g.spread, true);
+      dv.setUint16(p+40, g.n, true);
+      p += TGT_SZ;
+    }
+    return b;
+  }
+
+  function tracksPacket(tNs, objs){
+    const n = objs.length;
+    const bytes = 4 + n*TRK_SZ;
+    const b = new ArrayBuffer(HDR + bytes), dv = new DataView(b);
+    let o = head(dv, 0, MSG.TRACKS, 0, frame, tNs, bytes);
+    dv.setUint32(o, n, true);
+    let p = o + 4;
+    objs.forEach((g, i) => {
+      const az = g.az*Math.PI/180;
+      const x = g.range*Math.sin(az), y = g.range*Math.cos(az), z = g.range*0.02;
+      // a crude but honest velocity: radial plus the tangential rate implied
+      // by how fast the bearing is moving
+      const vr = g.vel;
+      const vx = vr*Math.sin(az) + Math.cos(az)*g.range*0.02*Math.cos(t*0.31);
+      const vy = vr*Math.cos(az) - Math.sin(az)*g.range*0.02*Math.cos(t*0.31);
+      // covariance grows with range and shrinks with SNR, as it should
+      const s = (0.9 + g.range/70) * (25/Math.max(g.snr, 8));
+      const along = s*0.55, across = s*(1.4 + g.range/110);
+      const ca = Math.cos(az), sa = Math.sin(az);
+      const pxx = across*across*ca*ca + along*along*sa*sa;
+      const pyy = across*across*sa*sa + along*along*ca*ca;
+      const pxy = (across*across - along*along)*ca*sa;
+
+      dv.setUint32(p, 11 + i, true);
+      dv.setFloat32(p+4, x, true);  dv.setFloat32(p+8, y, true);  dv.setFloat32(p+12, z, true);
+      dv.setFloat32(p+16, vx, true); dv.setFloat32(p+20, vy, true); dv.setFloat32(p+24, 0.15, true);
+      dv.setFloat32(p+28, pxx, true); dv.setFloat32(p+32, pxy, true); dv.setFloat32(p+36, 0.2, true);
+      dv.setFloat32(p+40, pyy, true); dv.setFloat32(p+44, 0.2, true); dv.setFloat32(p+48, 1.0, true);
+      dv.setFloat32(p+52, g.snr, true);
+      dv.setFloat32(p+56, Math.min(t, 600), true);
+      dv.setFloat32(p+60, g.blade > 0 ? 180 + 60*Math.sin(t*0.7) : 14, true);
+      dv.setFloat32(p+64, g.blade, true);
+      dv.setFloat32(p+68, g.label ? clamp(0.55 + 0.3*Math.sin(t*0.4 + i), 0.3, 0.99) : 0.15, true);
+      dv.setUint16(p+72, Math.min(999, 20 + (frame % 400)), true);
+      dv.setUint16(p+74, 0, true);
+      dv.setUint16(p+76, (i === 0) ? SPEC_T : 0, true);
+      dv.setUint16(p+78, (i === 0) ? SPEC_F : 0, true);
+      dv.setUint8(p+80, g.snr > 14 ? 1 : 0);
+      const lbl = g.label.slice(0, 21);
+      dv.setUint8(p+81, lbl.length);
+      for (let k = 0; k < lbl.length; k++) dv.setUint8(p+82+k, lbl.charCodeAt(k));
+      p += TRK_SZ;
+    });
+    return b;
+  }
+
+  function specPacket(tNs, drone){
+    // scroll one new column of micro-Doppler history in
+    if (specFilled < SPEC_T) specFilled++;
+    specRing.copyWithin(0, SPEC_F);                  // drop the oldest row
+    const row = SPEC_T-1;
+    const hz2ms = 0.0258442;
+    const centre = SPEC_F/2 + drone.vel/hz2ms/SPEC_HZ;
+    for (let f = 0; f < SPEC_F; f++){
+      let v = -78 + gauss()*3;
+      const bodyd = (f - centre);
+      v = Math.max(v, -22 - 0.22*bodyd*bodyd);
+      if (drone.blade > 0){
+        for (let k = 1; k <= 6; k++){
+          const off = drone.blade*k/SPEC_HZ;
+          const a = -30 - 3.6*k + 6*Math.sin(t*2*Math.PI*0.9 + k);
+          for (const s of [1,-1]){
+            const d = f - (centre + s*off);
+            v = Math.max(v, a - 0.8*d*d);
+          }
+        }
+        // blade flash: a broadband streak twice per rotation
+        const flash = Math.pow(Math.abs(Math.sin(t*Math.PI*drone.blade/18)), 26);
+        if (flash > 0.2) v = Math.max(v, -40 + 20*flash - 0.02*bodyd*bodyd);
+      }
+      specRing[row*SPEC_F + f] = v;
+    }
+    let hi = -1e30, lo = 1e30;
+    for (let i = 0; i < specRing.length; i++){
+      const v = specRing[i];
+      if (v > hi) hi = v;
+      if (v < lo) lo = v;
+    }
+    if (hi - lo > 60) lo = hi - 60;
+    const cells = SPEC_T*SPEC_F;
+    const b = new ArrayBuffer(HDR + 24 + cells), dv = new DataView(b);
+    let o = head(dv, 0, MSG.SPEC, 0, frame, tNs, 24 + cells);
+    dv.setUint32(o, 11, true);
+    dv.setUint16(o+4, SPEC_T, true); dv.setUint16(o+6, SPEC_F, true);
+    dv.setFloat32(o+8, lo, true);    dv.setFloat32(o+12, hi, true);
+    dv.setFloat32(o+16, SPEC_HZ, true); dv.setFloat32(o+20, SPEC_DT, true);
+    const q = new Uint8Array(b, o+24, cells);
+    const inv = 255/(hi-lo);
+    for (let i = 0; i < cells; i++){
+      const v = (specRing[i]-lo)*inv;
+      q[i] = v <= 0 ? 0 : (v >= 255 ? 255 : (v+0.5)|0);
+    }
+    return b;
+  }
+
+  let overflows = 0, dropped = 0, sent = 0;
+  function statsPacket(tNs, nTracks, overflow){
+    if (overflow) overflows++;
+    if (frame % 331 === 0 && frame) dropped++;
+    const b = new ArrayBuffer(HDR + 96), dv = new DataView(b);
+    let o = head(dv, 0, MSG.STATS, FLAG.EOF | (overflow ? FLAG.OVERFLOW : 0), frame, tNs, 96);
+    dv.setBigUint64(o, BigInt(frame), true);
+    dv.setBigUint64(o+8, BigInt(overflows), true);
+    dv.setBigUint64(o+16, BigInt(dropped), true);
+    dv.setBigUint64(o+24, BigInt(Math.round(frame*2.1e6)), true);
+    dv.setBigUint64(o+32, BigInt(sent), true);
+    dv.setBigUint64(o+40, BigInt(0), true);
+    dv.setFloat32(o+48, 0.34 + 0.11*Math.sin(t*0.6) + (overflow?0.5:0), true);
+    dv.setFloat32(o+52, FPS - 0.4 + 0.3*Math.sin(t*1.1), true);
+    const st = [0.9, 3.4, 0.7, 4.1, 2.8, 3.9, 0.6, 0.4];
+    for (let i = 0; i < 8; i++) dv.setFloat32(o+56+i*4, st[i]*(1+0.12*Math.sin(t+i)), true);
+    dv.setUint16(o+88, nTracks, true);
+    dv.setUint16(o+90, 1, true);
+    dv.setUint16(o+92, 0, true);
+    dv.setUint16(o+94, 0, true);
+    return b;
+  }
+
+  function tick(){
+    if (!S.demo) return;
+    const tNs = Math.round(performance.now()*1e6);
+    const objs = scene();
+    // an occasional overflow, because the display has to make one obvious
+    const overflow = (frame % 197 === 120);
+
+    if (frame === 0) push(configPacket(tNs));
+    const db = buildMap(objs);
+    push(mapPacket(tNs, db, overflow));
+    push(hitsPacket(tNs, objs));
+    push(tracksPacket(tNs, objs));
+    if (objs.length && objs[0].blade > 0) push(specPacket(tNs, objs[0]));
+    push(statsPacket(tNs, objs.length, overflow));
+
+    frame++; t += 1/FPS;
+    setTimeout(tick, 1000/FPS);
+  }
+
+  function push(ab){
+    sent += ab.byteLength;
+    S.bytes += ab.byteLength;
+    onPacket(ab);
+  }
+
+  function start(){
+    S.demo = true;
+    S.linkState = "demo scene";
+    tick();
+  }
+  return {start};
+})();
+
+//===========================================================================
+// 12. Main loop.  Render at the display's rate, always from the newest data.
+//===========================================================================
+let lastRenderT = performance.now(), renderFps = 0, renderCount = 0;
+let lastRateT = performance.now(), lastBytes = 0, lastDataFrames = 0;
+
+function layoutAll(){
+  RD.layout(); Plan.layout(); Micro.layout();
+}
+
+function frameLoop(now){
+  requestAnimationFrame(frameLoop);
+
+  // Panels can change size without a window resize (the scrollbar appearing
+  // in the control column, for instance), so check every frame; it is three
+  // integer comparisons.
+  layoutAll();
+
+  const haveMap = !!S.map;
+  $("rd-empty").hidden = haveMap;
+  $("plan-empty").hidden = S.tracks.length > 0 || S.targets.length > 0;
+
+  if (haveMap){
+    if (S.mapDrawn !== S.mapSeq || true){       // the overlay moves every frame
+      RD.drawMap();
+      S.mapDrawn = S.mapSeq;
+    }
+    RD.drawOverlay();
+    const w = RD.window_db();
+    $("rd-meta").textContent =
+      S.map.nr + " × " + S.map.nd + "   " +
+      w.lo.toFixed(0) + " to " + w.hi.toFixed(0) + " dB   " +
+      (RD.usingGL ? "webgl2" : "canvas2d");
+  }
+  Plan.draw();
+  Micro.draw();
+  Status.draw();
+
+  renderCount++;
+  if (now - lastRenderT > 500){
+    renderFps = renderCount*1000/(now - lastRenderT);
+    renderCount = 0; lastRenderT = now;
+    $("v-render").textContent = renderFps.toFixed(0) + " fps";
+  }
+  if (now - lastRateT > 1000){
+    const dt = (now - lastRateT)/1000;
+    S.bytesRate = (S.bytes - lastBytes)/dt;
+    S.dataFps   = (S.dataFrames - lastDataFrames)/dt;
+    lastBytes = S.bytes; lastDataFrames = S.dataFrames; lastRateT = now;
+    if (!S.frozen) renderTrackList();
+  }
+}
+
+//===========================================================================
+// 13. Boot
+//===========================================================================
+(function boot(){
+  bindControls();
+  setSpan(70); setRef(0);
+  layoutAll();
+  window.addEventListener("resize", layoutAll);
+
+  const q = new URLSearchParams(location.search);
+  if (q.get("demo") === "1" || q.get("demo") === "true"){
+    $("rd-empty-sub").textContent = "Synthetic scene: the page is generating wire packets itself.";
+    $("ctl-meta").textContent = "demo";
+    Demo.start();
+  } else {
+    Link.connect();
+  }
+  requestAnimationFrame(frameLoop);
+})();
+</script>
+</body>
+</html>

@@ -428,6 +428,7 @@ struct DecimMeas {
     double f_in_mhz;
     double f_out_mhz;
     double gain_db;
+    bool   silent;      // the tone did not survive even one output LSB
 };
 
 // Drive a complex tone through the decimator and measure the coherent gain at
