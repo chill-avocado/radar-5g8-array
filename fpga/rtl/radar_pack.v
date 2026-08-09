@@ -141,7 +141,9 @@ module radar_pack #(
     //------------------------------------------------------------------------
     reg         q_map_en, q_hit_en;
     reg  [7:0]  q_dec_r, q_dec_d;
-    reg  [15:0] q_flags;
+    /* verilator lint_off UNUSEDSIGNAL */
+    reg  [15:0] q_flags;   // bits [1:0] are regenerated from the payload
+    /* verilator lint_on UNUSEDSIGNAL */
     reg  [31:0] q_index;
     reg  [63:0] q_time;
     reg  [8:0]  q_nr;
@@ -194,10 +196,16 @@ module radar_pack #(
 
     // Read one column ahead so the accumulator is there on the clock the
     // Doppler block closes, even at a decimation of one.
+    /* verilator lint_off UNUSEDSIGNAL */
     wire [9:0] od_next = row_last ? 10'd0 : (d_blk_end ? (od + 10'd1) : od);
+    /* verilator lint_on UNUSEDSIGNAL */
     wire [9:0] nd_eff  = (mr == 9'd0) ? (od + 10'd1) : nd_out;
 
-    wire [MAPAW-1:0] w_addr = row_base + od[MAPAW-1:0];
+    // MAP_WORDS is at least 1024, so the ten-bit column indices always fit.
+    wire [MAPAW-1:0] od_ext     = {{(MAPAW-10){1'b0}}, od};
+    wire [MAPAW-1:0] nd_eff_ext = {{(MAPAW-10){1'b0}}, nd_eff};
+
+    wire [MAPAW-1:0] w_addr = row_base + od_ext;
     wire             w_fits = ({1'b0, w_addr} < MAPW_LIM);
 
     wire cell_close = map_valid && d_blk_end && q_map_en;
@@ -337,7 +345,7 @@ module radar_pack #(
                         mr <= col_last ? 9'd0 : (mr + 9'd1);
                         if (r_blk_end) begin
                             cnt_r    <= 8'd0;
-                            row_base <= row_base + nd_eff[MAPAW-1:0];
+                            row_base <= row_base + nd_eff_ext;
                             nr_out   <= nr_out + 9'd1;
                         end else begin
                             cnt_r <= cnt_r + 8'd1;
@@ -438,8 +446,11 @@ module radar_pack #(
                 l_index       <= q_index;
                 l_time        <= q_time;
                 l_noise       <= noise;
-                l_nhits       <= hit_present_now
-                                 ? {{(15-HITAW){1'b0}}, hit_wcnt} : 16'd0;
+                // The record count is what the host must parse by, and it can
+                // never exceed the true count the CFAR reports.
+                l_nhits       <= !hit_present_now ? 16'd0
+                                 : ((n_hits < {{(15-HITAW){1'b0}}, hit_wcnt})
+                                     ? n_hits : {{(15-HITAW){1'b0}}, hit_wcnt});
                 l_nr          <= map_present_now ? {7'd0, nr_out} : 16'd0;
                 l_nd          <= map_present_now ? {6'd0, nd_out} : 16'd0;
                 l_mapwords    <= map_present_now ? {1'b0, row_base}
