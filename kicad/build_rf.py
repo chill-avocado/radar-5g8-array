@@ -373,6 +373,9 @@ for m in D.get("mask_bot", []):
     s.SetLayer(pcbnew.B_Mask)
     s.SetFilled(True)
     s.SetWidth(0)
+    # the opening belongs to the ground it exposes; left nameless it reads as
+    # an aperture bridging two nets over every stitching hole inside it
+    s.SetNet(net("GND"))
     board.Add(s)
 
 # ------------------------------------------------------------------- silk

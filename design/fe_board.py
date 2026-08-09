@@ -74,7 +74,7 @@ Y_J = (27.5, 42.5, 57.5, 72.5)          # TRX1, RX1, RX2, TRX2, bottom to top
 
 # Where each chain actually runs.  Transmit splays to the outer edges, receive
 # stays central, and that is what buys the isolation.
-Y_TX1, Y_RX1, Y_RX2, Y_TX2 = 7.0, 36.0, 64.0, 93.0
+Y_TX1, Y_RX1, Y_RX2, Y_TX2 = 8.0, 36.0, 64.0, 92.0
 X_JOG = 18.0                            # where a chain steps to its own line
 
 # Four fingers on the radio edge.  Each connector then sits on its own tongue
@@ -236,9 +236,11 @@ def tx_channel(b, s, tag, y, y_j, inward):
     # than brought out: the supply-current monitor already says the amplifier
     # is making its power, so the one thing worth a detector is what comes
     # BACK, which is how a fallen-off antenna announces itself.
-    b.line(fwd[0], fwd[1], fwd[0], fwd[1] + inward * 1.6, n_cpl, w=0.50)
-    b.shunt_0402(f"R{s}F", fwd[0], fwd[1] + inward * 1.6, "51R", n_cpl,
-                 +1, axis="x",
+    b.line(fwd[0], fwd[1], fwd[0], fwd[1] + inward * 2.6, n_cpl, w=0.50)
+    b.line(fwd[0] - 2.4, fwd[1] + inward * 2.6, fwd[0],
+           fwd[1] + inward * 2.6, n_cpl, w=0.50)
+    b.shunt_0402(f"R{s}F", fwd[0] - 2.4, fwd[1] + inward * 2.6, "51R", n_cpl,
+                 -1, axis="x",
                  note="loads the forward end of the sampling line")
     return dict(rev=rev, fwd=fwd, n_ring=n_ring, n_under=n_under,
                 rails=(r12, r5))
@@ -310,8 +312,10 @@ def rx_channel(b, s, tag, y, y_j, inward, rail):
     b.line(PULLBACK, y_j, X_JOG, y_j, n_o)
     b.sma_launch(f"{tag}_RADIO", (0.0, y_j), "left")
 
-    b.line(far[0], far[1], far[0], far[1] + inward * 1.6, n_cpl, w=0.50)
-    b.shunt_0402(f"R{s}F", far[0], far[1] + inward * 1.6, "51R", n_cpl,
+    b.line(far[0], far[1], far[0], far[1] + inward * 2.6, n_cpl, w=0.50)
+    b.line(far[0] - 2.4, far[1] + inward * 2.6, far[0],
+           far[1] + inward * 2.6, n_cpl, w=0.50)
+    b.shunt_0402(f"R{s}F", far[0] - 2.4, far[1] + inward * 2.6, "51R", n_cpl,
                  -1, axis="x", note="loads the far end of the sampling line")
     return dict(near=near, far=far, n_under=n_under, n_ring=n_ring,
                 nets=(n_in, n_lo, n_t, n_p, n_o))
@@ -379,9 +383,10 @@ def tx_power_block(b, s, yb, y_bt, inward):
                note="five volts for this side's driver and receive amplifier")
     b.line(33.55, yb, 34.7, yb, n_i, w=0.90)
     y_tab = yb - up * 6.30
-    b.shunt_0402(f"C{s}5", 34.5, y_tab, "10u", r5, up, pkg="0805",
+    b.line(30.5, min(yb, y_tab), 30.5, max(yb, y_tab), r5, w=0.60)
+    b.shunt_0402(f"C{s}5", 36.0, y_tab, "10u", r5, up, pkg="0805",
                  note="the regulator's own output capacitor; 16 V part")
-    b.line(32.4, y_tab, 34.5, y_tab, r5, w=0.60)
+    b.line(31.5, y_tab, 36.0, y_tab, r5, w=0.60)
 
     # ---- the current monitor, directly across the row from its own shunt so
     # that the two wires measuring sixty millivolts are as short as they get
@@ -394,9 +399,10 @@ def tx_power_block(b, s, yb, y_bt, inward):
     b.line(45.14, y_ina + up * 0.95, 45.14, yb, "V12", w=0.45)
     # five volts to the monitor, on a lane clear of the row
     y_lane5 = yb - up * 5.5
-    b.line(34.5, y_lane5, 42.86, y_lane5, r5, w=0.45)
+    b.line(33.0, y_lane5, 42.86, y_lane5, r5, w=0.45)
     b.line(42.86, y_lane5, 42.86, y_ina - up * 0.95, r5, w=0.45)
-    b.line(34.5, y_lane5, 34.5, y_tab, r5, w=0.45)
+    b.line(33.0, y_lane5, 33.0, y_tab, r5, w=0.45)
+    b.line(31.5, y_tab, 33.0, y_tab, r5, w=0.45)
 
     # ---- twelve volts up to the final amplifier's printed feed, on a lane
     # clear of the row the other way
@@ -423,12 +429,11 @@ def tx_power_block(b, s, yb, y_bt, inward):
                  note="25 V part on the twelve-volt rail")
     b.shunt_0402(f"C{s}90", X_BT1, y_bt + up * 0.62, "100p", r5, -1,
                  axis="x", note="the same job on the driver's feed")
-    b.line(X_BT1, y_dec, X_BT1 + 9.4, y_dec, r5, w=0.50)
+    b.line(X_BT1, y_dec, X_BT1 + 7.6, y_dec, r5, w=0.50)
     for k, val in enumerate(("1n", "100n"), start=1):
         b.shunt_0402(f"C{s}9{k}", X_BT1 + 1.7 + (k - 1) * 1.7, y_dec, val, r5,
                      up)
-    b.shunt_0402(f"C{s}93", X_BT1 + 8.0, y_dec, "10u", r5, up,
-                 pkg="1210")
+    b.shunt_0402(f"C{s}93", X_BT1 + 6.5, y_dec, "10u", r5, up, pkg="1210")
     # the regulator's output down to the feed row, and out to the left where
     # the receive amplifier's own branch picks it up
     b.line(36.0, y_dec, X_BT1, y_dec, r5, w=0.50)
@@ -462,6 +467,7 @@ def rx_feed(b, s, y, y_bt, inward, src, src_rail):
            src_rail, w=0.50)
     b.corner(x0 - 2.4, y_dec - inward * 2.2, src_rail, w=0.50)
     b.line(x0 - 2.4, y_dec - inward * 2.2, x0 - 2.4, y_dec, src_rail, w=0.50)
+    b.line(x0 - 2.4, y_dec, x0 - 1.5, y_dec, src_rail, w=0.50)
     b.series_0402(f"FB{s}", x0 - 1.2, y_dec, "600R", src_rail, rail, kind="L",
                   mpn="BLM15HD601SN1",
                   note="keeps the transmitter's supply noise out of the "
@@ -548,7 +554,8 @@ def input_block(b):
     b.line(2.6, 13.585, 2.6, 16.0, "EN", w=0.35)
     # the enable line is the one thing that has to get from the bottom of this
     # corner to the top, so it goes underneath rather than round
-    b.dc("EN", [(2.6, 16.0), (2.6, 20.81), (6.55, 20.81)], w=0.40)
+    b.dc("EN", [(2.6, 16.0), (2.6, 20.81), (6.55, 20.81)], w=0.40,
+         skip_last_via=True)
     return (6.55, 20.81)
 
 
@@ -638,7 +645,7 @@ def build():
     # Four of the eight bolts sit as close to the four amplifiers as the
     # copper allows, because that is where the heat has to leave the board.
     for x, y in ((X_PA, Y_TX1 + 8.8), (X_PA, Y_TX2 - 8.8),
-                 (XR_LNA + 4.0, 43.0), (XR_LNA + 4.0, 57.0),
+                 (63.0, 29.0), (63.0, 71.0),
                  (95.5, 21.0), (95.5, 79.0), (10.0, 90.0), (30.0, 50.0)):
         b.mounts.append((x, y, MOUNT_D, MOUNT_PAD))
 
@@ -651,17 +658,17 @@ def build():
         b.mask_bot.append([X_DRV - 2.6, y - 3.4, X_DRV + 2.6, y + 3.4])
     for y in (Y_RX1, Y_RX2):
         b.mask_bot.append([XR_LNA - 3.6, y - 3.6, XR_LNA + 3.6, y + 3.6])
-    for x, y in ((22.0, 97.0), (78.0, 97.0), (60.0, 3.0)):
+    for x, y in ((6.0, 97.0), (94.0, 97.0), (60.0, 3.2)):
         b.fiducial(x, y)
     b.labels += [
-        (24.0, 97.0, "5.8 GHz RADAR FRONT END", 1.3, "silk"),
-        (24.0, 94.5, "TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A", 0.85,
+        (14.0, 97.5, "5.8 GHz RADAR FRONT END", 1.2, "silk"),
+        (14.0, 95.0, "TX 0.75 W x2   RX 20 dB x2   12 V 1.25 A", 0.8,
          "silk"),
-        (66.0, 44.0, "J5  enable + monitors", 0.85, "silk"),
-        (20.0, 12.5, "TX1  0.75 W", 1.0, "silk"),
-        (20.0, 88.0, "TX2  0.75 W", 1.0, "silk"),
-        (20.0, 40.5, "RX1", 1.0, "silk"),
-        (20.0, 59.0, "RX2", 1.0, "silk"),
+        (70.0, 45.0, "J5  enable + monitors", 0.8, "silk"),
+        (24.0, 13.5, "TX1  0.75 W", 1.0, "silk"),
+        (24.0, 86.5, "TX2  0.75 W", 1.0, "silk"),
+        (20.0, 39.5, "RX1", 1.0, "silk"),
+        (20.0, 60.5, "RX2", 1.0, "silk"),
         (2.3, 50.0, "USRP B210", 0.9, "silk"),
     ]
     for nm, x, y, side in b.ports:
