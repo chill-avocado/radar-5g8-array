@@ -23,14 +23,15 @@ CUDA host stack.
 9. [FPGA-Host Interface Solutions](#9-fpga-host-interface-solutions)
 10. [Host Streaming, IPC & Visualization](#10-host-streaming-ipc--visualization)
 11. [Advanced / Experimental Techniques](#11-advanced--experimental-techniques)
-12. [FPGA Device Note](#12-fpga-device-note)
-13. [Processing Allocation Matrix](#13-processing-allocation-matrix)
-14. [System Performance Specifications](#14-system-performance-specifications)
-15. [Implementation Roadmap](#15-implementation-roadmap)
-16. [Cost Estimates](#16-cost-estimates)
-17. [Risks & Mitigations](#17-risks--mitigations)
-18. [Symbol Glossary](#18-symbol-glossary)
-19. [References](#19-references)
+12. [Patent-Derived Hardware & RF Improvements](#12-patent-derived-hardware--rf-improvements)
+13. [FPGA Device Note](#13-fpga-device-note)
+14. [Processing Allocation Matrix](#14-processing-allocation-matrix)
+15. [System Performance Specifications](#15-system-performance-specifications)
+16. [Implementation Roadmap](#16-implementation-roadmap)
+17. [Cost Estimates](#17-cost-estimates)
+18. [Risks & Mitigations](#18-risks--mitigations)
+19. [Symbol Glossary](#19-symbol-glossary)
+20. [References](#20-references)
 
 ---
 
