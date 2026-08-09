@@ -109,7 +109,7 @@ done
 
 VROOT="$($VERILATOR --getenv VERILATOR_ROOT)"
 set -- 1024 10
-if ! c++ -std=gnu++17 -O2 -Wall -Wextra -Wno-unused-parameter \
+if ! c++ -std=gnu++17 -O2 -Wall -Wno-sign-compare \
         "${INCS[@]}" -I"$VROOT/include" -I"$VROOT/include/vltstd" \
         "$HERE/tb_fft.cpp" "${LIBS[@]}" "$BUILD/obj_1024/libverilated.a" \
         -o "$BUILD/tb_fft" >"$BUILD/link.log" 2>&1; then

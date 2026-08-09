@@ -377,6 +377,10 @@ void run_size(int N, int NLOG2) {
 
 } // namespace
 
+// The RTL carries a `timescale, so the Verilated runtime wants a time source.
+// Nothing here is time-driven -- the model is clocked by hand -- so it is zero.
+double sc_time_stamp() { return 0.0; }
+
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
 

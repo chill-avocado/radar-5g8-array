@@ -398,7 +398,14 @@ module radar_top #(
     generate
     for (rxi = 0; rxi < 2; rxi = rxi + 1) begin : g_dr
       for (txi = 0; txi < 2; txi = txi + 1) begin : g_dt
-        localparam integer VC = rxi * 2 + txi;
+        // Virtual channel numbering is (transmitter * 2 + receiver), matching
+        // radar::array_geom::virt_xy in soft/include/radar/core.hpp, which in
+        // turn matches the built boards: the transmit pair sits side by side
+        // so it sets the azimuth coordinate, and the receive pair is stacked
+        // so it sets elevation.  Getting this order wrong scrambles every
+        // angle the radar reports while leaving the range-Doppler map looking
+        // perfectly healthy, so it is stated here rather than inferred.
+        localparam integer VC = txi * 2 + rxi;
         // In time division the transmitter alternates every chirp; in Doppler
         // division both transmit every chirp and the separation happens in the
         // Doppler domain instead, so every sample belongs to both.
