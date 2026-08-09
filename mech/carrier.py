@@ -18,8 +18,9 @@ an accessory.
 
 So each array sits on a 1.5 mm aluminium plate sized to give 25 mm of metal
 past every patch edge, and the plate sits in a printed tray.  The board's
-whole back face is ground copper and it clamps flat against the plate, which
-is a far better bond than any bolt.
+whole back face is ground copper with the solder mask opened over it, so it
+clamps metal to metal against the plate -- a far better bond than any bolt.
+The mask used to cover that face, which made the claim untrue.
 
 The plate stops short of the board's connector edge -- two notches -- because
 the coaxial connectors clamp round the board and need their lower jaw free.
