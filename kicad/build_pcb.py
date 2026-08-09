@@ -330,7 +330,12 @@ def res_footprint(ref, pads):
     fp = pcbnew.FOOTPRINT(board)
     fp.SetReference(ref)
     fp.SetValue("DNF - limiter site" if ref.startswith("D") else "50R")
-    base = "D_0402_Limiter" if ref.startswith("D") else "R_0402_50R"
+    # Name it after the land it actually is.  It was hard-coded "0402" while
+    # the land grew to 0805, which is the sort of label that gets a 0402 part
+    # ordered for a site that has to dissipate a watt.
+    _sz = "0805" if max(w0, h0) > 1.0 else "0402"
+    base = (f"D_{_sz}_Limiter" if ref.startswith("D")
+            else f"R_{_sz}_1W_50R" if _sz == "0805" else "R_0402_50R")
     fp.SetFPID(pcbnew.LIB_ID("radar5g8", base))
     fp.SetPosition(P(cx_, cy_))
     fp.SetLayer(pcbnew.F_Cu)
@@ -345,7 +350,10 @@ def res_footprint(ref, pads):
         p.SetNumber(str(i + 1))
         p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
         p.SetShape(pcbnew.PAD_SHAPE_RECT)
-        p.SetSize(pcbnew.VECTOR2I(MM(0.62), MM(0.62)))
+        # The land size comes from the design, not from a constant.  This
+        # was pinned at 0.62 mm, so growing the terminating resistor to an
+        # 0805 that can take the reflected watt never reached the board.
+        p.SetSize(pcbnew.VECTOR2I(MM(pw), MM(ph)))
         p.SetLayerSet(pcbnew.PAD.SMDMask())
         # unrotated: pads sit either side of the origin along x
         lead = (xx > cx_) if horiz else (yy > cy_)
