@@ -154,15 +154,12 @@ module half_rx() {
 }
 
 
-// ---------------------------------------------------------------- shelf
-// Bolts to the four M4 points on the bar and carries both electronics
-// boards behind the arrays.  Print flat.  214 x 96 mm.
-module shelf() {
+module shelf_pa() {
   difference() {
     union() {
-      cube([214.00, 96.00, 5.00]);
-      translate([31.000, 95.000, 0]) cube([28.0, 152.000, 5.00]);
-      translate([52.000, 95.000, 0]) cube([28.0, 22.000, 5.00]);
+      cube([112.00, 96.00, 5.00]);
+      translate([42.000, 95.000, 0])
+        cube([28.0, 16.0, 5.00]);
     }
     translate([11.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
     translate([11.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
@@ -176,37 +173,57 @@ module shelf() {
     translate([101.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
     translate([101.000, 85.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
     translate([101.000, 85.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([121.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([121.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([121.000, 69.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([121.000, 69.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([152.500, 24.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([152.500, 24.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([152.500, 56.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([152.500, 56.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([203.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([203.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([203.000, 69.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-    translate([203.000, 69.000, -1]) cylinder(d=3.40, h=7.00);
-    translate([45.000, 240.000, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([67.000, 240.000, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([66.000, 110.000, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    translate([88.000, 110.000, -1]) cylinder(d=4.50, h=7.00, $fn=24);
-    // lighten it: it only has to be flat and hold nine bolts
-    for (i = [0 : 3]) for (j = [0 : 1])
-      translate([24.00 + i * 46, 26.00 + j * 34, -1])
-        cube([26, 22, 7.00]);
+    translate([48.000, 96.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    translate([48.000, 109.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    translate([64.000, 96.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    translate([64.000, 109.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    for (i = [0 : 2]) for (j = [0 : 1])
+      translate([24.00 + i * 30, 26.00 + j * 30, -1])
+        cube([18, 20, 7.00]);
   }
 }
 
-if (part == "shelf") shelf();
+module shelf_lna() {
+  difference() {
+    union() {
+      cube([104.00, 80.00, 5.00]);
+      translate([38.000, 79.000, 0])
+        cube([28.0, 16.0, 5.00]);
+    }
+    translate([11.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+    translate([11.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
+    translate([11.000, 69.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+    translate([11.000, 69.000, -1]) cylinder(d=3.40, h=7.00);
+    translate([42.500, 24.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+    translate([42.500, 24.000, -1]) cylinder(d=3.40, h=7.00);
+    translate([42.500, 56.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+    translate([42.500, 56.000, -1]) cylinder(d=3.40, h=7.00);
+    translate([93.000, 11.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+    translate([93.000, 11.000, -1]) cylinder(d=3.40, h=7.00);
+    translate([93.000, 69.000, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+    translate([93.000, 69.000, -1]) cylinder(d=3.40, h=7.00);
+    translate([44.000, 80.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    translate([44.000, 93.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    translate([60.000, 80.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    translate([60.000, 93.500, -1]) cylinder(d=4.50, h=7.00, $fn=24);
+    for (i = [0 : 2]) for (j = [0 : 1])
+      translate([24.00 + i * 30, 26.00 + j * 30, -1])
+        cube([18, 20, 7.00]);
+  }
+}
+
+if (part == "shelf_pa") shelf_pa();
+else if (part == "shelf_lna") shelf_lna();
 else if (part == "transmit") half_tx();
 else if (part == "receive") half_rx();
 else {
   half_tx();
   half_rx();
-  translate([-66.500, -306.571, -5.00])
-    color("#4a6fa5") shelf();
+  translate([-66.500, -169.571, -5.00])
+    color("#4a6fa5") shelf_pa();
+  translate([-41.500, -283.571, -5.00])
+    color("#4a6fa5") shelf_lna();
+
   // the aluminium, and the boards sitting on it
   color("silver") translate([-45.921, -34.195, 5.00])
     cube([91.00, 67.00, 1.50]);

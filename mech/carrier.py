@@ -509,6 +509,38 @@ else {{
 """
 
 
+FIN_W, FIN_H, FIN_WING, FIN_FLANGE = 200.0, 100.0, 60.0, 25.0
+
+
+def fin_flat():
+    """The isolation fin, as a flat pattern with bend lines.
+
+    Each array radiates -2.23 dBi straight out of its edge, right at the
+    other one, so at 250 mm apart air alone gives about -40 dB.  A sheet of
+    metal standing between them makes the signal bend over an edge to get
+    across, and bending costs it dearly.
+
+    What limits it is not the tip but the way round the SIDES.  A fin the
+    width of the plates is worth only 11 dB because the leak simply goes
+    round.  Folding the side edges forward beats making it wider: 200 mm with
+    60 mm returns gives 16.5 dB, which a flat 300 mm fin does not reach.
+
+    It blocks nothing inside 51 degrees off boresight and the radar looks
+    +/-27, so the coverage never sees it.
+    """
+    W, H, wg, fl = FIN_W, FIN_H, FIN_WING, FIN_FLANGE
+    x0 = -(W / 2 + wg)
+    outline = [((x0, 0.0), 2.0), ((x0 + 2 * wg + W, 0.0), 2.0),
+               ((x0 + 2 * wg + W, H), 2.0), ((x0, H), 2.0)]
+    # Four bolts onto the spine, which is only BAR_D wide -- the flange is
+    # 200 mm across but the thing it fastens to is 25 mm, so a hole pattern
+    # spanning the fin would have missed it entirely.
+    holes = [(x, y, M4) for x in (-8.0, 8.0) for y in (6.0, fl - 6.0)]
+    bends = [(-W / 2, 0.0, -W / 2, H), (W / 2, 0.0, W / 2, H),
+             (-W / 2, fl, W / 2, fl)]
+    return outline, holes, bends
+
+
 def shelf(pads):
     """One tray behind each array for its own amplifier board.
 
