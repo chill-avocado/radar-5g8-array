@@ -2,7 +2,7 @@
 	(version 20240108)
 	(generator "build_pcb.py")
 		(layer "F.Cu")
-	(at 0 0)
+		(at 0 0)
 		(property "Reference" "H2"
 			(at 0 0 0)
 			(layer "F.SilkS")
