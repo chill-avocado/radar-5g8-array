@@ -1776,7 +1776,7 @@ const Demo = (() => {
 
   let t = 0, frame = 0;
   let rngState = 0x2f6e2b1;
-  const specRing = new Float32Array(SPEC_T*SPEC_F);
+  const specRing = new Float32Array(SPEC_T*SPEC_F).fill(-80);
   let specFilled = 0;
 
   function rnd(){                                   // xorshift, deterministic
@@ -1998,9 +1998,10 @@ const Demo = (() => {
       const x = g.range*Math.sin(az), y = g.range*Math.cos(az), z = g.range*0.02;
       // a crude but honest velocity: radial plus the tangential rate implied
       // by how fast the bearing is moving
-      const vr = g.vel;
-      const vx = vr*Math.sin(az) + Math.cos(az)*g.range*0.02*Math.cos(t*0.31);
-      const vy = vr*Math.cos(az) - Math.sin(az)*g.range*0.02*Math.cos(t*0.31);
+      const vr = g.vel;                       // positive = approaching
+      const cross = g.range*0.02*Math.cos(t*0.31);
+      const vx = -vr*Math.sin(az) + Math.cos(az)*cross;
+      const vy = -vr*Math.cos(az) - Math.sin(az)*cross;
       // covariance grows with range and shrinks with SNR, as it should
       const s = (0.9 + g.range/70) * (25/Math.max(g.snr, 8));
       const along = s*0.55, across = s*(1.4 + g.range/110);
