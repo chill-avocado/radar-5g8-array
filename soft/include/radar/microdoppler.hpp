@@ -113,15 +113,21 @@ public:
     static const char* kUnknown;      ///< "unknown"
 
 private:
-    struct Evidence { int frames = 0; double score[4] = {0, 0, 0, 0}; };
+    struct Evidence {
+        int    frames  = 0;
+        double score[4] = {0, 0, 0, 0};
+        int    cpi_len = 0;          ///< samples per interval this history holds
+        std::vector<cf32> hist;      ///< up to kHistCpi intervals, oldest first
+    };
 
     /// Declared before the transforms because it sizes one of them, and
     /// members are built in declaration order.
-    int    n_cpi_;
+    int    n_long_;
     Fft    fft_stft_;   ///< 64 point, for the spectrogram and the blade flashes
-    Fft    fft_cpi_;    ///< whole interval, for the width and the symmetry
+    Fft    fft_long_;   ///< accumulated record, for the width and the symmetry
     double lambda_m_;
     double prf_hz_;
+    double t_cpi_s_;
 
     mutable std::mutex                        mu_;
     mutable std::unordered_map<u32, Evidence> evidence_;
