@@ -583,33 +583,24 @@ module radar_fft_stage #(
         // Final stage, depth 1.  The only twiddle is W_2^0 = +1, so this is
         // two delay registers that keep the stage latency uniform.
         //--------------------------------------------------------------------
-        reg                     p2_valid;
         reg signed [DATA_W-1:0] p2_i, p2_q;
         always @(posedge clk) begin
             if (rst) begin
-                p2_valid <= 1'b0;
-                p2_i     <= {DATA_W{1'b0}};
-                p2_q     <= {DATA_W{1'b0}};
-            end else begin
-                p2_valid <= p1_valid;
-                if (p1_valid) begin
-                    p2_i <= p1_i;
-                    p2_q <= p1_q;
-                end
+                p2_i <= {DATA_W{1'b0}};
+                p2_q <= {DATA_W{1'b0}};
+            end else if (p1_valid) begin
+                p2_i <= p1_i;
+                p2_q <= p1_q;
             end
         end
 
         always @(posedge clk) begin
             if (rst) begin
-                m_valid <= 1'b0;
-                m_i     <= {DATA_W{1'b0}};
-                m_q     <= {DATA_W{1'b0}};
-            end else begin
-                m_valid <= p2_valid;
-                if (p2_valid) begin
-                    m_i <= p2_i;
-                    m_q <= p2_q;
-                end
+                m_i <= {DATA_W{1'b0}};
+                m_q <= {DATA_W{1'b0}};
+            end else if (p2_valid) begin
+                m_i <= p2_i;
+                m_q <= p2_q;
             end
         end
 
