@@ -292,6 +292,8 @@ struct Geom {
         n_rx    = array_geom::n_rx;
         n_tx    = array_geom::n_tx;
         ddm     = (c.mimo == MimoMode::Ddm);
+        tdm     = (c.mimo == MimoMode::Tdm);
+        n_tx_active = (ddm || tdm) ? n_tx : 1;
         tx_on   = c.tx_enable;
         n_chirp_total = c.d.n_chirp_total > 0
                             ? c.d.n_chirp_total
@@ -813,9 +815,11 @@ void SimSource::log_link_budget(double pt_dbm) const {
     const double tau       = 2.0 * R / phys::c0;
     const int    n_used    = g_.n_sweep - int(std::ceil(tau * g_.fs));
     const double g_range   = db(double(n_used));
-    const int    n_per_tx  = g_.ddm ? g_.n_chirp_total : g_.n_chirp_total / g_.n_tx;
+    // In time division a transmitter only gets every other slot, so each virtual
+    // channel sees half the chirps; everywhere else it sees all of them.
+    const int    n_per_tx  = g_.tdm ? g_.n_chirp_total / g_.n_tx : g_.n_chirp_total;
     const double g_dopp    = db(double(n_per_tx));
-    const double g_mimo    = db(double(g_.n_tx * g_.n_rx));
+    const double g_mimo    = db(double(g_.n_tx_active * g_.n_rx));
     const double snr_cpi   = snr_samp + g_range + g_dopp + g_mimo;
     const double t_coh     = double(n_per_tx) * double(n_used) / g_.fs;
     const double snr_100   = snr_cpi + db(0.100 / t_coh);
