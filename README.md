@@ -480,9 +480,132 @@ in antiphase — can bridge that gap.
 
 ---
 
+## The radar software
+
+The boards are the front half of a radar.  This is the back half: the firmware
+that turns echoes into detections, and the host program that turns detections
+into tracks on a screen.
+
+### Where the work happens, and why it moved
+
+The obvious way to build this is to stream raw samples to the laptop and do
+everything there.  It does not work.  Two receive channels and two transmit
+channels at the radio's full 61.44 MSps is **983 MB/s**, which is more than USB 3
+carries, and the laptop is a four-core machine that would spend all of itself on
+the arithmetic before any radar work began.
+
+So the signal processing was moved into the FPGA.  The board turned out to carry
+a **Kintex-7 XC7K325T** — confirmed from the device code inside the vendor's own
+FPGA image rather than from the listing — which is a large part with 840
+multipliers and 2 MB of internal memory, most of it unused by the stock radio.
+
+The single decision that makes the rest work: **the chirp and the reference used
+to decode it come out of the same counter in the fabric, one clock apart.**
+
+A frequency-modulated radar works by comparing the echo against a copy of what
+was transmitted.  If the transmitter and the comparison copy are generated in
+different places, the delay between them is unknown and drifts, and the range
+origin floats — every distance the radar reports is wrong by an amount that
+changes.  This is the known difficulty with active radar on a software radio,
+and it is usually patched around in software.  Generating both from one counter
+removes it by construction.  The only delay left is the fixed one through the
+radio's own analogue parts, which shows up as the transmitter leaking into the
+receiver at a fixed short range, and is measured once and subtracted.
+
+Two consequences follow.  No transmitted samples cross the cable at all, and
+what does cross is a finished picture and a list of detections rather than raw
+samples: **8.96 MB/s instead of 983 MB/s**, a factor of 110.  The laptop stops
+being the bottleneck and becomes what it should be — where angle, tracking and
+the display live.
+
+### What the memory would not allow
+
+The FPGA has to hold a whole measurement interval on chip so it can transpose
+it, twice over so one can be read while the next is written.  At the sizes first
+chosen that needed **102% of the device's internal memory**.  It did not fit, and
+this board has no memory chip to spill into.
+
+Fixing the *product* of range cells and pulses at 65,536 and letting the split
+between them be chosen while running gets two useful machines out of one build:
+
+| | range covered | pictures per second | speed resolution |
+|---|---|---|---|
+| surveillance | 576 m | 62.5 | 1.62 m/s |
+| fine Doppler | 288 m | 31.2 | 0.81 m/s |
+
+### What was measured, not assumed
+
+Everything below was run, not estimated.  The firmware is checked against a
+model of it written in ordinary code, sample for sample — if the two ever
+disagree, one of them is wrong and the test says so.
+
+- The whole firmware — 15 modules, 4,943 lines — passes the language's own
+  strictest checking with no warnings.
+- The front end is exact against its specification over 13,888 test cases,
+  including every case that overflows, and over all 4,096 points of the chirp
+  generator's table.  27 checks, none failed.
+- Unwanted signals folded back by the rate-reduction filter are **89 dB down**.
+- The host stack passes **86 of 90** checks, each printing its measurement.
+- The array geometry in the software matches the fabricated board exactly.
+- The transforms match a direct calculation to **-139 dB**.
+- Working in whole numbers rather than decimals, as the FPGA must, costs
+  **1.4 dB**.
+
+### What the leakage actually costs
+
+The measurement that matters most for anyone planning a trial: at +10 dBm of
+transmit and the -41.1 dB of isolation these boards give, the transmitter's own
+leakage is large enough to force the receiver's gain down by **30 dB**, and that
+costs about **15 dB** on every echo.  A 10 m² vehicle at 120 m measures 20.8 dB
+above the noise with the leakage suppressed and 6.0 dB with it present.
+
+This is the same conclusion the amplifier study above reaches from the other
+direction: **isolation, not noise figure, is what limits this radar.**  The
+practical routes are to transmit less, to integrate for longer — the 173 m in
+the link budget assumes 100 ms, which is six measurement intervals, not one — or
+to cancel the leakage.
+
+### Running it
+
+```bash
+cmake -S soft -B soft/build -DCMAKE_BUILD_TYPE=Release && cmake --build soft/build -j4
+./soft/build/bin/radar-selftest      # every check, with its measurement
+./soft/build/bin/radar-plan          # picks the waveform, and shows the trade
+./soft/build/bin/radard              # simulated scene, display on :8730
+./soft/build/bin/radard --source uhd # a real B210 running the radar firmware
+```
+
+The display is a web page served by the program itself, bound to this machine
+only unless told otherwise.
+
+Building the FPGA image needs Xilinx's tools, which do not run on macOS, so that
+step belongs on a Linux machine.  `fpga/build/integrate_b200.py` prepares the
+manufacturer's FPGA sources for it: rather than a patch that silently rots when
+they rename something, it reads their design, finds the radio's connections, and
+generates a matching wrapper — so the only change to their code is one word, and
+it can be undone with `--revert`.  With the radar switched off the board behaves
+exactly like an ordinary B210, which keeps it useful for everything else.
+
+---
+
 ## Files
 
 ```
+soft/       CMakeLists.txt      host build
+            include/radar/      the contracts every stage is built against
+            src/                transforms, detection, angle, tracking, display server
+            tools/radard        the daemon
+            tools/radar-plan    waveform trade study
+            tools/radar-selftest every check, with numbers
+            tools/radar-bench   where the time goes
+            web/index.html      operator display
+
+fpga/       rtl/radar_pkg.svh   parameters, number formats, register map
+            rtl/radar_top.v     the core, assembled
+            rtl/                chirp, de-chirp, filters, transforms, detection
+            sim/                testbenches, run these to check the firmware
+            build/              Xilinx scripts and the b200 integration tool
+
 design/     rfmath.py           transmission-line and patch theory
             synthesise.py       runs the synthesis, writes synthesis.json
             synthesis.json      every physical dimension, all substrates
