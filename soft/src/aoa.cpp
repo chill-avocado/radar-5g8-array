@@ -197,15 +197,59 @@ void forward_backward(cf64 R[kM][kM]) {
 }
 
 //----------------------------------------------------------------------------
-// Minimum-description-length model order.
+// How many sources are there?
 //
-// Asks how many of the four eigenvalues are genuinely larger than the rest.
-// If the smallest M-k of them come from noise alone they should all be equal,
-// so their geometric and arithmetic means coincide; the more they differ the
-// more likely one of them is really a target.  The second term charges for
-// each extra source claimed, which is what stops the criterion from simply
-// choosing the largest possible order.
+// This is the question the whole method turns on.  Claim one too many and a
+// noise eigenvector gets promoted into the signal subspace, the noise subspace
+// loses a dimension, and the pseudospectrum peaks wherever that noise vector
+// happened to point -- which is anywhere at all.  Measured on this array at
+// 20 dB with eight looks, the trials that guess the order right come back
+// within 0.7 degrees and the trials that guess one too many come back 33
+// degrees out.  Nothing else about MUSIC matters as much.
+//
+// Two independent tests have to agree, and the more cautious answer wins.
+//
+// The first is the eigenvalue's own size.  A covariance estimated from a
+// finite number of looks has spread-out eigenvalues even when there is no
+// signal at all: for M channels and K looks the largest of them sits near
+// (1 + sqrt(M/K))^2 times the true noise level.  With four channels and eight
+// looks that is nearly three times -- so a noise eigenvalue three times its
+// neighbours is not evidence of anything, and only an eigenvalue above that
+// line counts as a source.  As the looks pile up the line drops towards one
+// and genuinely weak sources become visible, which is exactly right.
+//
+// The second is the minimum-description-length criterion below, which asks
+// whether the remaining eigenvalues look equal to one another and charges for
+// every source claimed.  It is the standard answer and it is good with plenty
+// of data; on its own with few looks it over-claims, which is what the first
+// test is there to stop.
 //----------------------------------------------------------------------------
+
+/// Safety factor on the noise-eigenvalue edge.  One is the asymptotic result;
+/// this is set above it because that result is a large-matrix limit and four
+/// channels is not large, so the real spread runs a little wider.
+constexpr double kEdgeMargin = 1.35;
+
+int eigen_gap_order(const double w[kM], int n_snap) {
+    if (n_snap < 2) return 1;
+    const double spread = std::pow(1.0 + std::sqrt(double(kM) / double(n_snap)), 2.0) * kEdgeMargin;
+    int order = 1;
+    for (int k = 2; k <= kM - 1; ++k) {
+        // Under the hypothesis that there are only k-1 sources, eigenvalues k
+        // and below are all noise, so the noise level is their mean.  Taking
+        // the mean over all of them, including the one being tested, is what
+        // keeps the test honest: leaving it out would compare the largest
+        // noise eigenvalue against an average that had the largest one
+        // removed, and every fluctuation would look like a source.
+        double s2 = 0.0;
+        for (int i = k - 1; i < kM; ++i) s2 += std::max(0.0, w[i]);
+        s2 /= double(kM - k + 1);
+        if (!(w[k - 1] > s2 * spread)) break;
+        order = k;
+    }
+    return order;
+}
+
 int mdl_order(const double w[kM], int n_snap) {
     if (n_snap < 2) return 1;   // no penalty term to speak of, so no evidence
     double trace = 0.0;

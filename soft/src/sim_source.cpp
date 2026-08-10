@@ -837,7 +837,8 @@ void SimSource::log_link_budget(double pt_dbm) const {
     LOG_I("sim:   = signal-to-noise per sample          %+8.2f dB", snr_samp);
     LOG_I("sim:   range transform, %5d live samples    %+8.2f dB", n_used, g_range);
     LOG_I("sim:   Doppler transform, %4d chirps/tx     %+8.2f dB", n_per_tx, g_dopp);
-    LOG_I("sim:   four virtual channels combined        %+8.2f dB", g_mimo);
+    LOG_I("sim:   %d virtual channels combined          %+8.2f dB",
+          g_.n_tx_active * g_.n_rx, g_mimo);
     LOG_I("sim:   = matched filter over one interval    %+8.2f dB  (%.2f ms coherent)",
           snr_cpi, t_coh * 1e3);
     LOG_I("sim:   = the same scaled to 100 ms           %+8.2f dB  "
