@@ -269,8 +269,8 @@ int main(int argc, char** argv) {
     const u64          t0 = now_ns();
     std::vector<u8>    buf;
     std::atomic<u64>   frames_done{0};
-    bool               sent_config = false;
-    double             dyn_range   = 70.0;
+    int                last_clients = -1;
+    double             dyn_range    = 70.0;
 
     pipe.on_frame([&](const RdFrame& f, const std::vector<Track>& tracks, const Stats& s) {
         frames_done.store(f.index + 1, std::memory_order_relaxed);
@@ -278,10 +278,17 @@ int main(int argc, char** argv) {
 
         buf.clear();
         const u64 t = now_ns();
-        if (!sent_config) {
+
+        // The configuration is what puts real metres and metres per second on
+        // the display's axes, so a client that connects mid-run has to get it
+        // too. Re-send whenever the client count changes, and periodically
+        // regardless, so a browser that reconnects after a dropped socket
+        // recovers by itself rather than showing an unlabelled map.
+        const int n_clients = web->clients();
+        if (n_clients != last_clients || (f.index % 32) == 0) {
+            last_clients = n_clients;
             encode_hello(buf, t0, t, "radar5g8");
             encode_config(buf, cfg, f.index, t);
-            sent_config = true;
         }
         encode_rdmap(buf, f, t, auto_range(f, dyn_range));
         encode_hits(buf, f, t);
