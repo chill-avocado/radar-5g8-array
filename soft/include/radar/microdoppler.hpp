@@ -72,13 +72,18 @@ public:
     /// label and label_conf.  Evidence accumulates per track identifier, so
     /// calling this every frame makes the label steadier rather than noisier.
     ///
+    /// `slow_prf_hz` is the rate the samples arrive at.  Left at zero it is
+    /// taken to be `n` samples spread across one coherent interval, which is
+    /// what the pipeline hands over and which is right whether the caller
+    /// passes one virtual channel's chirps or both transmitters interleaved.
+    ///
     /// Safe to call from several threads at once, including on tracks that
     /// share this object: the evidence store is the only shared state and it
     /// is locked, and radar::Fft::run is const and re-entrant.
-    void analyse(const cf32* slow_time, int n, Track& t) const;
+    void analyse(const cf32* slow_time, int n, Track& t, double slow_prf_hz = 0.0) const;
 
-    /// Drop the accumulated evidence for a track that has died, so a reused
-    /// identifier does not inherit a stale opinion.
+    /// Drop the accumulated evidence and slow-time history for a track that
+    /// has died, so a reused identifier does not inherit a stale opinion.
     void forget(u32 track_id) const;
     void reset() const;
 
@@ -86,13 +91,21 @@ public:
     double slow_prf_hz()  const { return prf_hz_; }         ///< slow-time sample rate
     double stft_bin_hz()  const { return prf_hz_ / kWin; }  ///< spectrogram bin width
     double stft_rate_hz() const { return prf_hz_ / kHop; }  ///< spectrogram frames per second
-    double cpi_bin_hz()   const { return prf_hz_ / n_cpi_; }///< width-measurement resolution
     double hz_per_ms()    const { return 2.0 / lambda_m_; } ///< Doppler per metre per second
-    int    cpi_fft_size() const { return n_cpi_; }
+    int    history_cpi()  const { return kHistCpi; }
+    int    long_fft_size() const { return n_long_; }
 
-    static constexpr int kWin   = 64;  ///< short-time window, samples
-    static constexpr int kHop   = 16;  ///< 75 per cent overlap
-    static constexpr int kNotch = 2;   ///< bins either side of the body line
+    /// Frequency resolution of the width measurement once `n_cpi` intervals
+    /// have accumulated, and the blade rates detectable from that much record.
+    /// blade_lo is what limits the answer early on: three cycles have to fit
+    /// inside the record before a periodicity is called one.
+    double width_resolution_hz(int n_cpi) const;
+    void   blade_band_hz(int n_cpi, double& lo, double& hi) const;
+
+    static constexpr int kWin     = 64;  ///< short-time window, samples
+    static constexpr int kHop     = 16;  ///< 75 per cent overlap
+    static constexpr int kNotch   = 2;   ///< long-transform bins either side of the body
+    static constexpr int kHistCpi = 8;   ///< coherent intervals kept per track
 
     static const char* kRotorcraft;   ///< "rotorcraft"
     static const char* kPerson;       ///< "person"
