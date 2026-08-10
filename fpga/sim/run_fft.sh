@@ -88,6 +88,24 @@ echo "--- build ---"
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
 
+# Verilator echoes every compile command it runs, so the tail of a failed log is
+# usually the commands rather than the diagnostic.  Pull out the lines that
+# actually say what went wrong, and fall back to the whole log if none match.
+show_build_error() {
+    local log="$1"
+    echo "  ---- error ----"
+    if grep -nE '(^%Error|error:|Error:|fatal error|undefined reference|ld: |No such file|Assertion)' "$log" \
+            | grep -v 'MAKEFLAGS' | head -40; then
+        : # matched lines already printed
+    fi
+    if ! grep -qE '(^%Error|error:|Error:|fatal error|undefined reference|ld: |No such file|Assertion)' "$log"; then
+        echo "  (no diagnostic matched; full log follows)"
+        cat "$log"
+    else
+        echo "  ---- full log: $log ----"
+    fi
+}
+
 INCS=()
 LIBS=()
 for s in "${SIZES[@]}"; do
