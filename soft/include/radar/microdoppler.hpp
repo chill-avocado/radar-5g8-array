@@ -18,16 +18,30 @@
 // none of the three the answer is "unknown", not the nearest neighbour in some
 // feature space nobody can inspect.
 //
-// Two transforms are used, because the three questions being asked want
-// opposite things from one.  How wide the skirt is, and whether it is
-// lopsided, is a question about frequency and wants the longest window
-// available -- a walking person's limbs are only a metre or two per second
-// away from the torso, which is finer than a short window can resolve at this
-// pulse rate.  When the blades flash is a question about time and wants a
-// short sliding window, because a flash lasting a millisecond vanishes
-// completely in a transform over the whole interval.  So the skirt is measured
-// on one transform of the entire coherent interval, and the flashes on a
-// sixty-four sample window slid across it.
+// Two transforms are used, because the questions being asked want opposite
+// things from one.  How wide the skirt is, and whether it is lopsided, is a
+// question about frequency and wants the longest window available.  When the
+// blades flash is a question about time and wants a short sliding window,
+// because a flash lasting a millisecond vanishes completely in a transform
+// over a whole interval.  So the skirt is measured with one long transform,
+// and the flashes with a sixty-four sample window slid across the record.
+//
+// Neither question fits inside one coherent interval.  Sixteen milliseconds
+// buys 62.5 Hz of frequency resolution, which is 1.6 metres per second at this
+// carrier -- coarser than the whole of a walking person's limb motion.  And a
+// blade flashing a hundred times a second completes 1.6 cycles in that time,
+// which no periodicity estimator can honestly call periodic.  So the slow-time
+// samples are kept per track across consecutive intervals and the analysis
+// runs on the accumulated record.  Eight intervals is 128 ms: 7.8 Hz of
+// resolution, 0.2 metres per second, and a dozen cycles of a hundred hertz
+// blade line.
+//
+// Stitching intervals together assumes the samples are one continuous stream,
+// which they are while the target stays in the same range bin -- true of the
+// slow targets that need the resolution.  A fast target crossing a bin puts a
+// phase step in the record, which can only widen the measured skirt, and a
+// widened skirt without a blade line reads as "unknown" rather than as a
+// confident wrong answer.
 //============================================================================
 #pragma once
 
