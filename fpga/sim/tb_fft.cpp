@@ -443,6 +443,42 @@ void run_size(int N, int NLOG2) {
     }
 
     //------------------------------------------------------------------------
+    // in_last has to be able to move the frame boundary.  Start the core with a
+    // deliberately wrong one -- a first "frame" of N/2 + 7 samples -- and it
+    // must lock onto the boundary in_last declares and go on producing correct
+    // transforms.  Which input frame comes out first depends on where the
+    // re-sync lands, so the check is that the captured run matches some
+    // consecutive run of references; a wrong alignment misses by tens of dB.
+    //------------------------------------------------------------------------
+    {
+        std::vector<std::vector<ci>> in;
+        for (int f = 0; f < n_frames; ++f)
+            in.push_back(make_tone(N, bin, full, 0.7 * f));
+
+        const int lead = N / 2 + 7;
+        RunOut r = stream(dut, N, NLOG2, sch_half, in, n_check, 0, false, lead);
+
+        double best = 1e9;
+        int    best_off = -1;
+        if (r.complete) {
+            for (int off = 0; off + n_check <= n_frames; ++off) {
+                std::vector<std::vector<cd>> ref;
+                for (int f = 0; f < n_check; ++f) ref.push_back(dft_ref(in[off + f]));
+                const double e = rms_dbfs(r.frames, ref);
+                if (e < best) { best = e; best_off = off; }
+            }
+        }
+
+        char line[320];
+        std::snprintf(line, sizeof line,
+                      "N=%-4d %-22s  first frame short by %d samples, re-locked on input "
+                      "frame %d, rms=%.2f dBFS  idx=%s last=%s",
+                      N, "in_last re-sync", N - lead, best_off, best,
+                      r.idx_ok ? "ok" : "BAD", r.last_ok ? "ok" : "BAD");
+        report(r.complete && best < RMS_LIMIT_DB && r.idx_ok && r.last_ok, line);
+    }
+
+    //------------------------------------------------------------------------
     // (f) latency
     //------------------------------------------------------------------------
     {
