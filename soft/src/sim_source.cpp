@@ -776,6 +776,68 @@ void SimSource::set_levels() {
           "noise %.1f dBFS = %.1f converter counts rms, leakage at range bin %d",
           pt_dbm, fs_dbm - backoff_db_, backoff_db_, noise_dbfs,
           noise_sigma_ * std::sqrt(2.0) * lsb, leak_bin_);
+    log_link_budget(pt_dbm);
+}
+
+//----------------------------------------------------------------------------
+// The link budget, decibel by decibel.
+//
+// Printed once at open() for a reference target -- the same 0.01 square metre
+// drone at 173 metres that design/system_budget.py quotes -- so that when a
+// measured signal-to-noise ratio disagrees with the budget, which term is
+// responsible is visible rather than something to be hunted for.
+//
+// The chain below stops at the matched filter, which is the most any processing
+// can extract.  What the real pipeline gets is that minus its own losses, and
+// those are named at the end so the two can be compared honestly.
+//----------------------------------------------------------------------------
+void SimSource::log_link_budget(double pt_dbm) const {
+    if (log_level() > LogLevel::Info) return;
+
+    const double R     = 173.0;
+    const double sigma = 0.01;
+    const double lam   = g_.lambda;
+    const double g_el  = array_geom::element_gain_dbi;
+
+    const double spread_db = -db(std::pow(4.0 * kPi, 3) * std::pow(R, 4));
+    const double lam_db    = db(lam * lam);
+    const double sig_db    = db(sigma);
+    const double pr_dbm    = pt_dbm + 2 * g_el + lam_db + sig_db + spread_db - kSystemLossDb;
+
+    const double ktb_dbm   = db(phys::k_boltz * phys::T0 * 1e3) + kNoiseFigureDb + db(g_.fs);
+    const double snr_samp  = pr_dbm - ktb_dbm;
+
+    const double tau       = 2.0 * R / phys::c0;
+    const int    n_used    = g_.n_sweep - int(std::ceil(tau * g_.fs));
+    const double g_range   = db(double(n_used));
+    const int    n_per_tx  = g_.ddm ? g_.n_chirp_total : g_.n_chirp_total / g_.n_tx;
+    const double g_dopp    = db(double(n_per_tx));
+    const double g_mimo    = db(double(g_.n_tx * g_.n_rx));
+    const double snr_cpi   = snr_samp + g_range + g_dopp + g_mimo;
+    const double t_coh     = double(n_per_tx) * double(n_used) / g_.fs;
+    const double snr_100   = snr_cpi + db(0.100 / t_coh);
+
+    LOG_I("sim: link budget for %.2f m2 at %.0f m, one virtual channel --", sigma, R);
+    LOG_I("sim:   transmit power                        %+8.2f dBm", pt_dbm);
+    LOG_I("sim:   antenna gain, transmit and receive    %+8.2f dB   (%.1f dBi each)", 2 * g_el, g_el);
+    LOG_I("sim:   wavelength term, lambda squared       %+8.2f dB", lam_db);
+    LOG_I("sim:   radar cross section                   %+8.2f dB", sig_db);
+    LOG_I("sim:   spreading, (4 pi)^3 R^4               %+8.2f dB", spread_db);
+    LOG_I("sim:   cable, mismatch and processing loss   %+8.2f dB", -kSystemLossDb);
+    LOG_I("sim:   = received power                      %+8.2f dBm", pr_dbm);
+    LOG_I("sim:   kTB at %.1f dB noise figure over %.2f MHz  %+8.2f dBm",
+          kNoiseFigureDb, g_.fs / 1e6, ktb_dbm);
+    LOG_I("sim:   = signal-to-noise per sample          %+8.2f dB", snr_samp);
+    LOG_I("sim:   range transform, %5d live samples    %+8.2f dB", n_used, g_range);
+    LOG_I("sim:   Doppler transform, %4d chirps/tx     %+8.2f dB", n_per_tx, g_dopp);
+    LOG_I("sim:   four virtual channels combined        %+8.2f dB", g_mimo);
+    LOG_I("sim:   = matched filter over one interval    %+8.2f dB  (%.2f ms coherent)",
+          snr_cpi, t_coh * 1e3);
+    LOG_I("sim:   = the same scaled to 100 ms           %+8.2f dB  "
+          "(design/system_budget.py says 12.97 dB)", snr_100);
+    LOG_I("sim:   what a windowed two-transform pipeline actually reaches is this minus its "
+          "own losses: about 3 dB per Blackman-Harris window, up to 1.7 dB of straddle, and "
+          "6 dB if the four channels are added as powers rather than coherently.");
 }
 
 //----------------------------------------------------------------------------
