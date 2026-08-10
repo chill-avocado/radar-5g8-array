@@ -44,6 +44,10 @@
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* A display:flex rule beats the browser's [hidden] rule on specificity, which
+   left the "waiting for radar" overlay painted on top of live data. State it
+   once, here, rather than remembering it at every use. */
+[hidden]{display:none !important}
 html,body{height:100%}
 body{
   background:var(--bg); color:var(--ink);
@@ -54,16 +58,19 @@ body{
 .num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
 #app{
-  height:100vh; display:grid;
-  grid-template-rows:32px 24px 1fr 46px;
+  height:100vh; width:100vw; overflow:hidden;
+  display:grid; grid-template-rows:32px 24px 1fr 46px;
 }
 
 /*--------------------------------------------------------------- status ---*/
 #status{
-  display:flex; align-items:stretch; gap:0;
+  display:flex; align-items:stretch; gap:0; overflow:hidden; min-width:0;
   background:var(--panel); border-bottom:1px solid var(--line);
   padding-left:12px;
 }
+/* Without this the status row's own content sets the page width and pushes
+   the right-hand column off screen. */
+#status > *{flex:0 0 auto;min-width:0}
 #brand{display:flex;align-items:baseline;gap:7px;padding-right:14px;align-self:center}
 #brand .t{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--ink)}
 #brand .s{font-size:10px;color:var(--ink3);font-family:var(--mono)}
@@ -112,7 +119,7 @@ body{
 
 /*----------------------------------------------------------------- grid ---*/
 #grid{
-  display:grid; min-height:0;
+  display:grid; min-height:0; min-width:0; overflow:hidden;
   grid-template-columns:1fr 352px;
   grid-template-rows:1fr;
   gap:1px; background:var(--line);
@@ -172,7 +179,7 @@ body{
 /* A bar, not a column. These get touched occasionally; the map is looked at
    continuously, so the map keeps the space. */
 #ctlbar{
-  display:flex;align-items:center;gap:0;
+  display:flex;align-items:center;gap:0;overflow:hidden;min-width:0;
   background:var(--panel);border-top:1px solid var(--line);padding-left:4px;
 }
 #ctlbar .grp{display:flex;align-items:center;gap:8px;padding:0 12px;
@@ -226,10 +233,11 @@ kbd{font:10px var(--mono);background:var(--panel2);border:1px solid var(--line2)
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
 ::-webkit-scrollbar-track{background:transparent}
 
-@media (max-width:1100px){
-  #grid{grid-template-columns:1fr 290px}
-  #ctlbar .grp.opt{display:none}
-}
+@media (max-width:1600px){ #c-render{display:none} }
+@media (max-width:1450px){ #c-skip{display:none} }
+@media (max-width:1320px){ #c-frame{display:none} #ctlbar .grp.opt{display:none} }
+@media (max-width:1200px){ #c-bps{display:none} #grid{grid-template-columns:1fr 300px} }
+@media (max-width:1040px){ #c-mode{display:none} #grid{grid-template-columns:1fr 264px} }
 </style>
 </head>
 <body>
@@ -1448,7 +1456,9 @@ const Status = (() => {
 
     $("v-fps").textContent = st ? st.fps.toFixed(1) : (S.dataFps ? S.dataFps.toFixed(1) : "--.-");
     const cpu = st ? st.cpu : 0;
-    $("v-cpu").firstChild.nodeValue = (cpu*100).toFixed(0) + "%";
+    $("v-cpu").firstChild.nodeValue = cpu > 1.5
+      ? (cpu).toFixed(1) + "\u00d7 over"        // over budget: say so plainly
+      : (cpu*100).toFixed(0) + "%";
     const bar = $("v-cpubar");
     bar.style.width = clamp(cpu*100, 0, 100).toFixed(0) + "%";
     bar.style.background = cpu > 0.9 ? "var(--bad)" : cpu > 0.7 ? "var(--warn)" : "var(--good)";
