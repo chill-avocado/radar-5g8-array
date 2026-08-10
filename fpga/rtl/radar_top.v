@@ -65,6 +65,7 @@
 //   total                                     ~267 BRAM36 (60%), ~136 DSP (16%)
 // which leaves the stock b200 radio core its share with room to spare.
 //============================================================================
+`timescale 1ns / 1ps
 `include "radar_pkg.svh"
 `default_nettype none
 
@@ -135,6 +136,7 @@ module radar_top #(
     wire [7:0]  zero_dopp;
     wire [3:0]  geom_n_range_log2, geom_n_chirp_log2;
     wire signed [31:0] test_tone;
+    wire        version_stb;
 
     radar_regs u_regs (
         .clk(radio_clk), .rst(radio_rst),
@@ -147,8 +149,9 @@ module radar_top #(
         .t_sweep(t_sweep), .t_pri(t_pri), .n_chirp(n_chirp), .tx_gain(tx_gain),
         .dechirp_sh(dechirp_sh),
         .fft_scale_r(fft_scale_r), .fft_scale_d(fft_scale_d),
-        .win_we(win_we), .win_addr(win_addr),
+        .win_we(win_we), .win_addr(win_addr), .win_data(),
         .win_data_r(win_data_r), .win_data_d(win_data_d),
+        .version_stb(version_stb),
         .cfar_guard_range(cfar_guard_r), .cfar_guard_dopp(cfar_guard_d),
         .cfar_train_range(cfar_train_r), .cfar_train_dopp(cfar_train_d),
         .cfar_kind(cfar_kind), .cfar_alpha(cfar_alpha),
@@ -165,7 +168,7 @@ module radar_top #(
     // half under the old settings and half under the new.
     wire rst = radio_rst | ctrl_soft_reset;
     assign enabled   = ctrl_enable;
-    assign cfg_error = ct0_cfg_error | ct1_cfg_error;
+    assign cfg_error = ct0_cfg_error | ct1_cfg_error | hitcap_cfg_error;
 
     //------------------------------------------------------------------
     // Sequencer and chirp generator
@@ -488,14 +491,17 @@ module radar_top #(
         .cfg_guard_r(cfar_guard_r), .cfg_guard_d(cfar_guard_d),
         .cfg_train_r(cfar_train_r), .cfg_train_d(cfar_train_d),
         .cfg_kind(cfar_kind), .cfg_alpha(cfar_alpha),
+        // The transmit leakage sits at zero Doppler, so cfg_zero_dopp already
+        // suppresses it and no separate range gate is needed. range_zero is a
+        // host-side quantity: it moves the range ORIGIN, it does not blank a cell.
         .cfg_zero_dopp(zero_dopp), .cfg_max_hits(max_hits),
-        .cfg_range_zero(range_zero[7:0]),
         .in_valid(pw_valid), .in_pwr(pw_pwr), .in_last(pw_last),
         .hit_valid(hit_valid), .hit_range(hit_range), .hit_dopp(hit_dopp),
         .hit_pwr(hit_pwr),
         .noise_out(noise_out), .n_hits(n_hits), .frame_done(cfar_frame_done)
     );
 
+    wire        hitcap_cfg_error;
     wire signed [15:0] cap_i [0:3];
     wire signed [15:0] cap_q [0:3];
 
@@ -503,6 +509,7 @@ module radar_top #(
         .clk(radio_clk), .rst(rst),
         .cfg_guard_r(cfar_guard_r), .cfg_train_r(cfar_train_r),
         .cfg_guard_d(cfar_guard_d), .cfg_train_d(cfar_train_d),
+        .cfg_error(hitcap_cfg_error),
         .in_valid(dv_valid[0]),
         .in_v0_i(dv_i[0]), .in_v0_q(dv_q[0]),
         .in_v1_i(dv_i[1]), .in_v1_q(dv_q[1]),
@@ -540,7 +547,7 @@ module radar_top #(
         .clk(radio_clk), .rst(rst),
         .cfg_map_enable(ctrl_map_enable), .cfg_hits_enable(ctrl_hits_enable),
         .cfg_map_decim_r(map_decim_r), .cfg_map_decim_d(map_decim_d),
-        .cfg_n_range(n_range_max[8:0]), .cfg_n_doppler(N_DOPPLER[9:0]),
+        .n_range(n_range_max[8:0]), .n_doppler(N_DOPPLER[9:0]),
         .cfg_flags({8'd0, ctrl_mimo_mode, ctrl_tx_enable, ovf_latch,
                     ctrl_hits_enable, ctrl_map_enable, 2'b00}),
         .frame_index(frame_index), .timestamp(vita_time), .noise(noise_out),
@@ -561,7 +568,7 @@ module radar_top #(
     wire _unused = &{1'b0, ct_s_ready[0], ct_s_ready[1], ct_frame_done[0], ct_frame_done[1],
                      fe_last[0], fe_last[1], dv_last[1], dv_last[2], dv_last[3],
                      tx_sel, frame_end, running, sample_idx, chirp_idx,
-                     ctrl_frame_limit, test_tone, win_data_d, 1'b0};
+                     ctrl_frame_limit, test_tone, win_data_d, version_stb, 1'b0};
 
 endmodule
 

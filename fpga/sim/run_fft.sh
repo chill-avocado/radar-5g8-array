@@ -146,7 +146,7 @@ if ! c++ -std=gnu++17 -O2 -Wall -Wno-sign-compare \
         "$HERE/tb_fft.cpp" "${LIBS[@]}" "$BUILD/obj_1024/libverilated.a" \
         -o "$BUILD/tb_fft" >"$BUILD/link.log" 2>&1; then
     echo "FAIL  compile tb_fft.cpp"
-    cat "$BUILD/link.log"
+    show_build_error "$BUILD/link.log"
     exit 1
 fi
 echo "PASS  compile tb_fft.cpp"

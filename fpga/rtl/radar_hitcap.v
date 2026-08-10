@@ -38,6 +38,7 @@
 //   4096 x 128 bits = 524288 bits = 14 x RAMB36 (simple dual port)
 //   ~120 slice LUT, ~150 FF, 0 DSP48
 //============================================================================
+`timescale 1ns / 1ps
 `default_nettype none
 
 module radar_hitcap #(
