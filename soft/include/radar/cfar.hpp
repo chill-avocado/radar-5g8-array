@@ -64,6 +64,13 @@ private:
     struct Scratch;
     Scratch& scratch(int nr, int nd) const;
 
+    /// Identifies this detector to its per-thread working set.  It has to be a
+    /// serial number and not the object's address: a Cfar2D built on the stack,
+    /// destroyed and rebuilt lands on the same address, and a cache keyed on
+    /// that address would silently hand the new detector the old one's
+    /// threshold tables -- with the old one's false-alarm probability in them.
+    u64      serial_;
+
     CfarKind kind_;
     int      guard_r_, guard_d_, train_r_, train_d_;
     int      halo_r_, halo_d_;      ///< guard + training, each axis
