@@ -16,8 +16,26 @@
 namespace radar {
 
 /// `param` is the sidelobe level in dB (positive) for Taylor and Chebyshev,
-/// and ignored otherwise.  Taylor additionally uses nbar = 5.
+/// and ignored otherwise.  Taylor additionally needs nbar, the number of
+/// sidelobes held down at the design level, and make_window() picks it from
+/// the sidelobe level -- see make_taylor_window() below for why it cannot be a
+/// fixed number.
 std::vector<float> make_window(WindowKind k, int n, double param = 0.0);
+
+/// Taylor with nbar named explicitly, for a caller who wants to override the
+/// choice make_window() makes.
+///
+/// nbar cannot be fixed.  A Taylor window only holds its design sidelobe level
+/// out to the nbar-th sidelobe; past that the pattern falls away like a
+/// rectangular window's, from wherever the nbar-th one sits.  Ask for a deeper
+/// sidelobe than the transition can reach and the far lobes simply stay where
+/// they were, so the window quietly misses its target -- 18 dB short at 80 dB
+/// with nbar = 5.  The requirement is nbar >= 2*A^2 + 0.5, where
+/// A = acosh(10^(sidelobe/20)) / pi, which is 8 at 45 dB and 21 at 80 dB.
+std::vector<float> make_taylor_window(int n, double sidelobe_db, int nbar);
+
+/// The smallest nbar that can actually hold `sidelobe_db`, never below 4.
+int taylor_nbar_for(double sidelobe_db);
 
 /// Amplitude gain applied to a coherent tone: mean of the coefficients.
 double window_coherent_gain(const std::vector<float>& w);
