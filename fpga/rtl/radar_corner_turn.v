@@ -252,13 +252,24 @@ module radar_corner_turn #(
             end
 
             // ---- read address sequencing ----------------------------------
+            // On the last word of a frame the reader rolls straight into the
+            // other buffer if that one is already full, in the same clock.
+            // Waiting a clock to notice would put a hole in the output stream
+            // at every frame join, and the whole point of the second buffer is
+            // that the stream never has one.
             if (rd_issue) begin
                 if (rd_frame_end) begin
-                    rd_active        <= 1'b0;
                     buf_full[rd_sel] <= 1'b0;
                     rd_sel           <= ~rd_sel;
                     rd_range         <= {AW{1'b0}};
                     rd_chirp         <= {AW{1'b0}};
+                    if (buf_full[~rd_sel]) begin
+                        rd_active  <= 1'b1;
+                        rd_nr_log2 <= buf_nr_log2[~rd_sel];
+                        rd_nc_log2 <= buf_nc_log2[~rd_sel];
+                    end else begin
+                        rd_active <= 1'b0;
+                    end
                 end else if (rd_row_end) begin
                     rd_chirp <= {AW{1'b0}};
                     rd_range <= rd_range + AONE;
