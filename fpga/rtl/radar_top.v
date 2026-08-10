@@ -137,6 +137,9 @@ module radar_top #(
     wire [3:0]  geom_n_range_log2, geom_n_chirp_log2;
     wire signed [31:0] test_tone;
     wire        version_stb;
+    // Deliberately unused: the combined win_data is presented split as
+    // win_data_r / win_data_d, which is what the two window tables want.
+    wire [31:0] win_data_unused;
 
     radar_regs u_regs (
         .clk(radio_clk), .rst(radio_rst),
@@ -149,7 +152,7 @@ module radar_top #(
         .t_sweep(t_sweep), .t_pri(t_pri), .n_chirp(n_chirp), .tx_gain(tx_gain),
         .dechirp_sh(dechirp_sh),
         .fft_scale_r(fft_scale_r), .fft_scale_d(fft_scale_d),
-        .win_we(win_we), .win_addr(win_addr), .win_data(),
+        .win_we(win_we), .win_addr(win_addr), .win_data(win_data_unused),
         .win_data_r(win_data_r), .win_data_d(win_data_d),
         .version_stb(version_stb),
         .cfar_guard_range(cfar_guard_r), .cfar_guard_dopp(cfar_guard_d),
@@ -212,8 +215,8 @@ module radar_top #(
             tx_gi <= 16'sd0;
             tx_gq <= 16'sd0;
         end else begin
-            tx_gi <= $signed({1'b0, tx_gain}) * nco_i >>> 15;
-            tx_gq <= $signed({1'b0, tx_gain}) * nco_q >>> 15;
+            tx_gi <= 16'($signed({1'b0, tx_gain}) * nco_i >>> 15);
+            tx_gq <= 16'($signed({1'b0, tx_gain}) * nco_q >>> 15);
         end
     end
 
@@ -304,7 +307,7 @@ module radar_top #(
         // The window module emits zero past the table depth, which is how the
         // 768-sample record is zero-padded to the 1024-point transform.
         reg [N_RANGE_FFT_LOG2-1:0] fft_fill;
-        wire fft_last = (fft_fill == N_RANGE_FFT - 1);
+        wire fft_last = (fft_fill == N_RANGE_FFT_LOG2'(N_RANGE_FFT - 1));
         always @(posedge radio_clk) begin
             if (rst)           fft_fill <= 0;
             else if (wn_valid) fft_fill <= fft_last ? 0 : fft_fill + 1'b1;
@@ -396,6 +399,9 @@ module radar_top #(
     wire signed [15:0] dv_q     [0:3];
     wire               dv_last  [0:3];
     wire               dv_ovf   [0:3];
+    // The packer counts cells itself, so the transform's own bin index is
+    // not used; named rather than left empty so lint stays clean.
+    wire [N_DOPPLER_LOG2-1:0] dv_idx_unused [0:3];
 
     genvar rxi, txi;
     generate
@@ -416,7 +422,7 @@ module radar_top #(
                     ? (dopp_phase[rxi][0] == txi[0]) : 1'b1;
 
         reg [N_DOPPLER_LOG2-1:0] fill;
-        wire dlast = (fill == N_DOPPLER - 1);
+        wire dlast = (fill == N_DOPPLER_LOG2'(N_DOPPLER - 1));
         always @(posedge radio_clk) begin
             if (rst)                          fill <= 0;
             else if (ct_m_valid[rxi] && take) fill <= dlast ? 0 : fill + 1'b1;
@@ -429,9 +435,9 @@ module radar_top #(
             .in_valid(ct_m_valid[rxi] & take),
             .in_i(ct_m_data[rxi][31:16]), .in_q(ct_m_data[rxi][15:0]),
             .in_last(dlast),
-            .scale_sch({4'd0, fft_scale_d}),
+            .scale_sch(fft_scale_d[2*N_DOPPLER_LOG2-1:0]),
             .out_valid(dv_valid[VC]), .out_i(dv_i[VC]), .out_q(dv_q[VC]),
-            .out_last(dv_last[VC]), .out_idx(), .overflow(dv_ovf[VC])
+            .out_last(dv_last[VC]), .out_idx(dv_idx_unused[VC]), .overflow(dv_ovf[VC])
         );
       end
     end
@@ -568,7 +574,9 @@ module radar_top #(
     wire _unused = &{1'b0, ct_s_ready[0], ct_s_ready[1], ct_frame_done[0], ct_frame_done[1],
                      fe_last[0], fe_last[1], dv_last[1], dv_last[2], dv_last[3],
                      tx_sel, frame_end, running, sample_idx, chirp_idx,
-                     ctrl_frame_limit, test_tone, win_data_d, version_stb, 1'b0};
+                     ctrl_frame_limit, test_tone, win_data_d, version_stb,
+                     win_data_unused, dv_idx_unused[0], dv_idx_unused[1],
+                     dv_idx_unused[2], dv_idx_unused[3], 1'b0};
 
 endmodule
 
