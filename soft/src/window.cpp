@@ -119,6 +119,13 @@ std::vector<float> cosine_sum(int n, const double* a, int terms) {
 // Taylor, n-bar.  The window is 1 plus a short cosine series whose
 // coefficients F_m are chosen so that the first nbar-1 sidelobes sit at the
 // requested level and the rest decay like a rectangular window's.
+//
+// nbar has to grow with the sidelobe target.  The design pushes the near-in
+// sidelobes down to the requested level and leaves the far ones falling away
+// from the nbar-th; if nbar is too small the far lobes never get pushed down
+// at all and the window misses its target no matter how deep the request.  The
+// condition for the design to be realisable is nbar >= 2*A^2 + 0.5, and a
+// fixed nbar = 5 is only good to about 45 dB.
 //----------------------------------------------------------------------------
 std::vector<float> taylor_window(int n, int nbar, double sll_db) {
     std::vector<float> w(static_cast<std::size_t>(n < 0 ? 0 : n));

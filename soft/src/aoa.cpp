@@ -512,12 +512,33 @@ AoaEngine::Result AoaEngine::run_spectrum(const cf64 R[kM][kM], int n_snap_eff,
         double w[kM];
         cf64   V[kM][kM];
         jacobi_hermitian4(R, w, V);
+
+        // How many eigenvalues are real rather than rounding.  Anything below
+        // this is a direction the data never measured, and an eigenvector
+        // belonging to a degenerate zero eigenvalue is an arbitrary vector in
+        // the null space -- put one of those in the noise subspace and the
+        // pseudospectrum peaks wherever that arbitrary vector happens to point.
+        // That is the whole failure mode of single-snapshot MUSIC.
+        int rank = 0;
+        for (int i = 0; i < kM; ++i) if (w[i] > w[0] * 1e-9) ++rank;
+
+        // Every source claimed needs an eigenvalue to sit in, and at least one
+        // genuine eigenvalue has to be left over to define the noise subspace.
         n_src = std::min(mdl_order(w, n_snap_eff), kM - 1);
+        n_src = std::min(n_src, rank - 1);
+        if (n_src < 1) {
+            // Nothing left to call noise.  Capon still works -- its loading
+            // makes the inverse exist regardless of rank -- so use that rather
+            // than return an angle that means nothing.
+            r = run_spectrum(R, n_snap_eff, AoaMethod::Capon);
+            r.degraded = true;
+            return r;
+        }
 
         // Everything left after the strongest n_src directions is called noise.
-        // A direction that is orthogonal to all of it must be a source, and
-        // that orthogonality is far sharper than any beam pattern, which is
-        // where MUSIC's resolution comes from.
+        // A direction orthogonal to all of it must be a source, and that
+        // orthogonality is far sharper than any beam pattern, which is where
+        // MUSIC's resolution comes from.
         for (int i = 0; i < kM; ++i)
             for (int j = 0; j < kM; ++j) {
                 cf64 sum(0, 0);
