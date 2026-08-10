@@ -98,9 +98,44 @@ std::vector<i16> dopp_window_table(const Config& c);
 /// total.  The Doppler transform is this long before zero padding.
 int chirps_per_channel(const Config& c);
 
+//----------------------------------------------------------------------------
+// The 16-bit transform, and everything it needs.
+//
+// Decimation in frequency, natural order in and out.  Exposed rather than
+// hidden because an RTL testbench wants to drive exactly this, one stage at a
+// time, against the fabric's own butterflies.
+//----------------------------------------------------------------------------
+struct FixedFftPlan {
+    int               n       = 0;
+    bool              inverse = false;
+    std::vector<int>  shift;   ///< bits shed at each stage, in stage order
+    std::vector<ci16> tw;      ///< W[k] = round(32767 * exp(-+2 pi i k / n))
+    std::vector<i32>  twa;     ///< the same twiddle packed as (wr, -wi)
+    std::vector<i32>  twb;     ///< and as (wi, wr), for the vector path
+    std::vector<int>  brev;    ///< bit-reversal permutation
+
+    void build(int n, bool inverse, const std::vector<int>& shift);
+    int  total_shift() const;
+};
+
+/// One transform in place.
+void fixed_fft(ci16* x, const FixedFftPlan& p);
+
+/// Eight transforms at once, samples interleaved eight ways: element t of
+/// transform u lives at x[t * 8 + u].  Every stage then walks memory with unit
+/// stride and one twiddle serves all eight, which is what makes the vector
+/// path worthwhile.  Bit for bit identical to eight calls to fixed_fft().
+void fixed_fft_x8(ci16* x, const FixedFftPlan& p);
+
 class RefModel {
 public:
-    explicit RefModel(const Config& c);
+    /// `threads` spreads the per-chirp range transforms of process_cpi over
+    /// that many threads.  The chirps are independent, so this changes how
+    /// long the answer takes and never what it is.
+    explicit RefModel(const Config& c, int threads = 1);
+
+    void set_threads(int n);
+    int  threads() const { return threads_; }
 
     //--------------------------------------------------------------------
     // One receive channel, one chirp.
@@ -123,6 +158,9 @@ public:
     // stand, and the map holds the unsigned 32-bit sum of their squares over
     // the four channels.  The Doppler axis is centred, so index n_doppler/2
     // is zero velocity and index n_doppler/2 + d is Doppler bin d.
+    //
+    // Virtual channel order is transmitter * 2 + receiver, matching
+    // radar::array_geom::virt_xy.
     //--------------------------------------------------------------------
     void process_cpi(const ci16* const* rx_chirps, int n_rx, int n_chirp_total,
                      RdFrame& out) const;
@@ -138,11 +176,14 @@ public:
     const std::vector<i16>& dopp_window_q15()  const { return dwin_; }
 
     /// The scaling schedules as written to the settings bus.
-    u32 range_fft_scale_word() const { return fft_scale_word(rshift_); }
-    u32 dopp_fft_scale_word()  const { return fft_scale_word(dshift_); }
+    u32 range_fft_scale_word() const { return fft_scale_word(rplan_.shift); }
+    u32 dopp_fft_scale_word()  const { return fft_scale_word(dplan_.shift); }
     /// Total bits shed by each transform, useful for scaling comparisons.
-    int range_fft_total_shift() const;
-    int dopp_fft_total_shift()  const;
+    int range_fft_total_shift() const { return rplan_.total_shift(); }
+    int dopp_fft_total_shift()  const { return dplan_.total_shift(); }
+
+    const FixedFftPlan& range_plan() const { return rplan_; }
+    const FixedFftPlan& dopp_plan()  const { return dplan_; }
 
     const Config&   config()   const { return cfg_; }
     const Waveform& waveform() const { return wf_; }
@@ -150,14 +191,17 @@ public:
 private:
     Config   cfg_;
     Waveform wf_;
+    int      threads_ = 1;
 
     std::vector<i32>  hb_;        ///< 23 halfband taps, Q0.17
-    std::vector<int>  hb_nz_;     ///< indices of the taps that are not zero
+    std::vector<i32>  hb_fold_;   ///< the 6 folded pairs then the centre tap
     std::vector<i16>  rwin_, dwin_;
-    std::vector<int>  rshift_, dshift_;
-    std::vector<ci16> rtw_, dtw_; ///< Q0.15 twiddles, forward and inverse
-    std::vector<int>  rbrev_, dbrev_;
+    FixedFftPlan      rplan_, dplan_;
     int               n_dopp_in_ = 0;
+
+    /// Eight chirps of one receive channel, all the way to range bins.
+    void range_chirp_x8(const ci16* const* adc, int count, ci16* work,
+                        ci16* out, int out_stride) const;
 
     // Float-path transforms, built the first time the float chain is asked
     // for.  Planning them costs real time with some backends and the fixed
