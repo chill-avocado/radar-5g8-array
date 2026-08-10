@@ -147,13 +147,16 @@ static void test_geometry() {
         return;
     }
 
+    // The report rounds to four decimal places of a millimetre, so the
+    // tolerance is a micrometre, not a picometre. Anything larger than that
+    // would be a genuine disagreement about the geometry.
     const double lam_json = j["array"]["wavelength_mm"].num() * 1e-3;
-    check(std::abs(lam_json - array_geom::lambda_m) < 1e-9,
+    check(std::abs(lam_json - array_geom::lambda_m) < 1e-6,
           "wavelength matches the board report", "%.4f mm vs %.4f mm",
           lam_json * 1e3, array_geom::lambda_m * 1e3);
 
     const double pitch_json = j["array"]["element_pitch_mm"].num() * 1e-3;
-    check(std::abs(pitch_json - array_geom::pitch_m) < 1e-9,
+    check(std::abs(pitch_json - array_geom::pitch_m) < 1e-6,
           "element pitch matches", "%.4f mm", pitch_json * 1e3);
 
     const Json& vp = j["array"]["virtual_array_positions_mm"];

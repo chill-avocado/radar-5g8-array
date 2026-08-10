@@ -427,8 +427,9 @@ module radar_fft_stage #(
         // Full complex multiplier.  Twiddle m of this stage is W_L^m with
         // L = 2*DEPTH, i.e. exp(-j*2*pi*m/L), s16 Q0.15.
         //--------------------------------------------------------------------
-        reg signed [TW_W-1:0] rom_c [0:DEPTH-1];
-        reg signed [TW_W-1:0] rom_s [0:DEPTH-1];
+        // Cosine and sine share one array: they are always read together, at
+        // the same address, so this is one memory and one address decode.
+        reg [2*TW_W-1:0] rom [0:DEPTH-1];
 
         integer t;
         // Only the low TW_W bits of the rounded value are kept; it is already
@@ -445,18 +446,16 @@ module radar_fft_stage #(
                 // round half away from zero
                 ci  = (cv >= 0.0) ? $rtoi(cv + 0.5) : $rtoi(cv - 0.5);
                 si  = (sv >= 0.0) ? $rtoi(sv + 0.5) : $rtoi(sv - 0.5);
-                rom_c[t] = ci[TW_W-1:0];
-                rom_s[t] = si[TW_W-1:0];
+                rom[t] = {si[TW_W-1:0], ci[TW_W-1:0]};
             end
         end
 
-        reg signed [TW_W-1:0] p1_tc, p1_ts;
+        reg [2*TW_W-1:0] p1_tw;
         always @(posedge clk) begin
-            if (s_valid) begin
-                p1_tc <= rom_c[cnt[CW-2:0]];
-                p1_ts <= rom_s[cnt[CW-2:0]];
-            end
+            if (s_valid) p1_tw <= rom[cnt[CW-2:0]];
         end
+        wire signed [TW_W-1:0] p1_tc = p1_tw[TW_W-1:0];
+        wire signed [TW_W-1:0] p1_ts = p1_tw[2*TW_W-1:TW_W];
 
         reg                       p2_valid, p2_sel;
         reg signed [2*DATA_W-1:0] p2_rr, p2_ii, p2_ri, p2_ir;
