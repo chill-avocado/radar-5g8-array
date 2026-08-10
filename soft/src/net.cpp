@@ -338,29 +338,85 @@ constexpr std::size_t kMaxInboundMessage = 1u << 20;
 using Buf    = std::vector<u8>;
 using BufPtr = std::shared_ptr<const Buf>;
 
-/// Server-to-client frames are never masked (RFC 6455 5.1).  Built once and
-/// shared by every client, which is why broadcast() costs one copy no matter
-/// how many browsers are watching.
-BufPtr make_frame(u8 opcode, const u8* data, std::size_t n) {
-    auto v = std::make_shared<Buf>();
-    v->reserve(n + 10);
-    v->push_back(u8(0x80 | opcode));
-    if (n < 126) {
-        v->push_back(u8(n));
-    } else if (n <= 0xFFFF) {
-        v->push_back(126);
-        v->push_back(u8(n >> 8));
-        v->push_back(u8(n));
-    } else {
-        v->push_back(127);
-        const u64 w = n;
-        for (int i = 7; i >= 0; --i) v->push_back(u8(w >> (i * 8)));
-    }
-    if (n) v->insert(v->end(), data, data + n);
-    return v;
-}
+/// Recycled frame buffers.
+///
+/// A frame is built on the pipeline thread, so the cost of building one lands
+/// squarely in the radar's timing budget.  Allocating a fresh megabyte-ish
+/// buffer per frame means asking the kernel for fresh pages and taking a fault
+/// on every one of them: measured on this machine that is 10 microseconds most
+/// of the time and 40 milliseconds when the allocator decides to go and get
+/// more memory.  Forty milliseconds is longer than a whole coherent processing
+/// interval.  Handing buffers back to a free list instead means the steady
+/// state reuses memory that is already resident, and broadcast() stops talking
+/// to the allocator altogether.
+///
+/// Bounded on three axes -- smallest worth keeping, largest worth keeping, and
+/// total held -- because a pool that quietly hoards is a worse bug than the
+/// one it fixes.
+class FramePool : public std::enable_shared_from_this<FramePool> {
+public:
+    static constexpr std::size_t kMinKeep       = 1024;
+    static constexpr std::size_t kMaxKeep       = 8u << 20;
+    static constexpr std::size_t kMaxHeldBytes  = 32u << 20;
+    static constexpr std::size_t kMaxHeldCount  = 128;
 
-BufPtr make_close_frame(u16 code, const char* reason) {
+    /// Build a complete server-to-client frame.  Server frames are never
+    /// masked (RFC 6455 5.1).  Built once and shared by every client, which is
+    /// why broadcast() costs one copy no matter how many browsers are watching.
+    BufPtr frame(u8 opcode, const u8* data, std::size_t n) {
+        const std::size_t hdr = (n < 126) ? 2 : (n <= 0xFFFF ? 4 : 10);
+        const std::size_t total = hdr + n;
+
+        std::unique_ptr<Buf> b = take();
+        if (!b) b.reset(new Buf());
+        b->resize(total);          // never releases capacity, so no new pages
+
+        u8* p = b->data();
+        p[0] = u8(0x80 | opcode);
+        if (hdr == 2) {
+            p[1] = u8(n);
+        } else if (hdr == 4) {
+            p[1] = 126;
+            p[2] = u8(n >> 8);
+            p[3] = u8(n);
+        } else {
+            p[1] = 127;
+            const u64 w = n;
+            for (int i = 0; i < 8; ++i) p[2 + i] = u8(w >> ((7 - i) * 8));
+        }
+        if (n) std::memcpy(p + hdr, data, n);
+
+        Buf* raw = b.release();
+        auto self = shared_from_this();
+        return BufPtr(raw, [self](Buf* q) { self->give(q); });
+    }
+
+private:
+    std::unique_ptr<Buf> take() {
+        std::lock_guard<std::mutex> lk(mu_);
+        if (free_.empty()) return nullptr;
+        auto b = std::move(free_.back());
+        free_.pop_back();
+        held_ -= b->capacity();
+        return b;
+    }
+
+    void give(Buf* p) {
+        std::unique_ptr<Buf> b(p);
+        const std::size_t cap = b->capacity();
+        if (cap < kMinKeep || cap > kMaxKeep) return;
+        std::lock_guard<std::mutex> lk(mu_);
+        if (free_.size() >= kMaxHeldCount || held_ + cap > kMaxHeldBytes) return;
+        held_ += cap;
+        free_.push_back(std::move(b));
+    }
+
+    std::mutex mu_;
+    std::vector<std::unique_ptr<Buf>> free_;
+    std::size_t held_ = 0;
+};
+
+BufPtr make_close_frame(FramePool& pool, u16 code, const char* reason) {
     u8 p[125];
     p[0] = u8(code >> 8);
     p[1] = u8(code);
@@ -370,7 +426,7 @@ BufPtr make_close_frame(u16 code, const char* reason) {
         std::memcpy(p + 2, reason, r);
         n += r;
     }
-    return make_frame(kOpClose, p, n);
+    return pool.frame(kOpClose, p, n);
 }
 
 u64 now_ms() {
@@ -448,6 +504,7 @@ struct WebServer::Impl {
     std::string build_id     = "radar";
     std::size_t max_frames   = 64;
     std::size_t max_bytes    = 16u << 20;
+    std::shared_ptr<FramePool> pool = std::make_shared<FramePool>();
 
     // ---- sockets and thread ---------------------------------------------
     int  listen_fd = -1;
@@ -564,7 +621,7 @@ struct WebServer::Impl {
     }
 
     void queue_frame(Client& c, u8 opcode, const u8* p, std::size_t n, bool droppable) {
-        queue(c, make_frame(opcode, p, n), droppable);
+        queue(c, pool->frame(opcode, p, n), droppable);
     }
 
     void queue_raw(Client& c, const std::string& s) {
@@ -822,7 +879,7 @@ struct WebServer::Impl {
     //------------------------------------------------------------------
     void fail_ws(Client& c, u16 code, const char* why) {
         if (!c.close_sent) {
-            queue(c, make_close_frame(code, why), false);
+            queue(c, make_close_frame(*pool, code, why), false);
             c.close_sent = true;
         }
         c.want_close = true;
@@ -926,7 +983,7 @@ struct WebServer::Impl {
                         // closing handshake asks for.
                         const u16 echo = (code >= 1000 && code <= 4999 && code != 1005 &&
                                           code != 1006 && code != 1015) ? code : u16(1000);
-                        queue(c, make_close_frame(echo, nullptr), false);
+                        queue(c, make_close_frame(*pool, echo, nullptr), false);
                         c.close_sent = true;
                     }
                     c.want_close = true;
@@ -1222,7 +1279,7 @@ void WebServer::broadcast(const u8* data, std::size_t n) {
     // Frame it once, here, on the caller's thread: this is a memcpy and an
     // allocation, both bounded, neither able to block.  Every client then
     // shares the same buffer.
-    BufPtr frame = make_frame(kOpBinary, data, n);
+    BufPtr frame = p_->pool->frame(kOpBinary, data, n);
     p_->queued.fetch_add(1, std::memory_order_relaxed);
 
     {
