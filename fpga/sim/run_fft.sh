@@ -117,7 +117,7 @@ for s in "${SIZES[@]}"; do
             "+incdir+$RTL" "$RTL/radar_fft.v" "$RTL/radar_bitrev.v" \
             --build -j "$JOBS" >"$BUILD/verilate_$n.log" 2>&1; then
         echo "FAIL  verilate N=$n"
-        tail -30 "$BUILD/verilate_$n.log"
+        show_build_error "$BUILD/verilate_$n.log"
         exit 1
     fi
     echo "PASS  verilate N=$n"
@@ -133,7 +133,7 @@ if ! "$VERILATOR" --cc -O3 --top-module radar_fft \
         "+incdir+$RTL" "$RTL/radar_fft.v" "$RTL/radar_bitrev.v" \
         --build -j "$JOBS" >"$BUILD/verilate_rev1024.log" 2>&1; then
     echo "FAIL  verilate N=1024 NATURAL_OUT=0"
-    tail -30 "$BUILD/verilate_rev1024.log"
+    show_build_error "$BUILD/verilate_rev1024.log"
     exit 1
 fi
 echo "PASS  verilate N=1024 NATURAL_OUT=0"
