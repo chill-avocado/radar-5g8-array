@@ -16,6 +16,11 @@
 // dropped.  "Close" is measured in units of the four tolerances in Config, so
 // the four incompatible axes -- metres, metres per second and two angles --
 // become one dimensionless distance.
+//
+// Config::cluster_min_pts is how many OTHER detections have to be within that
+// distance before one counts as part of an object, the detection under test
+// excluded.  The default of one reads as "needs at least one companion", so a
+// solitary false alarm is dropped rather than promoted to a target of its own.
 //============================================================================
 #pragma once
 

@@ -198,12 +198,20 @@ void Clusterer::cluster(const std::vector<Hit>& hits, std::vector<Target>& out) 
     };
 
     //-- Density clustering --------------------------------------------------
+    //
+    // cluster_min_pts counts the OTHER detections within one scaled radius,
+    // not counting the detection under test.  A region query always returns
+    // the point itself, so one is taken off first.  The default of one
+    // therefore reads as "a detection needs at least one companion", which is
+    // what makes a lone false alarm noise instead of a one-hit target -- the
+    // textbook convention, which counts the point itself, would make every
+    // isolated false alarm its own target at that setting.
     int cid = 0;
     for (int i = 0; i < int(n); ++i) {
         if (w.visited[std::size_t(i)]) continue;
         w.visited[std::size_t(i)] = 1;
         region_query(i, w.neigh);
-        if (int(w.neigh.size()) < min_pts_) continue;   // stays noise for now
+        if (int(w.neigh.size()) - 1 < min_pts_) continue;   // stays noise for now
 
         w.labels[std::size_t(i)] = cid;
         w.seeds.clear();
@@ -220,7 +228,7 @@ void Clusterer::cluster(const std::vector<Hit>& hits, std::vector<Target>& out) 
                 // the rim joins but does not pull anything else in, which is
                 // what keeps two objects passing close to each other from
                 // merging through a thin bridge of weak detections.
-                if (int(w.neigh2.size()) >= min_pts_) {
+                if (int(w.neigh2.size()) - 1 >= min_pts_) {
                     for (int k : w.neigh2)
                         if (!w.in_seed[std::size_t(k)] && w.labels[std::size_t(k)] < 0) {
                             w.in_seed[std::size_t(k)] = 1;
