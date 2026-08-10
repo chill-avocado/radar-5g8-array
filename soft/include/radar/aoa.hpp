@@ -91,6 +91,23 @@ public:
     double beamwidth_az_deg() const { return bw_az_deg_; }
     double beamwidth_el_deg() const { return bw_el_deg_; }
 
+    /// Fewest snapshots MUSIC will run on.
+    ///
+    /// A subspace method has to separate four eigenvalues into a signal group
+    /// and a noise group, and with fewer looks than elements there is no noise
+    /// group to find: the covariance is rank deficient, its smallest
+    /// eigenvalues are numerically arbitrary, and the pseudospectrum peaks
+    /// somewhere unrelated to the target.  Mirroring the array buys a factor of
+    /// two, and the usual requirement of about twice as many looks as elements
+    /// then lands here.  Ask for MUSIC with fewer and the engine quietly runs
+    /// Capon instead and says so in Result::method.
+    ///
+    /// One range-Doppler cell is one snapshot.  To reach this the pipeline has
+    /// to hand estimate() several cells -- the neighbours in range and Doppler
+    /// around the detection are the natural choice, since a target that spans
+    /// more than one cell gives independent looks at the same direction.
+    static int music_min_snapshots() { return 4; }
+
     /// Multiply each channel by its correction.  Amplitude and phase mismatch
     /// between the four receive paths is indistinguishable from a real angle,
     /// so this has to happen before anything else looks at the data.
