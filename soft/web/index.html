@@ -1519,20 +1519,21 @@ function syncControlsFromConfig(){
   $("i-aoa").value  = AOA_NAME[S.cfg.aoa] || "music";
   $("i-blank").value = S.cfg.blank;
   updateBlankNote();
-  $("cfgdump").innerHTML = [
-    ["carrier",   (S.cfg.fc/1e9).toFixed(3) + " GHz"],
-    ["sweep",     (S.cfg.bw/1e6).toFixed(1) + " MHz"],
-    ["range res", S.cfg.rangeRes.toFixed(2) + " m"],
-    ["range max", S.cfg.rangeMax.toFixed(0) + " m"],
-    ["vel res",   S.cfg.velRes.toFixed(3) + " m/s"],
-    ["vel max",   "±" + S.cfg.velMax.toFixed(1) + " m/s"],
-    ["grid",      S.cfg.nRange + " × " + S.cfg.nDopp],
-    ["chirps",    S.cfg.nChirp + " / CPI"],
-    ["CPI",       (S.cfg.tCpi*1e3).toFixed(1) + " ms"],
-    ["virtual",   S.cfg.nVirt + " channels"],
-    ["TX",        S.cfg.tx ? S.cfg.txGain.toFixed(0) + " dB" : "off"],
-    ["RX",        S.cfg.rxGain.toFixed(0) + " dB"],
-  ].map(r => '<div><span style="display:inline-block;width:74px;color:var(--ink3)">'+r[0]+'</span>'+r[1]+'</div>').join("");
+  // One line, always on screen. This is the first thing a reviewer asks for,
+  // so it should never be behind a click.
+  const cd = $("cfgdump");
+  cd.classList.remove("waiting");
+  cd.innerHTML = [
+    ["carrier",  (S.cfg.fc/1e9).toFixed(3) + " GHz"],
+    ["sweep",    (S.cfg.bw/1e6).toFixed(1) + " MHz"],
+    ["range",    S.cfg.rangeRes.toFixed(2) + " m res, " + S.cfg.rangeMax.toFixed(0) + " m"],
+    ["velocity", S.cfg.velRes.toFixed(2) + " m/s res, \u00b1" + S.cfg.velMax.toFixed(0) + " m/s"],
+    ["map",      S.cfg.nRange + "\u00d7" + S.cfg.nDopp],
+    ["cpi",      (S.cfg.tCpi*1e3).toFixed(1) + " ms, " + S.cfg.fps.toFixed(1) + " Hz"],
+    ["mimo",     S.cfg.nVirt + " virtual, " + (S.cfg.mimo === 1 ? "DDM" : "TDM")],
+    ["tx",       S.cfg.tx ? S.cfg.txGain.toFixed(0) + " dB" : "off"],
+    ["rx",       S.cfg.rxGain.toFixed(0) + " dB"],
+  ].map(r => '<span class="it"><b>' + r[0] + '</b><s>' + r[1] + '</s></span>').join("");
 }
 
 function updateBlankNote(){
