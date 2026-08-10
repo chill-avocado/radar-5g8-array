@@ -515,6 +515,7 @@ private:
     void build_fractional_tables();
     void fit_waveform();
     void set_levels();
+    void log_link_budget(double pt_dbm) const;
     void generate_phase_noise();
 
     /// Amplitude and delay of one path at one instant.
