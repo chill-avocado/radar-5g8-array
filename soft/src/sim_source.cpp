@@ -274,8 +274,10 @@ struct Geom {
     int    n_pri = 0;
     int    n_chirp_total = 0;
     int    n_rx = 0;
-    int    n_tx = 0;
+    int    n_tx = 0;          ///< transmitters on the board
+    int    n_tx_active = 0;   ///< transmitters this mode actually uses
     bool   ddm = false;
+    bool   tdm = false;
     bool   tx_on = true;
 
     void from(const Config& c) {
