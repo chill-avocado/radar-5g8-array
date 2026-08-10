@@ -501,6 +501,7 @@ module radar_top #(
         // suppresses it and no separate range gate is needed. range_zero is a
         // host-side quantity: it moves the range ORIGIN, it does not blank a cell.
         .cfg_zero_dopp(zero_dopp), .cfg_max_hits(max_hits),
+        .cfg_range_zero(range_zero[7:0]),
         .in_valid(pw_valid), .in_pwr(pw_pwr), .in_last(pw_last),
         .hit_valid(hit_valid), .hit_range(hit_range), .hit_dopp(hit_dopp),
         .hit_pwr(hit_pwr),
@@ -553,7 +554,7 @@ module radar_top #(
         .clk(radio_clk), .rst(rst),
         .cfg_map_enable(ctrl_map_enable), .cfg_hits_enable(ctrl_hits_enable),
         .cfg_map_decim_r(map_decim_r), .cfg_map_decim_d(map_decim_d),
-        .n_range(n_range_max[8:0]), .n_doppler(N_DOPPLER[9:0]),
+        .cfg_n_range(n_range_max[8:0]), .cfg_n_doppler(N_DOPPLER[9:0]),
         .cfg_flags({8'd0, ctrl_mimo_mode, ctrl_tx_enable, ovf_latch,
                     ctrl_hits_enable, ctrl_map_enable, 2'b00}),
         .frame_index(frame_index), .timestamp(vita_time), .noise(noise_out),
