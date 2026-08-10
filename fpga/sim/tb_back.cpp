@@ -92,7 +92,9 @@ static CtStats corner_turn_run(int nrl, int ncl)
     long frame1_last_cycle = -1;
     const long LIMIT = TOTAL * 3 + 100000;
 
-    while (out_idx < TOTAL && cycle < LIMIT) {
+    long tail = 0;
+    while ((out_idx < TOTAL || tail < 16) && cycle < LIMIT) {
+        if (out_idx >= TOTAL) tail++;
         // ---- drive the input side
         if (in_idx < TOTAL) {
             const long k = in_idx % FR;
@@ -294,6 +296,7 @@ struct CfarCfg {
     int kind = 0;
     uint32_t alpha = 0;
     int zd = 0;
+    int rz = 0;
     int maxhits = 4000;
 };
 
@@ -311,8 +314,9 @@ static CfarRun cfar_run(const CfarCfg& c, const std::vector<uint32_t>& map,
     d->cfg_train_d   = c.td;
     d->cfg_kind      = c.kind;
     d->cfg_alpha     = c.alpha;
-    d->cfg_zero_dopp = c.zd;
-    d->cfg_max_hits  = c.maxhits;
+    d->cfg_zero_dopp  = c.zd;
+    d->cfg_range_zero = c.rz;
+    d->cfg_max_hits   = c.maxhits;
     d->in_valid = 0; d->in_pwr = 0; d->in_last = 0;
 
     hold_reset(d, 4);
@@ -459,33 +463,39 @@ static void cfar_geometry_case()
     const int gr = 2, gd = 2, tr = 4, td = 4;
     const int Wr = gr + tr, Wd = gd + td;
     const int zd = 3;
+    const int rz = 40;
 
     std::vector<uint32_t> map((size_t)NR * ND, 1000u);
 
     CfarCfg cfg;
     cfg.NR = NR; cfg.ND = ND; cfg.gr = gr; cfg.gd = gd; cfg.tr = tr; cfg.td = td;
-    cfg.kind = 3; cfg.alpha = 65536; cfg.zd = zd; cfg.maxhits = 65535;
+    cfg.kind = 3; cfg.alpha = 65536; cfg.zd = zd; cfg.rz = rz;
+    cfg.maxhits = 65535;
 
     CfarRun run = cfar_run(cfg, map, -1);
 
     long expect = 0;
-    long min_d = 1 << 30, max_d = -1;
+    long min_d = 1 << 30, max_d = -1, min_r = 1 << 30;
     for (int r = Wr; r <= NR - 1 - Wr; r++)
         for (int dd = Wd; dd <= ND - 1 - Wd; dd++) {
-            const bool blanked = (dd <= zd) || (dd + zd >= ND);
+            const bool blanked = (dd <= zd) || (dd + zd >= ND) || (r <= rz);
             if (!blanked) expect++;
         }
     for (uint32_t k : run.hit_key) {
         const long dd = k & 0xFFFF;
+        const long rr = k >> 16;
         min_d = std::min(min_d, dd);
         max_d = std::max(max_d, dd);
+        min_r = std::min(min_r, rr);
     }
 
-    const bool ok = ((long)run.n_hits == expect) && (min_d > zd) && (max_d + zd < ND);
-    char note[256];
+    const bool ok = ((long)run.n_hits == expect) && (min_d > zd) &&
+                    (max_d + zd < ND) && (min_r > rz);
+    char note[288];
     snprintf(note, sizeof note,
-             "pass-through with zero_dopp=%d: %d tested cells reported, %ld expected, "
-             "Doppler span %ld..%ld", zd, run.n_hits, expect, min_d, max_d);
+             "pass-through, zero_dopp=%d range_zero=%d: %d cells reported, %ld expected, "
+             "Doppler span %ld..%ld, lowest range bin %ld",
+             zd, rz, run.n_hits, expect, min_d, max_d, min_r);
     result("cfar2d edge rule + zero-Doppler blanking", ok, note);
 }
 
@@ -572,8 +582,8 @@ static void test_pack()
     d->frame_index     = FRAME_INDEX;
     d->timestamp       = TIMESTAMP;
     d->noise           = NOISE;
-    d->n_range         = NR;
-    d->n_doppler       = ND;
+    d->cfg_n_range     = NR;
+    d->cfg_n_doppler   = ND;
     d->map_valid = 0; d->map_pwr = 0;
     d->hit_valid = 0; d->hit_range = 0; d->hit_dopp = 0; d->hit_pwr = 0;
     d->hit_v0_i = 0; d->hit_v0_q = 0; d->hit_v1_i = 0; d->hit_v1_q = 0;
