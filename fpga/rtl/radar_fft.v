@@ -257,14 +257,15 @@ module radar_fft_stage #(
 ) (
     input  wire                     clk,
     input  wire                     rst,
-    input  wire                     sync,     // reload the block counter
     input  wire [1:0]               shift,    // 0..3 bits of right shift
 
     input  wire                     s_valid,
+    input  wire                     s_sync,   // this sample ends a block
     input  wire signed [DATA_W-1:0] s_i,
     input  wire signed [DATA_W-1:0] s_q,
 
     output reg                      m_valid,
+    output reg                      m_sync,   // rides with the same sample
     output reg  signed [DATA_W-1:0] m_i,
     output reg  signed [DATA_W-1:0] m_q,
     output wire                     ovf
@@ -347,7 +348,7 @@ module radar_fft_stage #(
     reg [CW-1:0] cnt;
     always @(posedge clk) begin
         if (rst)           cnt <= CNT_ZERO;
-        else if (s_valid)  cnt <= sync ? CNT_ZERO : (cnt + CNT_ONE);
+        else if (s_valid)  cnt <= s_sync ? CNT_ZERO : (cnt + CNT_ONE);
     end
     wire sel = cnt[CW-1];
 
