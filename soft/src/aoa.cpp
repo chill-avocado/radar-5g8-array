@@ -664,15 +664,35 @@ AoaEngine::Result AoaEngine::estimate(const cf32* snapshots, int n_snap) const {
     for (int i = 0; i < kM; ++i)
         for (int j = 0; j < kM; ++j) R[i][j] *= inv;
 
-    // Fewer snapshots than elements means the covariance cannot possibly have
-    // full rank on its own, so the mirrored copy is folded in.  With four or
-    // more snapshots the raw estimate is left alone: the mirror assumes the
-    // array is perfectly symmetric, and once there is enough data it is better
-    // to believe the measurements than the assumption.
-    int n_eff = n_snap;
-    if (n_snap < kM) { forward_backward(R); n_eff = 2 * n_snap; }
+    // Always fold in the mirrored copy.  The element positions are symmetric
+    // about the array centre by construction, so this is a property of the
+    // hardware rather than an assumption about the scene: it doubles the
+    // effective number of looks, and it breaks the correlation between two
+    // targets that landed in the same cell, which is otherwise fatal to any
+    // subspace method.
+    forward_backward(R);
+    const int n_eff = 2 * n_snap;
 
-    return run_spectrum(R, n_eff, method_);
+    // Refuse MUSIC when the data cannot support it, rather than returning an
+    // angle drawn from the arbitrary orientation of a null space.  Capon is
+    // the fallback because its diagonal loading makes it defined at any rank,
+    // and because it is still sharper than Bartlett.
+    AoaMethod want = method_;
+    if (want == AoaMethod::Music && n_snap < music_min_snapshots()) {
+        want = AoaMethod::Capon;
+        warn_once("MUSIC needs more snapshots than one range-Doppler cell provides; "
+                  "running Capon instead");
+    }
+
+    Result r = run_spectrum(R, n_eff, want);
+    r.degraded = (r.method != method_);
+    return r;
+}
+
+void AoaEngine::warn_once(const char* what) const {
+    bool expected = false;
+    if (warned_.compare_exchange_strong(expected, true, std::memory_order_relaxed))
+        std::fprintf(stderr, "radar/aoa: %s\n", what);
 }
 
 } // namespace radar

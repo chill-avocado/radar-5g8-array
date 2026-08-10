@@ -245,12 +245,27 @@ std::vector<float> make_window(WindowKind k, int n, double param) {
             static const double a[4] = {0.35875, 0.48829, 0.14128, 0.01168};
             return cosine_sum(n, a, 4);
         }
-        case WindowKind::Taylor:
-            return taylor_window(n, 5, param > 0.0 ? param : kDefaultSidelobeDb);
+        case WindowKind::Taylor: {
+            const double s = param > 0.0 ? param : kDefaultSidelobeDb;
+            return taylor_window(n, taylor_nbar_for(s), s);
+        }
         case WindowKind::Chebyshev:
             return chebyshev_window(n, param > 0.0 ? param : kDefaultSidelobeDb);
     }
     return std::vector<float>(std::size_t(n), 1.0f);
+}
+
+int taylor_nbar_for(double sidelobe_db) {
+    const double s = sidelobe_db > 0.0 ? sidelobe_db : kDefaultSidelobeDb;
+    const double A = std::acosh(std::pow(10.0, s / 20.0)) / kPi;
+    const int    n = int(std::ceil(2.0 * A * A + 0.5));
+    return n < 4 ? 4 : n;
+}
+
+std::vector<float> make_taylor_window(int n, double sidelobe_db, int nbar) {
+    if (n <= 0) return {};
+    const double s = sidelobe_db > 0.0 ? sidelobe_db : kDefaultSidelobeDb;
+    return taylor_window(n, nbar < 2 ? 2 : nbar, s);
 }
 
 double window_coherent_gain(const std::vector<float>& w) {
