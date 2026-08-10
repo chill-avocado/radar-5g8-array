@@ -569,8 +569,8 @@ AoaEngine::Result AoaEngine::run_spectrum(const cf64 R[kM][kM], int n_snap_eff,
 
         // Every source claimed needs an eigenvalue to sit in, and at least one
         // genuine eigenvalue has to be left over to define the noise subspace.
-        n_src = std::min(mdl_order(w, n_snap_eff), kM - 1);
-        n_src = std::min(n_src, rank - 1);
+        n_src = std::min(mdl_order(w, n_snap_eff), eigen_gap_order(w, n_snap_eff));
+        n_src = std::min(n_src, std::min(kM - 1, rank - 1));
         if (n_src < 1) {
             // Nothing left to call noise.  Capon still works -- its loading
             // makes the inverse exist regardless of rank -- so use that rather
