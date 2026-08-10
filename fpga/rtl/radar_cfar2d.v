@@ -74,6 +74,8 @@
 //   and Wd = guard_d+train_d.  Cells within cfg_zero_dopp of DC are suppressed
 //   (cfg_zero_dopp = 0 suppresses Doppler bin 0 alone, and the blanking wraps
 //   around, so it covers the negative-Doppler bins at the top of the map too).
+//   Range bins at or below cfg_range_zero are suppressed the same way: that is
+//   where the transmit leakage lands, and it is the radar seeing itself.
 //   Emission stops after cfg_max_hits, counting does not: n_hits is the true
 //   number of detections in the frame.
 //
@@ -128,6 +130,7 @@ module radar_cfar2d #(
     input  wire [1:0]  cfg_kind,       // 0 CA, 1 GO, 2 SO, 3 pass-through
     input  wire [31:0] cfg_alpha,      // Q16.16 threshold multiplier
     input  wire [7:0]  cfg_zero_dopp,  // Doppler bins each side of DC to blank
+    input  wire [7:0]  cfg_range_zero, // range bin declared to be zero range
     input  wire [15:0] cfg_max_hits,
 
     // Integrated power map, range major.
@@ -193,6 +196,7 @@ module radar_cfar2d #(
     reg  [1:0]  q_kind;
     reg  [31:0] q_alpha;
     reg  [7:0]  q_zd;
+    reg  [7:0]  q_rz;
     reg  [15:0] q_maxhits;
     reg  [8:0]  q_nr;
     reg  [9:0]  q_nd;
@@ -520,8 +524,13 @@ module radar_cfar2d #(
 
     wire in_body = (r5 >= ({4'd0, w_r} + {4'd0, w_r})) && (r5 < q_nr) &&
                    (d5 >= ({5'd0, w_d} + {5'd0, w_d}));
+    // Transmit leakage sits at the range bin the calibration declares to be
+    // zero range, so everything at or below it is the radar seeing itself and
+    // is suppressed -- both from the detection list and from the noise
+    // average, which the leakage would otherwise drag upwards.
     wire blanked = (cut_d <= {2'd0, q_zd}) ||
-                   ((cut_d + {2'd0, q_zd}) >= q_nd);
+                   ((cut_d + {2'd0, q_zd}) >= q_nd) ||
+                   (cut_r <= q_rz);
     wire tested  = v5 && in_body && !blanked;
     wire over    = ({16'd0, cut_p4} > thr5);
     wire hit_now = tested && ((q_kind == 2'd3) || over);
@@ -582,7 +591,7 @@ module radar_cfar2d #(
     always @(posedge clk) begin
         if (rst) begin
             q_gr <= 4'd2; q_gd <= 4'd2; q_tr <= 4'd4; q_td <= 4'd4;
-            q_kind <= 2'd0; q_alpha <= 32'd65536; q_zd <= 8'd0;
+            q_kind <= 2'd0; q_alpha <= 32'd65536; q_zd <= 8'd0; q_rz <= 8'd0;
             q_maxhits <= 16'd0; q_nr <= 9'd256; q_nd <= 10'd256;
             cut_delay  <= {CUTAW{1'b0}};
             need_recip <= 1'b1;
@@ -602,6 +611,7 @@ module radar_cfar2d #(
                 q_kind    <= cfg_kind;
                 q_alpha   <= cfg_alpha;
                 q_zd      <= cfg_zero_dopp;
+                q_rz      <= cfg_range_zero;
                 q_maxhits <= cfg_max_hits;
                 q_nr      <= n_range;
                 q_nd      <= n_doppler;

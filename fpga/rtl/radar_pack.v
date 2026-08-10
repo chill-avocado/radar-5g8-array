@@ -88,8 +88,8 @@ module radar_pack #(
     input  wire [31:0] frame_index,
     input  wire [63:0] timestamp,
     input  wire [31:0] noise,
-    input  wire [8:0]  n_range,
-    input  wire [9:0]  n_doppler,
+    input  wire [8:0]  cfg_n_range,
+    input  wire [9:0]  cfg_n_doppler,
 
     // Integrated power map, range major, one cell per clock.
     input  wire        map_valid,
@@ -432,8 +432,8 @@ module radar_pack #(
                 q_flags  <= cfg_flags;
                 q_index  <= frame_index;
                 q_time   <= timestamp;
-                q_nr     <= n_range;
-                q_nd     <= n_doppler;
+                q_nr     <= cfg_n_range;
+                q_nd     <= cfg_n_doppler;
             end
 
             // Hand the finished frame to the emitter.  If the previous packet
