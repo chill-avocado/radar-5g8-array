@@ -123,7 +123,17 @@ constexpr double kTxRefGainDb         = 70.0;
 
 /// Input power that fills the converter at 0 dB receive gain, referred to the
 /// antenna connector.  Each decibel of receive gain moves this down by one.
-constexpr double kRxFullScaleDbmAt0Gain = 0.0;
+///
+/// This one number decides where the receiver's own thermal noise sits on the
+/// twelve-bit converter, and that matters more than it looks.  A converter only
+/// carries a signal smaller than its least significant bit if there is enough
+/// noise to dither it; with too little, faint echoes are simply rounded away and
+/// the radar's sensitivity becomes a property of the arithmetic instead of the
+/// physics.  At -12 dBm the receiver's -88 dBm noise floor lands about three
+/// counts up at 20 dB of gain and 32 counts up at 40 dB, so quantisation costs
+/// less than a tenth of a decibel anywhere in the useful gain range, and the
+/// gain control still has to intervene before the converter clips.
+constexpr double kRxFullScaleDbmAt0Gain = -12.0;
 
 /// Receiver noise figure and the lumped cable, connector, mismatch and
 /// processing loss.  Both are the values in design/system_budget.py; changing
