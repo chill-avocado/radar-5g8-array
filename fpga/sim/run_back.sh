@@ -69,7 +69,7 @@ INCS=(-I"$VINC" -I"$VINC/vltstd")
 LIBS=()
 for p in "${PREFIX[@]}"; do
     INCS+=(-I"$BUILD/obj_$p")
-    LIBS+=("$BUILD/obj_$p/$p__ALL.a")
+    LIBS+=("${BUILD}/obj_${p}/${p}__ALL.a")
 done
 
 CXX="${CXX:-c++}"

@@ -42,34 +42,41 @@
 //   the final stage (depth 1) needs only +1.  Neither builds a multiplier: -j
 //   is a swap and a saturating negate.  So the last two stages are free.
 //
-// LATENCY (in_valid held high throughout, measured first in_valid to first
-//   out_valid, and confirmed by fpga/sim/tb_fft.cpp)
-//     NATURAL_OUT = 0 : 3*NLOG2 + N - 1
-//     NATURAL_OUT = 1 : 3*NLOG2 + 2*N
-//   N=1024 -> 2078   N=512 -> 1051   N=256 -> 536   N=128 -> 277
+// LATENCY, in clocks from the first in_valid to the first out_valid with
+//   in_valid held high.  Every figure below is measured by fpga/sim/tb_fft.cpp,
+//   not predicted.
+//     NATURAL_OUT = 1 : 3*NLOG2 + 2*N - 1
+//       N=1024 -> 2077   N=512 -> 1050   N=256 -> 535   N=128 -> 276
+//     NATURAL_OUT = 0 : 3*NLOG2 + N - 2      (the reorder buffer costs N+1)
+//       N=1024 -> 1052
+//   Of that, N-1 clocks are the delay-line flush, 3*NLOG2 are pipeline
+//   registers and, with NATURAL_OUT = 1, N+1 are the reorder buffer.
 //
 // RESOURCE ESTIMATE  (DATA_W = TW_W = 16, XC7K325T, NATURAL_OUT = 1)
-//   Delay lines of depth >= 16 go to block RAM, shorter ones to SRL/registers.
-//   A 16x16 product is one DSP48E1; a complex product is four of them.
+//   A complex sample is 32 bits.  Feedback lines of depth >= 16 and the
+//   reorder buffer carry ram_style = "block", so their mapping is fixed, not
+//   left to the tool.  A 16x16 product is one DSP48E1, so a complex product is
+//   four.  Stages of depth 2 and 1 build no multiplier at all.
 //
-//                       N = 1024                    N = 256
-//   feedback lines      512,256,128,64,32,16          128,64,32,16
-//                       -> 6 x RAMB18                 -> 4 x RAMB18
-//                       8,4,2,1 -> ~30 SRL16          8,4,2,1 -> ~30 SRL16
-//   twiddle ROMs        1020 x 32 b -> 2 x RAMB18     252 x 32 b -> 1 x RAMB18
-//                       + ~250 LUT of ROM             + ~120 LUT of ROM
-//   bit-reverse buffer  2048 x 32 b -> 2 x RAMB36     512 x 32 b -> 1 x RAMB18
-//   ----------------------------------------------------------------------
-//   BRAM total          12 x RAMB18  = 6 RAMB36        6 x RAMB18 = 3 RAMB36
-//   DSP48E1             8 stages x 4 = 32              6 stages x 4 = 24
-//   registers           ~2300 FF                       ~1800 FF
+//                            N = 1024   N = 512   N = 256   N = 128
+//   feedback depths >= 16      512..16    256..16   128..16    64..16
+//     as RAMB18 (32 b wide)          6          5         4         3
+//   feedback depths < 16       8,4,2,1    8,4,2,1   8,4,2,1   8,4,2,1
+//     as SRL16 (480 b)              30         30        30        30
+//   twiddle ROM entries           1020       508        252       124
+//     bits (32 b per entry)      32640     16256       8064      3968
+//     as RAMB18                        2         1         1         0
+//     remainder as LUT ROM         ~250      ~130       ~120       ~60
+//   reorder buffer, 2N x 32 b  2xRAMB36  1xRAMB36  1xRAMB18  1xRAMB18
+//   --------------------------------------------------------------------
+//   BRAM, in RAMB18 equivalents     12         8         6         4
+//   DSP48E1                         32        28         24        20
+//   registers                    ~2400      ~2150      ~1850     ~1600
 //
-//   For reference, the two Doppler sizes: N = 512 needs 5 RAMB18 of feedback
-//   line and 28 DSP48E1; N = 128 needs 3 RAMB18 and 20 DSP48E1.
-//
-//   Two range transforms and two Doppler transforms (one pair per receive
-//   channel) therefore cost about 2*(32+24) = 112 DSP48E1 of the device's 840,
-//   and about 18 RAMB36 of 445.
+//   One receive channel needs a 1024-point range transform and one Doppler
+//   transform of 512, 256 or 128, so two channels come to 112 DSP48E1 of the
+//   device's 840 and about 10 RAMB36 of 445 -- the corner-turn buffer between
+//   them, at 228 tiles, is what actually costs memory here.
 //
 // Widths and rounding come from fpga/rtl/radar_pkg.svh, which is the single
 // source of truth for this design.
