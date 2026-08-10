@@ -742,23 +742,28 @@ void SimSource::set_levels() {
     const double bin_hz = g_.fs / cfg_.decim / std::max(1, cfg_.n_range_fft);
     leak_bin_           = int(std::lround(g_.mu * kRadioLoopDelayS / bin_hz));
 
-    // Worst realistic peak: the leakage adds coherently across transmitters,
-    // everything else adds in power with a generous crest factor, and the noise
-    // needs four standard deviations of room.
+    // Worst realistic peak.  The leakage is a constant-amplitude chirp, so its
+    // contribution to the peak is its full amplitude on every transmitter at
+    // once; the scene adds in power with a crest factor; the noise needs four
+    // standard deviations of room on each component.
     double p_sum = 0;
     for (const auto& s : scat_) {
         double a, tau, fd;
         path(s, 0.0, 0, 0, a, tau, fd);
-        p_sum += a * a;
+        p_sum += a * a * g_.n_tx_active;
     }
-    const double peak = leak_amp_ * g_.n_tx + 3.0 * std::sqrt(p_sum) + 4.0 * noise_sigma_;
+    const double peak = leak_amp_ * g_.n_tx_active +
+                        3.0 * std::sqrt(p_sum) +
+                        4.0 * noise_sigma_ * std::sqrt(2.0);
 
     backoff_db_ = 0.0;
     if (peak > kHeadroom && peak > 0) {
         // The converter would clip.  Back the receive gain off until it does
-        // not -- which is what the radio's own gain control does on the bench,
-        // and it costs nothing in sensitivity because the thermal noise comes
-        // down with the signal and still sits well above the twelve-bit floor.
+        // not -- which is what the radio's own gain control does on the bench.
+        // It costs almost nothing in sensitivity, because the thermal noise
+        // comes down with the signal and stays above the twelve-bit floor: with
+        // the leakage 57 dB above the noise and 74 dB of converter to play with,
+        // there is about 11 dB left underneath, which is 0.3 dB of noise.
         backoff_db_ = 20.0 * std::log10(peak / kHeadroom);
         const double k = kHeadroom / peak;
         amp_scale_ *= k;
