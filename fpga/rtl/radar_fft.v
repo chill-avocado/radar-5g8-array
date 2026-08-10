@@ -496,13 +496,12 @@ module radar_fft_stage #(
         wire signed [TW_W-1:0] p1_tc = p1_tw[TW_W-1:0];
         wire signed [TW_W-1:0] p1_ts = p1_tw[2*TW_W-1:TW_W];
 
-        reg                       p2_valid, p2_sel;
+        reg                       p2_sel;
         reg signed [2*DATA_W-1:0] p2_rr, p2_ii, p2_ri, p2_ir;
         reg signed [DATA_W-1:0]   p2_bi, p2_bq;
 
         always @(posedge clk) begin
             if (rst) begin
-                p2_valid <= 1'b0;
                 p2_sel   <= 1'b0;
                 p2_rr    <= {(2*DATA_W){1'b0}};
                 p2_ii    <= {(2*DATA_W){1'b0}};
@@ -511,7 +510,6 @@ module radar_fft_stage #(
                 p2_bi    <= {DATA_W{1'b0}};
                 p2_bq    <= {DATA_W{1'b0}};
             end else begin
-                p2_valid <= p1_valid;
                 if (p1_valid) begin
                     p2_sel <= p1_sel;
                     p2_rr  <= p1_i * p1_tc;
