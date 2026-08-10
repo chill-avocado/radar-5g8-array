@@ -531,15 +531,11 @@ module radar_fft_stage #(
 
         always @(posedge clk) begin
             if (rst) begin
-                m_valid <= 1'b0;
-                m_i     <= {DATA_W{1'b0}};
-                m_q     <= {DATA_W{1'b0}};
-            end else begin
-                m_valid <= p2_valid;
-                if (p2_valid) begin
-                    m_i <= p2_sel ? p2_bi : sat_m(mr_s);
-                    m_q <= p2_sel ? p2_bq : sat_m(mi_s);
-                end
+                m_i <= {DATA_W{1'b0}};
+                m_q <= {DATA_W{1'b0}};
+            end else if (p2_valid) begin
+                m_i <= p2_sel ? p2_bi : sat_m(mr_s);
+                m_q <= p2_sel ? p2_bq : sat_m(mi_s);
             end
         end
 
