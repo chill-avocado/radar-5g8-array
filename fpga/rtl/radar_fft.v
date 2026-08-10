@@ -166,12 +166,17 @@ module radar_fft #(
     // those the very first complete transform -- of input frame 0 -- arrives,
     // in bit-reversed order, and never stops.
     //------------------------------------------------------------------------
-    wire core_raw = st_valid[NLOG2];
+    wire core_raw  = st_valid[NLOG2];
+    wire core_sync = st_sync[NLOG2];
 
     reg [NLOG2-1:0] pcnt;
     reg             primed;
     reg [NLOG2-1:0] ocnt;
 
+    // The sync that entered with input sample N-1 comes back out riding on the
+    // first sample of that frame's transform, i.e. exactly on ocnt == 0, so it
+    // is what the output index counts from.  With well-formed framing it agrees
+    // with the free-running count and changes nothing.
     always @(posedge clk) begin
         if (rst) begin
             pcnt   <= IDX_ZERO;
@@ -181,6 +186,8 @@ module radar_fft #(
             if (!primed) begin
                 if (pcnt == PRIME_END) primed <= 1'b1;
                 pcnt <= pcnt + IDX_ONE;
+            end else if (core_sync) begin
+                ocnt <= IDX_ONE;
             end else begin
                 ocnt <= (ocnt == IDX_LAST) ? IDX_ZERO : (ocnt + IDX_ONE);
             end
