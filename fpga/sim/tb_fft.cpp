@@ -136,10 +136,16 @@ struct RunOut {
 // rev selects the NATURAL_OUT = 0 build, where the p-th sample of a frame is
 // bin bitrev(p).  Captured frames come back in natural bin order either way,
 // so everything downstream of here is identical for the two orderings.
+//
+// lead_in > 0 feeds that many samples closed by in_last before the real frames
+// begin, so the core starts on a frame boundary that is deliberately in the
+// wrong place and has to move to the one in_last declares.  Capture then waits
+// for out_idx to come round to 0 instead of assuming the first output sample
+// is bin 0.
 template <class DUT>
 RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
               const std::vector<std::vector<ci>>& in_frames, int n_check,
-              int gap_mod = 0, bool rev = false) {
+              int gap_mod = 0, bool rev = false, int lead_in = 0) {
     RunOut r;
 
     dut.rst       = 1;
