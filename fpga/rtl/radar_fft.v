@@ -426,6 +426,34 @@ module radar_fft_stage #(
     end
 
     //------------------------------------------------------------------------
+    // The valid and end-of-block flags run down the middle of the stage,
+    // shared by all three twiddle variants, so every stage is exactly three
+    // enabled clocks long whether or not it builds a multiplier.
+    //
+    // s_sync rides with its sample rather than being regenerated, so a frame
+    // boundary that moves upstream moves every stage's block counter together.
+    // Realigning only the first stage would shear the pipeline.
+    //------------------------------------------------------------------------
+    reg p2_valid;
+    reg p1_sync, p2_sync;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            p2_valid <= 1'b0;
+            m_valid  <= 1'b0;
+            p1_sync  <= 1'b0;
+            p2_sync  <= 1'b0;
+            m_sync   <= 1'b0;
+        end else begin
+            p2_valid <= p1_valid;
+            m_valid  <= p2_valid;
+            if (s_valid)  p1_sync <= s_sync;
+            if (p1_valid) p2_sync <= p1_sync;
+            if (p2_valid) m_sync  <= p2_sync;
+        end
+    end
+
+    //------------------------------------------------------------------------
     // Pipeline stages 2 and 3: the twiddle.  p1_sel = 1 is the sum half, which
     // carries no twiddle at all; p1_sel = 0 is the differences coming back out
     // of the delay line, which do.
