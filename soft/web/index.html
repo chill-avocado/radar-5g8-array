@@ -1786,15 +1786,17 @@ const Demo = (() => {
   // The scene: a weaving quadrotor, a receding vehicle, a crossing bird,
   // ground clutter at zero Doppler and thermal noise everywhere.
   function scene(){
+    // The motions loop, so the scene never quietly empties itself: a display
+    // left running all afternoon must still have something in it.
     const drone = {
-      range: 88 - 5.5*t + 6*Math.sin(t*0.22),
+      range: 88 - 5.5*(t % 12) + 6*Math.sin(t*0.22),
       vel:   5.5 - 6*0.22*Math.cos(t*0.22),
       az:    -14 + 17*Math.sin(t*0.31),
       snr:   34 + 3*Math.sin(t*1.7),
       spread: 3.1, label: "quadrotor", blade: 71 + 4*Math.sin(t*0.5),
     };
     const car = {
-      range: 132 + 11*t*0.35,
+      range: 132 + 4.0*(t % 9),
       vel:   -11.4,
       az:    22 + 2*Math.sin(t*0.13),
       snr:   45, spread: 0.5, label: "vehicle", blade: 0,
