@@ -128,7 +128,7 @@ double cfar_alpha_os(double pfa, int n, int k) {
 // that only ever sees one map size allocates exactly once.
 //============================================================================
 struct Cfar2D::Scratch {
-    const void* owner = nullptr;   ///< which Cfar2D built the row tables
+    u64 owner = 0;                 ///< serial of the Cfar2D that built the tables
     int nr = 0, nd = 0, ext_w = 0;
 
     std::vector<double> ii;        ///< integral image, (nr+1) * (ext_w+1)
@@ -163,10 +163,10 @@ struct Cfar2D::Scratch {
 
 Cfar2D::Scratch& Cfar2D::scratch(int nr, int nd) const {
     static thread_local Scratch s;
-    if (s.owner == this && s.nr == nr && s.nd == nd) return s;
+    if (s.owner == serial_ && s.nr == nr && s.nd == nd) return s;
 
     const int ext_w = nd + 2 * halo_d_;
-    s.owner = this;
+    s.owner = serial_;
     s.nr = nr; s.nd = nd; s.ext_w = ext_w;
     s.ii.assign(std::size_t(nr + 1) * (ext_w + 1), 0.0);
 
@@ -243,8 +243,18 @@ Cfar2D::Scratch& Cfar2D::scratch(int nr, int nd) const {
 }
 
 //============================================================================
+namespace {
+/// Serial numbers for the per-thread scratch.  Starts at one so that a
+/// zero-initialised scratch never matches a live detector.
+u64 next_cfar_serial() {
+    static std::atomic<u64> counter{1};
+    return counter.fetch_add(1, std::memory_order_relaxed);
+}
+} // namespace
+
 Cfar2D::Cfar2D(const Config& cfg)
-    : kind_(cfg.cfar_kind),
+    : serial_(next_cfar_serial()),
+      kind_(cfg.cfar_kind),
       guard_r_(std::max(0, cfg.guard_range)),
       guard_d_(std::max(0, cfg.guard_dopp)),
       train_r_(std::max(0, cfg.train_range)),
