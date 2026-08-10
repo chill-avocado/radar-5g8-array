@@ -29,6 +29,9 @@
 //----------------------------------------------------------------------------
 // Small harness
 //----------------------------------------------------------------------------
+// Verilator's legacy time hook; this testbench drives the clock by hand.
+double sc_time_stamp() { return 0.0; }
+
 static int g_fail = 0;
 
 static void result(const std::string& name, bool ok, const std::string& note = "")
