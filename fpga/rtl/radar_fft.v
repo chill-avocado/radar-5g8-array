@@ -121,11 +121,13 @@ module radar_fft #(
     // last butterfly's output.
     //------------------------------------------------------------------------
     wire                     st_valid [0:NLOG2];
+    wire                     st_sync  [0:NLOG2];
     wire signed [DATA_W-1:0] st_i     [0:NLOG2];
     wire signed [DATA_W-1:0] st_q     [0:NLOG2];
     wire [NLOG2-1:0]         st_ovf;
 
     assign st_valid[0] = in_valid;
+    assign st_sync[0]  = in_last;
     assign st_i[0]     = in_i;
     assign st_q[0]     = in_q;
 
@@ -141,12 +143,13 @@ module radar_fft #(
             ) u_stage (
                 .clk     (clk),
                 .rst     (rst),
-                .sync    ((gk == 0) ? in_last : 1'b0),
                 .shift   (scale_sch[2*gk+1 -: 2]),
                 .s_valid (st_valid[gk]),
+                .s_sync  (st_sync[gk]),
                 .s_i     (st_i[gk]),
                 .s_q     (st_q[gk]),
                 .m_valid (st_valid[gk+1]),
+                .m_sync  (st_sync[gk+1]),
                 .m_i     (st_i[gk+1]),
                 .m_q     (st_q[gk+1]),
                 .ovf     (st_ovf[gk])
