@@ -157,28 +157,40 @@ RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
     for (int t = 0; t < 8; ++t) { dut.clk = 0; dut.eval(); dut.clk = 1; dut.eval(); }
     dut.rst = 0;
 
+    // Flatten the whole stimulus first: a lead-in of the wrong length if one
+    // was asked for, then the frames, each closed by in_last.
+    struct InSample { int16_t i, q; bool last; };
+    std::vector<InSample> feed;
+    feed.reserve(static_cast<size_t>(lead_in) + in_frames.size() * N);
+    for (int t = 0; t < lead_in; ++t) {
+        const ci& s = in_frames[0][t % N];
+        feed.push_back({s.first, s.second, (t == lead_in - 1)});
+    }
+    for (const std::vector<ci>& fr : in_frames)
+        for (int t = 0; t < N; ++t) feed.push_back({fr[t].first, fr[t].second, (t == N - 1)});
+
     std::vector<cd> cur(N);
     int       pos       = 0;   // position within the output frame
     int       filled    = 0;
+    bool      aligned   = (lead_in == 0);
     long long tick      = 0;   // clocks
     long long si        = 0;   // input samples actually accepted
     long long first_in  = -1;
     long long max_ticks =
-        static_cast<long long>(3 * NLOG2 + 2 * N) +
-        static_cast<long long>(n_check + 3) * N + 256;
+        static_cast<long long>(3 * NLOG2 + 2 * N + lead_in) +
+        static_cast<long long>(n_check + 4) * N + 256;
     if (gap_mod > 0) max_ticks = max_ticks * (gap_mod + 1) / gap_mod + 256;
 
     while (static_cast<int>(r.frames.size()) < n_check && tick < max_ticks) {
-        const bool   v = (gap_mod <= 0) || ((tick % gap_mod) != 0);
-        const size_t f = static_cast<size_t>(si / N);
-        const int    p = static_cast<int>(si % N);
-        int16_t xi = 0, xq = 0;
-        if (f < in_frames.size()) { xi = in_frames[f][p].first; xq = in_frames[f][p].second; }
+        const bool v = (gap_mod <= 0) || ((tick % gap_mod) != 0);
+        InSample   s = {0, 0, false};
+        if (static_cast<size_t>(si) < feed.size()) s = feed[static_cast<size_t>(si)];
+        else s.last = ((si % N) == N - 1);   // keep framing going past the data
 
         dut.in_valid = v ? 1 : 0;
-        dut.in_i     = static_cast<uint16_t>(xi);
-        dut.in_q     = static_cast<uint16_t>(xq);
-        dut.in_last  = (v && p == N - 1) ? 1 : 0;
+        dut.in_i     = static_cast<uint16_t>(s.i);
+        dut.in_q     = static_cast<uint16_t>(s.q);
+        dut.in_last  = (v && s.last) ? 1 : 0;
         if (v && first_in < 0) first_in = tick;
 
         dut.clk = 0; dut.eval();
@@ -186,16 +198,22 @@ RunOut stream(DUT& dut, int N, int NLOG2, uint32_t sch,
 
         if (dut.out_valid) {
             if (r.latency < 0) r.latency = static_cast<int>(tick - first_in);
-            const uint32_t want     = rev ? bitrev(static_cast<uint32_t>(pos), NLOG2)
-                                          : static_cast<uint32_t>(pos);
-            const bool     want_end = (pos == N - 1);
-            if (static_cast<uint32_t>(dut.out_idx) != want)  r.idx_ok  = false;
-            if (static_cast<bool>(dut.out_last) != want_end) r.last_ok = false;
-            cur[want] = cd(static_cast<int16_t>(dut.out_i),
-                           static_cast<int16_t>(dut.out_q));
-            ++filled;
-            pos = want_end ? 0 : pos + 1;
-            if (filled == N) { r.frames.push_back(cur); filled = 0; }
+            if (!aligned) {
+                // After a re-sync, pick capture up at the top of a frame.
+                if (dut.out_idx == 0) { aligned = true; pos = 0; filled = 0; }
+            }
+            if (aligned) {
+                const uint32_t want     = rev ? bitrev(static_cast<uint32_t>(pos), NLOG2)
+                                              : static_cast<uint32_t>(pos);
+                const bool     want_end = (pos == N - 1);
+                if (static_cast<uint32_t>(dut.out_idx) != want)  r.idx_ok  = false;
+                if (static_cast<bool>(dut.out_last) != want_end) r.last_ok = false;
+                cur[want] = cd(static_cast<int16_t>(dut.out_i),
+                               static_cast<int16_t>(dut.out_q));
+                ++filled;
+                pos = want_end ? 0 : pos + 1;
+                if (filled == N) { r.frames.push_back(cur); filled = 0; }
+            }
         }
         if (dut.overflow) r.overflow = true;
         if (v) ++si;
