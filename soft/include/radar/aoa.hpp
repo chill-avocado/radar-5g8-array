@@ -44,6 +44,7 @@
 #include "radar/types.hpp"
 
 #include <array>
+#include <atomic>
 #include <vector>
 
 namespace radar {
@@ -126,6 +127,11 @@ private:
     Work&  work() const;
     Result run_monopulse(const std::array<cf32, 4>& v) const;
     Result run_spectrum(const cf64 R[4][4], int n_snap_eff, AoaMethod want) const;
+    void   warn_once(const char* what) const;
+
+    /// One line on the first degradation only.  A message per detection would
+    /// be five hundred lines a frame.
+    mutable std::atomic<bool> warned_{false};
 
     AoaMethod method_;
     int       n_az_, n_el_;
