@@ -784,7 +784,10 @@ void SimSource::set_levels() {
     const double lsb        = double(1 << (kAdcBits - 1));
     LOG_I("sim: transmit %.1f dBm/port, full scale %.1f dBm (%.1f dB of gain backed off), "
           "noise %.1f dBFS = %.1f converter counts rms, leakage at range bin %d",
-          pt_dbm, fs_dbm - backoff_db_, backoff_db_, noise_dbfs,
+          // Backing gain OFF makes the converter LESS sensitive, so its full
+          // scale moves UP in dBm. The sign was the other way round, which
+          // printed a full scale 60 dB below the truth.
+          pt_dbm, fs_dbm + backoff_db_, backoff_db_, noise_dbfs,
           noise_sigma_ * std::sqrt(2.0) * lsb, leak_bin_);
     log_link_budget(pt_dbm);
 }
