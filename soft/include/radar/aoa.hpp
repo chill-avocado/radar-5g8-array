@@ -27,11 +27,19 @@
 //              beamwidth, at the price of having to guess how many targets
 //              there are.
 //
-// The array is symmetric about its own centre, which is worth more here than
-// anywhere else: a mirrored, conjugated copy of a single snapshot is a second,
-// statistically independent look at the same scene.  That is what lets Capon
-// and MUSIC work at all from one snapshot, which is all a single
-// range-Doppler cell ever provides.
+// The array is symmetric about its own centre, and that is worth more here
+// than anywhere else: for any arrival direction the mirrored, conjugated
+// steering vector is the original one, so mirroring the covariance produces a
+// second look at the same scene with different complex amplitudes.  It is
+// applied always, and it doubles the effective number of looks at no cost in
+// aperture.
+//
+// Even so, one range-Doppler cell is one snapshot, and one snapshot -- even
+// doubled -- is not enough for MUSIC on four elements.  There is no way round
+// that: a subspace method needs a noise subspace, a rank-deficient covariance
+// does not have one, and the smallest eigenvalues of a rank-one matrix point
+// nowhere in particular.  Ask for MUSIC with too few snapshots and this class
+// runs Capon instead and records that it did.  See music_min_snapshots().
 //============================================================================
 #pragma once
 
