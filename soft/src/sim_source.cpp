@@ -445,8 +445,13 @@ void accumulate(float* __restrict accr, float* __restrict acci,
     }
     const float cr = float(r8), ci = float(i8);
 
+    // The phasor carries the echo's amplitude as well as its phase, so it is
+    // deliberately NOT of unit length and must never be renormalised: doing that
+    // would drag every echo, however faint, up towards full scale.  The drift
+    // that single precision introduces over the 384 group multiplications in one
+    // sweep is a relative 2e-6, which is four orders of magnitude below the
+    // twelve-bit converter, so there is nothing to correct.
     int n = n0;
-    int guard = 0;
     for (; n + 8 <= n1; n += 8) {
         const int m = n - shift;
         for (int j = 0; j < 8; ++j) {
@@ -456,16 +461,6 @@ void accumulate(float* __restrict accr, float* __restrict acci,
             const float t = pr[j] * cr - pi[j] * ci;
             pi[j]         = pr[j] * ci + pi[j] * cr;
             pr[j]         = t;
-        }
-        // Single-precision multiplication leaks a little magnitude over a few
-        // hundred steps.  One Newton step every sixty-four groups costs nothing
-        // and holds it to the last bit.
-        if (++guard == 64) {
-            guard = 0;
-            for (int j = 0; j < 8; ++j) {
-                const float m = 1.5f - 0.5f * (pr[j] * pr[j] + pi[j] * pi[j]);
-                pr[j] *= m; pi[j] *= m;
-            }
         }
     }
     for (int j = 0; n < n1; ++n, ++j) {
