@@ -71,27 +71,27 @@ module tray_rx() {
 module arm_tx() {{
   difference() {{
     union() {{
-      translate([-12.500, -146.571, 0])
-        cube([12.500, 143.376, 12.00]);
+      translate([-12.500, -176.571, 0])
+        cube([12.500, 173.376, 12.00]);
       // local pad, deep enough to swallow a 1/4-20 tripod nut
-      translate([-21.000, -58.571, 0])
+      translate([-21.000, -88.571, 0])
         cube([8.50, 34.00, 12.00]);
     }}
+    translate([-13.500, -166.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
+    translate([-13.500, -156.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
+    translate([-13.500, -146.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -136.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -126.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -116.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -106.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.500, -96.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.500, -86.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.500, -76.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     // tripod thread, and two M4 for any flat bracket
-    translate([-10.500, -41.571, -1])
+    translate([-10.500, -71.571, -1])
       cylinder(d=6.80, h=14.00, $fn=32);
-    translate([-10.500, -41.571, -0.01])
+    translate([-10.500, -71.571, -0.01])
       cylinder(d=13.164, h=6.00, $fn=6);
-    translate([-10.500, -52.571, -1])
+    translate([-10.500, -82.571, -1])
       cylinder(d=4.5, h=14.00, $fn=24);
-    translate([-10.500, -30.571, -1])
+    translate([-10.500, -60.571, -1])
       cylinder(d=4.5, h=14.00, $fn=24);
   }}
 }}
@@ -100,26 +100,26 @@ module arm_rx() {{
   difference() {{
     union() {{
       translate([0.000, -385.948, 0])
-        cube([12.500, 119.376, 12.00]);
+        cube([12.500, 149.376, 12.00]);
       // local pad, deep enough to swallow a 1/4-20 tripod nut
-      translate([12.500, -388.571, 0])
+      translate([12.500, -358.571, 0])
         cube([8.50, 34.00, 12.00]);
     }}
+    translate([-13.500, -246.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
+    translate([-13.500, -256.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
+    translate([-13.500, -266.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -276.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -286.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -296.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.500, -306.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.500, -316.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.500, -326.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.500, -336.571, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     // tripod thread, and two M4 for any flat bracket
-    translate([10.500, -371.571, -1])
+    translate([10.500, -341.571, -1])
       cylinder(d=6.80, h=14.00, $fn=32);
-    translate([10.500, -371.571, -0.01])
+    translate([10.500, -341.571, -0.01])
       cylinder(d=13.164, h=6.00, $fn=6);
-    translate([10.500, -382.571, -1])
+    translate([10.500, -352.571, -1])
       cylinder(d=4.5, h=14.00, $fn=24);
-    translate([10.500, -360.571, -1])
+    translate([10.500, -330.571, -1])
       cylinder(d=4.5, h=14.00, $fn=24);
   }}
 }}
@@ -195,10 +195,10 @@ module extender() {
       translate([0.00, -80.00, 0])
         cube([12.50, 80.00, 12.00]);
       // full depth through the middle
-      translate([-12.50, -100.00, 0])
-        cube([25.00, 20.00, 12.00]);
+      translate([-12.50, -70.00, 0])
+        cube([25.00, -10.00, 12.00]);
       // and the tongue that laps whatever is below, on the other side
-      translate([-12.50, -180.00, 0])
+      translate([-12.50, -150.00, 0])
         cube([12.50, 80.00, 12.00]);
     }
     translate([-13.50, -10.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
@@ -208,13 +208,13 @@ module extender() {
     translate([-13.50, -50.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.50, -60.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.50, -70.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
+    translate([-13.50, -80.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
+    translate([-13.50, -90.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
+    translate([-13.50, -100.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.50, -110.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.50, -120.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.50, -130.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
     translate([-13.50, -140.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.50, -150.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.50, -160.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
-    translate([-13.50, -170.00, 6.00]) rotate([0,90,0]) cylinder(d=3.40, h=27.00, $fn=24);
   }
 }
 
@@ -225,9 +225,9 @@ else if (part == "receive") half_rx();
 else {
   half_tx();
   half_rx();
-  color("#7f8fa6") translate([0, -66.571, 0]) extender();
+  color("#7f8fa6") translate([0, -96.571, 0]) extender();
   color("#94a3b8") translate([0, -166.571, 0]) extender();
-  translate([-64.250, -214.071, -19.00])
+  translate([-64.250, -244.071, -19.00])
     color("#4a6fa5") cradle();
 
   // the aluminium, and the boards sitting on it

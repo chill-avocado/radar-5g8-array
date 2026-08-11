@@ -67,7 +67,7 @@ BAR_DROP = 2.0         # air between the lower tray edge and the bar
 LAP_L = 80.0           # holed stretch on each arm.  Must be a whole
                        # number of STEPs or the two hole rows never meet.
 OVL = 34.0             # how far the arm reaches back under its own tray
-WAIST = 20.0           # full-depth middle of an extender, between its two
+WAIST = -10.0           # full-depth middle of an extender, between its two
                        # tongues.  Without it the two tongues overlap and the
                        # piece is only joined where they happen to touch.
 HALF = BAR_D / 2.0     # each arm takes half the bar's depth
