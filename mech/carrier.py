@@ -478,10 +478,14 @@ module half_tx() {{
       tray_tx();
       arm_tx();
     }}
-    // the arm runs up into the tray, so cut the plate pocket again here or
-    // it fills the corner of it
+    // The arm reaches {OVL:.0f} mm back under its own tray, so the pocket has
+    // to be cut a second time from the finished union.  It must also be cut
+    // ALL the way up: the arm is {BAR_T:.0f} mm thick against the tray's
+    // {FLOOR+PLATE_T+LIP:.1f} mm, and a pocket only as deep as the plate left a
+    // tongue of plastic hanging over the antenna's face, 1.4 mm off the
+    // copper.  Nothing may stand in front of a patch.
     translate([{T[4]-CLEAR/2:.3f}, {T[5]-CLEAR/2:.3f}, {FLOOR:.2f}])
-      cube([{tx['PW']+CLEAR:.3f}, {tx['PH']+CLEAR:.3f}, {PLATE_T+LIP+1:.2f}]);
+      cube([{tx['PW']+CLEAR:.3f}, {tx['PH']+CLEAR:.3f}, {BAR_T-FLOOR+10:.2f}]);
     // clear runs for the coaxial connectors
 {windows(tx, T[4], T[5], T[5] - 14.0)}
   }}
@@ -494,7 +498,7 @@ module half_rx() {{
       arm_rx();
     }}
     translate([{R[4]-CLEAR/2:.3f}, {R[5]-CLEAR/2:.3f}, {FLOOR:.2f}])
-      cube([{rx['PW']+CLEAR:.3f}, {rx['PH']+CLEAR:.3f}, {PLATE_T+LIP+1:.2f}]);
+      cube([{rx['PW']+CLEAR:.3f}, {rx['PH']+CLEAR:.3f}, {BAR_T-FLOOR+10:.2f}]);
 {windows(rx, R[4], R[5], R[0] - 14.0)}
   }}
 }}

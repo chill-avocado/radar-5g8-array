@@ -53,8 +53,8 @@ module tray_rx() {
     // fasteners, each with an M3 nut trapped in the underside
       translate([-30.195, -391.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
       translate([-30.195, -391.948, -1]) cylinder(d=3.40, h=8.00);
-      translate([-26.195, -411.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
-      translate([-26.195, -411.948, -1]) cylinder(d=3.40, h=8.00);
+      translate([-27.195, -411.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
+      translate([-27.195, -411.948, -1]) cylinder(d=3.40, h=8.00);
       translate([-17.195, -399.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
       translate([-17.195, -399.948, -1]) cylinder(d=3.40, h=8.00);
       translate([-0.695, -440.948, -1]) cylinder(d=7.159, h=3.80, $fn=6);
@@ -130,10 +130,14 @@ module half_tx() {
       tray_tx();
       arm_tx();
     }
-    // the arm runs up into the tray, so cut the plate pocket again here or
-    // it fills the corner of it
+    // The arm reaches 34 mm back under its own tray, so the pocket has
+    // to be cut a second time from the finished union.  It must also be cut
+    // ALL the way up: the arm is 12 mm thick against the tray's
+    // 7.7 mm, and a pocket only as deep as the plate left a
+    // tongue of plastic hanging over the antenna's face, 1.4 mm off the
+    // copper.  Nothing may stand in front of a patch.
     translate([-46.071, -34.345, 5.00])
-      cube([91.300, 67.300, 3.70]);
+      cube([91.300, 67.300, 17.00]);
     // clear runs for the coaxial connectors
     translate([-37.521, -48.195, -1]) cube([16.000, 25.000, 14.00]);
     translate([12.523, -48.195, -1]) cube([16.000, 25.000, 14.00]);
@@ -147,7 +151,7 @@ module half_rx() {
       arm_rx();
     }
     translate([-34.345, -446.098, 5.00])
-      cube([67.300, 91.300, 3.70]);
+      cube([67.300, 91.300, 17.00]);
     translate([-51.195, -437.521, -1]) cube([28.000, 16.000, 14.00]);
     translate([-51.195, -387.477, -1]) cube([28.000, 16.000, 14.00]);
   }
