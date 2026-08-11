@@ -73,17 +73,21 @@ call((0.300, 0.330), 0.380, "THE SPINE", [
      "two printed halves plus two 155 mm extenders, bolted",
      "through a lap on a 10 mm hole pitch, so the separation",
      "can be set anywhere from 370 to 430 mm"])
-call((0.352, 0.090), 0.170, "RECEIVE ARRAY", [
+call((0.345, 0.108), 0.170, "RECEIVE ARRAY", [
      "a 47 x 71 mm board on a 67 x 91 mm aluminium plate",
      "two patches one above the other: it measures up-and-down",
      "so the pair together gives height as well as bearing"])
 
-axs.annotate('', xy=(-0.075, 0.950), xytext=(-0.075, 0.070),
+TOPY, BOTY = 0.914, 0.112          # the two array centres, as drawn
+axs.annotate('', xy=(-0.075, TOPY), xytext=(-0.075, BOTY),
              arrowprops=dict(arrowstyle='<->', lw=2.6, color=BLUE))
-axs.text(-0.116, 0.510, "400 mm", color=BLUE, fontsize=26, fontweight='bold',
-         rotation=90, ha='center', va='center')
-axs.text(-0.040, 0.510, "set by the leak budget, not by taste: 4.1 dB in hand",
-         color=BLUE, fontsize=15, rotation=90, ha='center', va='center')
+for yy in (TOPY, BOTY):
+    axs.plot([-0.098, -0.052], [yy, yy], color=BLUE, lw=2.0)
+axs.text(-0.116, (TOPY + BOTY) / 2, "400 mm", color=BLUE, fontsize=26,
+         fontweight='bold', rotation=90, ha='center', va='center')
+axs.text(-0.040, (TOPY + BOTY) / 2, "centre to centre, set by the leak "
+         "budget: 4.1 dB in hand", color=BLUE, fontsize=15, rotation=90,
+         ha='center', va='center')
 
 # ------------------------------------------------- the live boards, in order
 axb = panel([0.020, 0.246, 0.960, 0.200], (0, 10), (0.15, 3.45))
@@ -110,8 +114,9 @@ wr = board('rx', 8.25, "RECEIVE ARRAY",
 
 axb.annotate('', xy=(4.05, 1.75), xytext=(0.60 + wf + 0.10, 1.75),
              arrowprops=dict(arrowstyle='-|>', lw=2.8, color=BLUE))
-axb.text((4.05 + 0.70 + wf) / 2, 1.86, "0.76 watts a chain, out to the sky",
-         ha='center', fontsize=16, color=BLUE)
+MID = (4.05 + 0.70 + wf) / 2
+axb.text(MID, 2.02, "0.76 watts a chain,", ha='center', fontsize=16, color=BLUE)
+axb.text(MID, 1.86, "out to the sky", ha='center', fontsize=16, color=BLUE)
 axb.annotate('', xy=(0.60 + wf / 2, 2.62), xytext=(8.25 + wr / 2, 2.62),
              arrowprops=dict(arrowstyle='-|>', lw=2.8, color=BLUE,
                              connectionstyle='arc3,rad=0.055'))
