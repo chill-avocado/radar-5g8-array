@@ -741,16 +741,18 @@ def main():
     # Where they overlap along the length AND across the width they are not
     # lapping, they are trying to occupy the same plastic, and the thing
     # cannot be assembled however good it looks on screen.
+    _txa, _rxa = boxes['tx'][1], boxes['rx'][1]
+    _x0, _xm, _x1 = _txa[1], _txa[3], _rxa[3]
     def _ext_parts(name, top):
-        return [(name + " top tongue", x_split, bar_x1, top - LAP_L, top),
-                (name + " waist", bar_x0, bar_x1,
+        return [(name + " top tongue", _xm, _x1, top - LAP_L, top),
+                (name + " waist", _x0, _x1,
                  top - (ext_len - LAP_L), top - LAP_L),
-                (name + " lower tongue", bar_x0, x_split,
+                (name + " lower tongue", _x0, _xm,
                  top - ext_len, top - (ext_len - LAP_L))]
-    _solids = ([("transmit arm", bar_x0, x_split, lap_lo, T[1] + OVL)] +
+    _solids = ([("transmit arm", _x0, _xm, _txa[2], _txa[4])] +
                _ext_parts("upper extender", _e1) +
                _ext_parts("lower extender", _e2) +
-               [("receive arm", x_split, bar_x1, R[3] - OVL, rlap_hi)])
+               [("receive arm", _xm, _x1, _rxa[2], _rxa[4])])
     _clash = []
     for i, (na, ax0, ax1, ay0, ay1) in enumerate(_solids):
         for nb, bx0, bx1, by0, by1 in _solids[i + 1:]:
