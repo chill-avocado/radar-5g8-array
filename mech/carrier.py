@@ -448,7 +448,7 @@ module arm_{tag}() {{{{
                ('pad', bar_x0 - (PAD_D - HALF), pad_tx - PAD_L / 2,
                 bar_x0, pad_tx + PAD_L / 2)],
         'rx': [('tray', R[0], R[1], R[2], R[3]),
-               ('arm', x_split, R[3] - OVL, bar_x1, rlap_lo),
+               ('arm', x_split, R[3] - OVL, bar_x1, rlap_hi),
                ('pad', bar_x1, pad_rx - PAD_L / 2,
                 bar_x1 + (PAD_D - HALF), pad_rx + PAD_L / 2)],
         'holes': (tx_holes, rx_holes),
@@ -470,7 +470,7 @@ $fn = 48;
 {tray(tx, T, 'tx')}
 {tray(rx, R, 'rx')}
 {arm('tx', T[1] + OVL, lap_lo, True, tx_holes, pad_tx)}
-{arm('rx', R[3] - OVL, rlap_lo, False, rx_holes, pad_rx)}
+{arm('rx', R[3] - OVL, rlap_hi, False, rx_holes, pad_rx)}
 
 module half_tx() {{
   difference() {{

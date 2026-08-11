@@ -100,7 +100,7 @@ module arm_rx() {{
   difference() {{
     union() {{
       translate([0.000, -385.948, 0])
-        cube([12.500, 64.376, 12.00]);
+        cube([12.500, 144.376, 12.00]);
       // local pad, deep enough to swallow a 1/4-20 tripod nut
       translate([12.500, -363.571, 0])
         cube([8.50, 34.00, 12.00]);
