@@ -67,6 +67,9 @@ BAR_DROP = 2.0         # air between the lower tray edge and the bar
 LAP_L = 80.0           # holed stretch on each arm.  Must be a whole
                        # number of STEPs or the two hole rows never meet.
 OVL = 34.0             # how far the arm reaches back under its own tray
+WAIST = 20.0           # full-depth middle of an extender, between its two
+                       # tongues.  Without it the two tongues overlap and the
+                       # piece is only joined where they happen to touch.
 HALF = BAR_D / 2.0     # each arm takes half the bar's depth
 PAD_L = 34.0           # mounting pad, local bulge on the arm's outer edge
 PAD_D = 21.0
@@ -344,8 +347,18 @@ def scad(tx, rx):
     mid = (T[3] + R[1] + EXT) / 2.0     # tx arm end, as if the pair were
     mid_r = mid - EXT                   # at BASE; rx arm end likewise
     n_hole = int((LAP_L - STEP) // STEP)
-    lap_hi, lap_lo = mid + LAP_L / 2.0, mid - LAP_L / 2.0
-    rlap_hi, rlap_lo = mid_r + LAP_L / 2.0, mid_r - LAP_L / 2.0
+    # How much clear air is left between the two arm ends.  This is not free
+    # to choose: the extender that bridges it has to carry a lap at each end
+    # plus a full-depth waist between them, and its length works out at
+    # (gap + 3 laps) / 2.  Leave too small a gap and that length comes out
+    # under two laps, so the two tongues overlap instead of being joined --
+    # the piece stops being a bar and becomes two plates touching at a corner.
+    GAP = LAP_L + 2 * WAIST
+    cen = (mid + mid_r) / 2.0
+    lap_lo = cen + GAP / 2.0            # the transmit arm ends here
+    lap_hi = lap_lo + LAP_L             # its lap band runs back up from there
+    rlap_hi = cen - GAP / 2.0           # and the receive arm ends here
+    rlap_lo = rlap_hi - LAP_L
     tx_holes = [lap_lo + STEP * (i + 1) for i in range(n_hole)]
     rx_holes = [rlap_hi - STEP * (i + 1) for i in range(n_hole)]
     pad_tx = lap_hi + 25.0
@@ -727,8 +740,8 @@ def main():
         '  half_tx();\n  half_rx();',
         '  half_tx();\n  half_rx();\n'
         f'  color("#7f8fa6") translate([0, {_e1:.3f}, 0]) extender();\n'
-        f'  color("#94a3b8") translate([0, {_e2:.3f}, 0]) '
-        f'mirror([1,0,0]) extender();\n' + "".join(
+        f'  color("#94a3b8") translate([0, {_e2:.3f}, 0]) extender();\n'
+        + "".join(
             f'  translate([{o[0]:.3f}, {o[1]:.3f}, -{SHELF_T + 14:.2f}])\n'
             f'    color("#4a6fa5") {k}();\n'
             for k, _s, _wh, o in shelves))
