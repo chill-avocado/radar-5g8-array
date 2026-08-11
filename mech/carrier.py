@@ -776,12 +776,14 @@ def main():
     print(f"\n  everything it takes to bolt together")
     print(f"    {sum(len(p['board_holes']) for p in (tx, rx)):2d} x M3 x 8 cap head    "
           f"array board -> plate -> nut in the tray")
-    print(f"    {sum(len(p['plate_holes']) for p in (tx, rx)):2d} x M3 x 8 pan head     plate -> nut in the tray"
-          f"plate -> nut in the tray (pan head: a countersink would break through 1.5 mm plate)")
+    print(f"    {sum(len(p['plate_holes']) for p in (tx, rx)):2d} x M3 x 8 pan head     "
+          f"plate -> nut in the tray (pan head, not countersunk: a "
+          f"countersink would break through 1.5 mm of aluminium)")
     print(f"    {n_bolt:2d} x M3 nut            dropped into the tray's underside")
     print(f"     7 x M3 x 30 + nut     through the lap, setting the separation")
-    print(f"    12 x M3 x 8 + nut      amplifier and receive board -> shelf")
-    print(f"     4 x M4 x 12 + nut     shelf -> the bar's own mounting pads")
+    print(f"     8 x M3 x 8 + nut      radio -> cradle, and cradle lid")
+    print(f"     4 x M4 x 12 + nut     cradle -> the bar's own mounting pads")
+    print(f"     4 x M4 x 10 + nut     isolation fin -> the top of the bar")
     print(f"     2 x 1/4-20 nut        tripod mounts, one on each arm")
     print(f"    stainless throughout: a steel bolt in an aluminium plate "
           f"outdoors will corrode the plate")
