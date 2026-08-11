@@ -834,8 +834,8 @@ def main():
           f"plate -> nut in the tray (pan head, not countersunk: a "
           f"countersink would break through 1.5 mm of aluminium)")
     print(f"    {n_bolt:2d} x M3 nut            dropped into the tray's underside")
-    print(f"    {3*n_hole:2d} x M3 x 30 + nut     through the three laps "
-          f"({n_hole} a lap), setting the separation")
+    print(f"    {3*len(boxes['holes'][0]):2d} x M3 x 30 + nut     through the three laps "
+          f"({len(boxes['holes'][0])} a lap), setting the separation")
     print(f"     8 x M3 x 8 + nut      radio -> cradle, and cradle lid")
     print(f"     4 x M4 x 12 + nut     cradle -> the bar's own mounting pads")
     print(f"     4 x M4 x 10 + nut     isolation fin -> the top of the bar")
