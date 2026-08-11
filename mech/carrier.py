@@ -736,6 +736,30 @@ def main():
         ov = min(a1, b1) - max(a0, b0)
         ok = "ok" if ov >= LAP_L - 0.05 else "TOO SHORT -- the spine is in two pieces"
         print(f"  {na:15} laps {nb:15} by {ov:6.1f} mm   {ok}")
+
+    # A lap only works if the two pieces take opposite halves of the bar.
+    # Where they overlap along the length AND across the width they are not
+    # lapping, they are trying to occupy the same plastic, and the thing
+    # cannot be assembled however good it looks on screen.
+    def _ext_parts(name, top):
+        return [(name + " top tongue", x_split, bar_x1, top - LAP_L, top),
+                (name + " waist", bar_x0, bar_x1,
+                 top - (ext_len - LAP_L), top - LAP_L),
+                (name + " lower tongue", bar_x0, x_split,
+                 top - ext_len, top - (ext_len - LAP_L))]
+    _solids = ([("transmit arm", bar_x0, x_split, lap_lo, T[1] + OVL)] +
+               _ext_parts("upper extender", _e1) +
+               _ext_parts("lower extender", _e2) +
+               [("receive arm", x_split, bar_x1, R[3] - OVL, rlap_hi)])
+    _clash = []
+    for i, (na, ax0, ax1, ay0, ay1) in enumerate(_solids):
+        for nb, bx0, bx1, by0, by1 in _solids[i + 1:]:
+            dx = min(ax1, bx1) - max(ax0, bx0)
+            dy = min(ay1, by1) - max(ay0, by0)
+            if dx > 0.01 and dy > 0.01:
+                _clash.append(f"{na} into {nb}: {dx:.1f} x {dy:.1f} mm")
+    print(f"  {'no two pieces share the same plastic' if not _clash else 'CLASH'}"
+          + ("" if not _clash else "\n    " + "\n    ".join(_clash)))
     src = src.replace(
         '  half_tx();\n  half_rx();',
         '  half_tx();\n  half_rx();\n'
