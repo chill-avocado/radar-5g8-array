@@ -708,6 +708,21 @@ def main():
     # the two extenders that bridge the arms, and the radio behind
     _e1 = ext_top
     _e2 = ext_top - ext_len + LAP_L
+
+    # Every joint in the chain has to be a real lap.  The receive arm once
+    # stopped exactly one lap short of its own bolt holes: seven holes drilled
+    # through fresh air, and the lower array hanging on nothing.  The hole
+    # check below passed it, because the holes were in the right places --
+    # there was simply no arm around them.  So measure the metal, not the holes.
+    _chain = [("transmit arm", boxes['tx'][1][2], boxes['tx'][1][4]),
+              ("upper extender", _e1 - ext_len, _e1),
+              ("lower extender", _e2 - ext_len, _e2),
+              ("receive arm", boxes['rx'][1][2], boxes['rx'][1][4])]
+    print()
+    for (na, a0, a1), (nb, b0, b1) in zip(_chain, _chain[1:]):
+        ov = min(a1, b1) - max(a0, b0)
+        ok = "ok" if ov >= LAP_L - 0.05 else "TOO SHORT -- the spine is in two pieces"
+        print(f"  {na:15} laps {nb:15} by {ov:6.1f} mm   {ok}")
     src = src.replace(
         '  half_tx();\n  half_rx();',
         '  half_tx();\n  half_rx();\n'
