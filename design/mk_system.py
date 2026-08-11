@@ -70,9 +70,9 @@ call((0.455, 0.500), 0.570, "ISOLATION FIN", [
      "worth 16.5 dB, and it blocks nothing the radar looks at",
      "the leak goes round the sides, so folding beats widening"], RED)
 call((0.300, 0.330), 0.380, "THE SPINE", [
-     "two printed halves plus two 155 mm extenders, bolted",
-     "through a lap on a 10 mm hole pitch, so the separation",
-     "can be set anywhere from 370 to 430 mm"])
+     "two printed halves plus two 180 mm extenders, joined",
+     "by three lapped joints on a 10 mm hole pitch, so the",
+     "separation can be set anywhere from 370 to 430 mm"])
 call((0.345, 0.108), 0.170, "RECEIVE ARRAY", [
      "a 47 x 71 mm board on a 67 x 91 mm aluminium plate",
      "two patches one above the other: it measures up-and-down",
