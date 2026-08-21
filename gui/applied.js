@@ -48,7 +48,7 @@
   }
   var trk=[
     mkTrack("TK-014","drone",  -0.31,0.62, 0.011,-14.2,84,0.94),
-    mkTrack("TK-017","suspect", 0.10,0.52, 0.017, -9.6,51,0.61),
+    mkTrack("TK-017","suspect", 0.10,0.76, 0.017, -9.6,51,0.61),
     mkTrack("TK-011","bird",    0.55,0.78,-0.021, -6.1,37,0.88),
     mkTrack("TK-021","unk",    -0.62,0.35, 0.007, -3.4,12,null)
   ];
@@ -108,13 +108,16 @@
     var on = cls==="drone" ? 1
            : cls==="suspect" ? (Math.sin(t/900)>0.15?1:0)
            : 0;
+    /* a blade is only bright while it is broadside on, so the band is written in
+       flashes — the stripes down the trace are the blade passing frequency */
+    var bflash = 0.12+0.88*Math.pow(Math.abs(Math.sin(t/118)),3);
     if(on){
       for(var k=-1;k<=1;k+=2){
         for(var d=26;d<46;d++){
           var y=body+k*d;
           if(y<0||y>=mdBuf.height) continue;
           var edge=1-Math.abs(d-36)/12;
-          var a=0.55*edge*(0.45+0.55*Math.abs(Math.sin(t/210)))*(0.35+0.65*rr());
+          var a=0.62*edge*bflash*(0.4+0.6*rr());
           if(a>0.02){ mdCtx.fillStyle="rgba("+rgb+","+a.toFixed(3)+")"; mdCtx.fillRect(mdBuf.width-1,y,1,1); }
         }
       }
@@ -208,7 +211,7 @@
     return q.az>guard.az0&&q.az<guard.az1&&q.rg>guard.r0&&q.rg<guard.r1;
   }
   function select(i){
-    if(i<0||i>=trk.length) return;
+    if(i<0||i>=trk.length||trk[i].state==="dropped") return;
     st.sel=i; mdWarm(trk[i].cls); repaint();
   }
   function stepRange(dir){
@@ -291,8 +294,7 @@
       st.drag.az=q.az; st.drag.rg=q.rg; repaint();
     }
   });
-  function endPointer(){ if(st.drag&&st.drag.k!=="gain") st.drag=null; else st.drag=null;
-    if(st.hold){ st.hold=null; repaint(); } }
+  function endPointer(){ st.drag=null; if(st.hold){ st.hold=null; } repaint(); }
   cv.addEventListener("pointerup",endPointer);
   cv.addEventListener("pointercancel",endPointer);
   cv.addEventListener("pointerleave",function(){ st.hover=null; st.hoverTrk=-1; if(st.hold){st.hold=null;} repaint(); });
@@ -342,12 +344,19 @@
     ctx.arc(cx,cy,r0*R,A(az1),A(az0),true);
     ctx.closePath();
   }
+  /* A label on the picture needs its own ground or the video eats it. */
+  function stamp(s,x,y,c2,size,align){
+    mono(ctx,size||9.5,"700");
+    var w2=ctx.measureText(s).width, ax=align==="center"?x-w2/2:x;
+    ctx.fillStyle="rgba(8,11,10,0.72)"; ctx.fillRect(ax-4,y-9,w2+8,13);
+    txt(ctx,s,x,y,c2,size||9.5,"700",align);
+  }
   function ctrlBox(c,fill,edge){
     ctx.fillStyle=fill; ctx.fillRect(c.x,c.y,c.w,c.h);
     ctx.strokeStyle=edge; ctx.lineWidth=1; ctx.strokeRect(c.x+.5,c.y+.5,c.w-1,c.h-1);
   }
 
-  var lastT=0, alarmSince=0;
+  var lastT=0;
   function repaint(){ frame(lastT); }
 
   function frame(t){
@@ -378,7 +387,7 @@
     var tripped=trk.some(function(g){
       return g.state==="live"&&g.az>guard.az0&&g.az<guard.az1&&g.rg>guard.r0&&g.rg<guard.r1;
     });
-    if(tripped&&st.alarm==="none"){ st.alarm="unack"; alarmSince=t; }
+    if(tripped&&st.alarm==="none"){ st.alarm="unack"; }
     if(!tripped&&st.alarm!=="none"){ st.alarm="none"; }
 
     if(mdCls!==sel().cls) mdWarm(sel().cls);
@@ -507,7 +516,7 @@
     ctx.setLineDash([9,6]); ctx.strokeStyle="rgba(255,19,32,0.45)"; ctx.lineWidth=1.3; ctx.stroke(); ctx.restore();
     if(edgeR<0.985){
       var pe=px(-HALF*0.72,edgeR);
-      txt(ctx,"DETECTION EDGE  0.94 km",pe[0],pe[1]-8,"rgba(255,19,32,0.62)",9.5,"700");
+      stamp("DETECTION EDGE  0.94 km",pe[0],pe[1]-8,"rgba(255,19,32,0.68)",9.5);
     }
 
     /* --- the tripwire the operator owns --- */
@@ -521,7 +530,7 @@
       ctx.strokeStyle=st.alarm==="none"?C.amber:C.red; ctx.lineWidth=1.3; ctx.stroke();
       ctx.globalAlpha=1; ctx.restore();
       var gm=px((guard.az0+guard.az1)/2,guard.r1);
-      txt(ctx,"GUARD",gm[0],gm[1]-9,st.alarm==="none"?C.amber:C.red,9.5,"700","center");
+      stamp("GUARD",gm[0],gm[1]-9,st.alarm==="none"?C.amber:C.red,9.5,"center");
       if(st.hover==="picture"||(st.drag&&st.drag.k==="guard")){
         [[guard.az0,guard.r0],[guard.az1,guard.r0],[guard.az0,guard.r1],[guard.az1,guard.r1]].forEach(function(h2){
           var ph=px(h2[0],h2[1]);
@@ -532,8 +541,8 @@
         txt(ctx,"GUARD FORCED BACK ON BY THE ALARM",cx,cy+34,C.red,10,"700","center");
     }
     if(st.show<2){
-      var sm=px((shadow.a0+shadow.a1)/2,0.30);
-      txt(ctx,"ROOFLINE SHADOW  ·  COMPUTED",sm[0],sm[1],"rgba(223,243,52,0.55)",9.5,"600","center");
+      var sm=px((shadow.a0+shadow.a1)/2,0.88);
+      stamp("ROOFLINE SHADOW · COMPUTED",sm[0],sm[1],"rgba(223,243,52,0.62)",9.5,"center");
     }
 
     /* --- the two rulers, told apart by their dashes --- */
@@ -696,11 +705,10 @@
       line(ctx,TL.x-10,y3+50,TL.x+TL.w,y3+50,C.dim,1);
     });
     txt(ctx,"BUILT FROM",TL.x,TL.y+TL.h-52,"#5E7269",9,"700");
-    ["RANGE","DOPPLER","MICRO-D","CAMERA"].forEach(function(s3,i){
+    ["RNG","DOP","uD","CAM"].forEach(function(s3,i){
       var on=(i<3)&&!st.fault&&sel().state==="live"&&!(i===2&&sel().cls==="unk");
-      txt(ctx,(on?"● ":"○ ")+s3,TL.x,TL.y+TL.h-34+i*0,"#5E7269",9,"700");
-      txt(ctx,(on?"●":"○"),TL.x+i*38,TL.y+TL.h-32,on?C.phos:"#3E5049",11,"700");
-      txt(ctx,s3.slice(0,3),TL.x+i*38,TL.y+TL.h-18,on?"#8FA39B":"#3E5049",8.5,"700");
+      txt(ctx,on?"●":"○",TL.x+i*40,TL.y+TL.h-32,on?C.phos:"#3E5049",11,"700");
+      txt(ctx,s3,TL.x+i*40,TL.y+TL.h-18,on?"#8FA39B":"#3E5049",8.5,"700");
     });
 
     /* ================= the control bar ================= */
