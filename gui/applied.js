@@ -345,11 +345,13 @@
     ctx.closePath();
   }
   /* A label on the picture needs its own ground or the video eats it. */
+  var reserved=[];
   function stamp(s,x,y,c2,size,align){
     mono(ctx,size||9.5,"700");
     var w2=ctx.measureText(s).width, ax=align==="center"?x-w2/2:x;
     ctx.fillStyle="rgba(8,11,10,0.72)"; ctx.fillRect(ax-4,y-9,w2+8,13);
     txt(ctx,s,x,y,c2,size||9.5,"700",align);
+    reserved.push({x:ax-4,y:y-9,w:w2+8,h:13});
   }
   function ctrlBox(c,fill,edge){
     ctx.fillStyle=fill; ctx.fillRect(c.x,c.y,c.w,c.h);
@@ -436,12 +438,13 @@
         (st.cue.az*180/Math.PI).toFixed(0)+"°  ·  DWELLING  ·  "+st.cue.left.toFixed(1)+" s",
         bx+14,qy+18,C.aqua,11,"700");
     } else {
-      txt(ctx,"NO OUTSTANDING CUE  ·  RIGHT-CLICK THE PICTURE TO ASK FOR A LOOK",bx+2,qy+18,"#3E5049",10.5,"700");
+      txt(ctx,"NO OUTSTANDING CUE  ·  RIGHT-CLICK THE PICTURE TO ASK FOR A LOOK",bx+2,qy+18,"#556862",10.5,"700");
     }
     txt(ctx,"DWELL 1.0 s  ·  REVISIT CONTINUOUS  ·  EVERY BEARING WATCHED AT ONCE",
-        bx+2,qy+44,"#3E5049",10.5,"700");
+        bx+2,qy+44,"#556862",10.5,"700");
 
     /* ================= the picture ================= */
+    reserved.length=0;
     /* the sector itself, and a slow breath across all of it — nothing sweeps */
     ctx.save();
     wedgePath(-HALF,HALF,0,1);
@@ -613,7 +616,7 @@
        other side, or let something untangle the field. This is the third: keep it
        on the right if the right is free, flip it if it is not, step it clear if
        neither is, and run a leader line back to the symbol whenever it has moved. */
-    var placed=[];
+    var placed=reserved.slice();
     tags.forEach(function(T){
       mono(ctx,11,"700"); var w1=ctx.measureText(T.l1).width;
       mono(ctx,10,"600"); var w2=ctx.measureText(T.l2).width;
@@ -698,10 +701,10 @@
       txt(ctx,kms.toFixed(3)+" km",AUX.x+110,AUX.y+60,C.aqua,15,"700");
       txt(ctx,"BY HAND  ·  ESC CLEARS",AUX.x+12,AUX.y+80,"#3E5049",9.5,"700");
     } else {
-      txt(ctx,"DRAG THE PICTURE TO MEASURE",AUX.x+12,AUX.y+46,"#4E6058",11,"700");
-      txt(ctx,"A BEARING LINE AND A RANGE RING,",AUX.x+12,AUX.y+64,"#3E5049",9.5,"700");
-      txt(ctx,"BECAUSE THE NUMBER THAT MATTERS",AUX.x+12,AUX.y+78,"#3E5049",9.5,"700");
-      txt(ctx,"IS RARELY ONE THAT WAS PRECOMPUTED.",AUX.x+12,AUX.y+92,"#3E5049",9.5,"700");
+      txt(ctx,"DRAG THE PICTURE TO MEASURE",AUX.x+12,AUX.y+46,"#7E938B",11,"700");
+      txt(ctx,"A BEARING LINE AND A RANGE RING,",AUX.x+12,AUX.y+64,"#4E6058",9.5,"700");
+      txt(ctx,"BECAUSE THE NUMBER THAT MATTERS",AUX.x+12,AUX.y+78,"#4E6058",9.5,"700");
+      txt(ctx,"IS RARELY ONE THAT WAS PRECOMPUTED.",AUX.x+12,AUX.y+92,"#4E6058",9.5,"700");
     }
 
     /* ================= track list ================= */
