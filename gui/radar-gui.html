@@ -1,0 +1,3251 @@
+<title>What Radar Operators Actually See</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  /* Ground + ink. Neutrals carry a faint green bias - the residue of a phosphor tube. */
+  --ground:#F0EFE9;
+  --ground-2:#E4E3DA;
+  --rule:#C9C8BC;
+  --ink:#141816;
+  --ink-2:#4A524E;
+  --ink-3:#767D78;
+
+  /* The console world. These stay fixed in both themes - real consoles are always dark. */
+  --tube:#080B0A;
+  --tube-2:#0E1413;
+  --tube-rule:#1E2A27;
+
+  /* Working colours lifted from FAA-HF-STD-010A, the US air traffic control standard palette. */
+  --std-white:#FFFFFF;
+  --std-grey:#B3B3B3;
+  --std-blue:#5E8DF6;
+  --std-aqua:#07CDED;
+  --std-green:#23E162;
+  --std-yellow:#DFF334;
+  --std-orange:#FE930D;
+  --std-red:#FF1320;
+  --std-pink:#F684D8;
+  --std-magenta:#D822FF;
+  --std-brown:#C5955B;
+
+  --phosphor:#35E07A;
+  --amber:#FFA51F;
+
+  --accent:#0F7A45;
+  --accent-soft:#D8EADF;
+
+  --display:"Avenir Next Condensed","HelveticaNeue-CondensedBold","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Charter","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --data:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+
+  --measure:63ch;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#0D100F;--ground-2:#151A18;--rule:#2A322E;
+    --ink:#E9EBE7;--ink-2:#A3ADA7;--ink-3:#77817B;
+    --accent:#4FD98C;--accent-soft:#16261E;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D100F;--ground-2:#151A18;--rule:#2A322E;
+  --ink:#E9EBE7;--ink-2:#A3ADA7;--ink-3:#77817B;
+  --accent:#4FD98C;--accent-soft:#16261E;
+}
+:root[data-theme="light"]{
+  --ground:#F0EFE9;--ground-2:#E4E3DA;--rule:#C9C8BC;
+  --ink:#141816;--ink-2:#4A524E;--ink-3:#767D78;
+  --accent:#0F7A45;--accent-soft:#D8EADF;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--body);font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.measure{max-width:var(--measure)}
+
+h1,h2,h3,h4{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:clamp(38px,7.2vw,86px);letter-spacing:-.01em;text-transform:uppercase}
+h2{font-size:clamp(27px,3.6vw,42px);letter-spacing:.005em;text-transform:uppercase}
+h3{font-size:20px;letter-spacing:.02em;text-transform:uppercase}
+p{margin:0 0 1.05em}
+a{color:var(--accent)}
+strong{font-weight:700}
+
+.eyebrow{font-family:var(--data);font-size:11px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 10px}
+
+/* ---------- hero ---------- */
+.hero{background:var(--tube);color:#DCE5E0;border-bottom:1px solid var(--tube-rule);position:relative;overflow:hidden}
+.hero-in{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;
+  padding:66px 0 60px}
+.hero h1{color:#F2F7F4}
+.hero .lede{color:#93A39B;font-size:19px;max-width:46ch;margin-top:18px}
+.hero .meta{font-family:var(--data);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:#4E5C56;margin-top:26px;display:flex;flex-wrap:wrap;gap:8px 20px}
+#heroPPI{width:100%;height:auto;display:block;filter:saturate(1.05)}
+
+/* ---------- sections ---------- */
+section{padding:66px 0}
+section+section{border-top:1px solid var(--rule)}
+.sec-head{display:flex;gap:22px;align-items:baseline;flex-wrap:wrap;margin-bottom:26px}
+.sec-head .tag{font-family:var(--data);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);padding-top:8px}
+
+/* ---------- console block ---------- */
+.console{background:var(--tube);border:1px solid var(--tube-rule);border-radius:3px;
+  overflow:hidden;margin:26px 0}
+.console-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding:9px 14px;border-bottom:1px solid var(--tube-rule);background:var(--tube-2);
+  font-family:var(--data);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:#5E6E67}
+.console-bar b{color:#9FB3AA;font-weight:600}
+.console-body{overflow-x:auto}
+.console-body canvas,.console-body svg{display:block}
+
+.keyed{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:2px;
+  background:var(--tube-rule);border-top:1px solid var(--tube-rule)}
+.keyed div{background:var(--tube-2);padding:12px 14px}
+.keyed h4{font-family:var(--data);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:#93A39B;margin:0 0 5px;font-weight:600;display:flex;align-items:center;gap:7px}
+.keyed p{font-size:13.5px;line-height:1.5;color:#6E7D76;margin:0;font-family:var(--body)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.bar{width:14px;height:3px;flex:none}
+
+/* ---------- two column notes ---------- */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:34px;margin-top:32px}
+.cols h3{margin-bottom:9px}
+.cols p{font-size:15.5px;color:var(--ink-2)}
+
+/* ---------- rules list ---------- */
+.rules{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:30px}
+.rule{background:var(--ground);padding:22px 24px;display:grid;
+  grid-template-columns:minmax(0,26ch) 1fr;gap:26px;align-items:start}
+.rule h3{font-size:18px;line-height:1.15}
+.rule p{margin:0;font-size:15.5px;color:var(--ink-2)}
+.rule .src{display:block;margin-top:8px;font-family:var(--data);font-size:10.5px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ---------- swatches ---------- */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:2px;
+  background:var(--tube-rule);border:1px solid var(--tube-rule);margin-top:24px}
+.sw{background:var(--tube-2);padding:0}
+.sw .chip{height:52px}
+.sw .lbl{padding:8px 10px;font-family:var(--data);font-size:10.5px;line-height:1.5;color:#8DA098}
+.sw .lbl b{display:block;color:#DCE5E0;letter-spacing:.09em;text-transform:uppercase;font-weight:600}
+
+/* ---------- table ---------- */
+.tbl-wrap{overflow-x:auto;margin-top:26px;border:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-family:var(--data);font-size:13px;
+  font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:11px 15px;border-bottom:1px solid var(--rule)}
+th{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+  background:var(--ground-2)}
+td{color:var(--ink-2)}
+td:first-child{color:var(--ink);font-weight:600}
+tr:last-child td{border-bottom:0}
+
+/* ---------- pull ---------- */
+.pull{font-family:var(--display);font-size:clamp(22px,2.7vw,31px);line-height:1.2;
+  text-transform:none;letter-spacing:0;color:var(--ink);
+  border-left:3px solid var(--accent);padding:4px 0 4px 22px;margin:34px 0;max-width:34ch}
+
+/* ---------- other domains ---------- */
+.domains{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-top:30px}
+.domain{background:var(--ground);padding:20px 22px 22px}
+.domain .who{font-family:var(--data);font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 8px}
+.domain h3{font-size:17px;margin-bottom:8px}
+.domain p{font-size:14.5px;line-height:1.55;color:var(--ink-2);margin:0}
+.domain .odd{display:block;margin-top:10px;font-size:13.5px;color:var(--ink);
+  border-left:2px solid var(--accent);padding-left:11px}
+
+.foot{padding:44px 0 70px;color:var(--ink-3);font-family:var(--data);font-size:12px;line-height:1.9}
+.foot a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--rule)}
+.foot a:hover{color:var(--accent);border-color:var(--accent)}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+@media (max-width:860px){
+  .hero-in{grid-template-columns:1fr;padding:44px 0 40px}
+  .rule{grid-template-columns:1fr;gap:9px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <div>
+      <p class="eyebrow" style="color:#4E5C56">A guide to building one</p>
+      <h1>What a radar<br>display is<br>made of</h1>
+      <p class="lede">Not a tour of who uses radar. A parts list: the picture, the marks on it, the
+      controls that move them, what happens when a sensor dies, and how the whole thing tells you the
+      truth about what it cannot see.</p>
+      <div class="meta">
+        <span>Picture</span><span>Tracks</span><span>Controls</span><span>Fusion</span>
+        <span>Coverage</span><span>Alerting</span>
+      </div>
+    </div>
+    <div><canvas id="heroPPI" width="1000" height="700" aria-label="Animated plan position indicator with a rotating sweep, range rings, coastline echoes and tracked targets"></canvas></div>
+  </div>
+</header>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:20ch">Five parts, and none of them optional</h2>
+    <span class="tag">The skeleton</span></div>
+  <div class="measure">
+    <p>Every radar display that puts a human in the loop is built from the same five pieces. Systems
+    that look nothing alike — a circle, a wedge, a rectangle — are the same skeleton with different
+    flesh.</p>
+  </div>
+  <div class="cols">
+    <div><h3>A picture</h3><p>Raw energy drawn where it came from, so the operator can see things the
+      computer has not decided are real. Never removed, however good the tracker gets.</p></div>
+    <div><h3>Marks on top</h3><p>The computer's opinion. Shape says what it is, colour says how you
+      should feel about it, and the two always say the same thing twice.</p></div>
+    <div><h3>A tag beside it</h3><p>Three or four lines of text tied to the symbol by a thin line, so
+      nobody has to look away from the picture to learn who something is.</p></div>
+    <div><h3>A ruler</h3><p>A movable line and a movable circle. The number that matters is often not
+      one the designer thought to precompute.</p></div>
+    <div><h3>A tripwire</h3><p>A region the operator draws that shouts when something enters it. The
+      operator sets the line, not the vendor.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:14ch">Building the picture</h2>
+    <span class="tag">Layers, decay and colour</span></div>
+  <div class="measure">
+    <p>The picture is three layers and the order never changes: a map underneath, the radar's energy
+    in the middle, symbols on top. Each has its own brightness, and the top always wins.</p>
+    <p>The middle layer carries the best trick available. Keep a slow running average of what comes
+    back from every direction and after a few turns it holds everything that <em>isn't moving</em>.
+    Subtract it from the live return and what remains is only what changed. Draw the whole return in
+    one colour and the changed part in a hotter one, in the same window, and the eye goes to the
+    second colour with nobody having to decide what counts as a target.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Two colours, one window</b></span>
+      <span>Everything in green · only what moved, in red</span></div>
+    <div class="console-body"><canvas id="layers" width="1140" height="430"
+      aria-label="A radar picture showing all returns in green with the moving portion overlaid in red, beside a panel showing the slow running average that holds the stationary scene"></canvas></div>
+    <div class="keyed">
+      <div><h4>Map underneath</h4><p>Dimmed hard, on its own brightness, never allowed to compete with
+        the picture above it.</p></div>
+      <div><h4><span class="dot" style="background:#35E07A"></span>Everything, in green</h4>
+        <p>The full return, cliff and buoy alike. The layer nobody is allowed to remove.</p></div>
+      <div><h4><span class="dot" style="background:#FF1320"></span>What moved, in red</h4>
+        <p>Live minus its own running average. No threshold, no decision — just the part of the scene
+        that was not there last time round.</p></div>
+      <div><h4>Symbols on top</h4><p>Drawn last, always opaque, never blended with the picture
+        underneath.</p></div>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Three ways to let the past fade</b></span>
+      <span>The same scene, three decay settings</span></div>
+    <div class="console-body"><canvas id="fades" width="1140" height="330"
+      aria-label="Three radar pictures of the same scene showing smooth phosphor-like decay, stepped per-sweep decay, and no decay at all"></canvas></div>
+    <div class="keyed">
+      <div><h4>Smooth</h4><p>Brightness bleeds away continuously. Set in seconds from full to black.
+        Looks right, costs the most to compute.</p></div>
+      <div><h4>Stepped</h4><p>Each patch dims only when the beam next passes it. Set in <em>number of
+        sweeps</em>, so the picture is tied to the aerial rather than the clock.</p></div>
+      <div><h4>None</h4><p>Nothing older than one sweep survives. The honest choice when a stale echo
+        would be worse than a missing one.</p></div>
+      <div><h4>Why it is a control</h4><p>Long decay reveals a weak target by letting it build up.
+        Short decay stops a busy sea filling the screen with ghosts. The operator picks.</p></div>
+    </div>
+  </div>
+
+  <div class="measure" style="margin-top:44px">
+    <h3 style="margin-bottom:12px">What sits between the aerial and the glass</h3>
+    <p>A dozen named stages, every one switchable, because which of them helps depends on the weather
+    and on what you are looking for.</p>
+  </div>
+  <div class="console">
+    <div class="console-bar"><span><b>The chain</b></span>
+      <span>Every stage optional · the order is the design</span></div>
+    <div class="console-body"><canvas id="chain" width="1140" height="250"
+      aria-label="The radar processing chain from input sources through a dozen optional processing stages to the three display forms"></canvas></div>
+    <div class="keyed">
+      <div><h4>Walk it both ways</h4><p>Turning a fan of returns into a square of pixels naively leaves
+        holes at long range and throws data away close in. Iterate over <em>both</em> the samples and
+        the pixels.</p></div>
+      <div><h4>History survives the view</h4><p>Changing range or panning must not wipe the trails. It
+        ships as a named feature, which tells you how often it gets built the wrong way round.</p></div>
+      <div><h4>Masks are polygons</h4><p>An arbitrary outline, not a rectangle, because the thing you
+        want to ignore is a headland or a building.</p></div>
+      <div><h4>Record before the picture</h4><p>Recording taps the radar's own coordinates upstream of
+        everything, so replay runs the chain again and you can change your mind afterwards.</p></div>
+    </div>
+  </div>
+
+  <div class="measure" style="margin-top:44px">
+    <h3 style="margin-bottom:12px">The radar layer belongs to a different program</h3>
+    <p>Do not draw radar video inside your application. Run the scan conversion as a separate process,
+    tell it which window to paint into, and send it short commands — this scale, this centre, this
+    colour, this decay. A slow redraw in the interface then cannot stall the radar, and a flood of
+    returns cannot freeze the buttons.</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2>Four ways to draw the same energy</h2><span class="tag">Presentations</span></div>
+  <div class="measure">
+    <p>The circular sweep is one option of several, and professional software routinely shows two or
+    three at once from a single radar. Each throws away something different.</p>
+  </div>
+  <div class="console">
+    <div class="console-bar"><span><b>The same three targets, four presentations</b></span>
+      <span>Live</span></div>
+    <div class="console-body"><canvas id="scopes" width="1140" height="330"
+      aria-label="Four radar presentations side by side: a plan position indicator, a range versus azimuth B-scope, an amplitude versus range A-scope, and a range versus speed Doppler map"></canvas></div>
+    <div class="keyed">
+      <div><h4>Plan view</h4><p>Direction as angle, distance as radius. Matches the world, wastes the
+        corners, squashes everything close in.</p></div>
+      <div><h4>Range vs direction</h4><p>The same wedge unrolled into a rectangle. Uses every pixel,
+        bends straight lines into curves.</p></div>
+      <div><h4>Strength vs range</h4><p>One direction, drawn as a graph. The only view that shows how
+        strong a return is, which is how gain gets set honestly.</p></div>
+      <div><h4>Range vs speed</h4><p>The native output of a continuous-wave radar. A hovering drone and
+        a moving car separate here even at the same distance.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:16ch">Pointing the beam</h2>
+    <span class="tag">And what it does to the screen</span></div>
+  <div class="measure">
+    <p>Three ways to aim a radar: turn the aerial with a motor, bolt it down and steer by shifting
+    phase across a grid of small aerials, or do both at once. It sounds like a hardware detail. It is
+    the single biggest influence on what the screen can be.</p>
+    <p>Watch the age counters below. A turning aerial resets all of them together, once a revolution,
+    and nothing can be made fresher without spinning faster. A fixed array resets whichever ones it
+    chooses, as often as it likes — so staleness stops being a property of the machine and becomes a
+    budget the operator spends.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>The same sky, three ways of looking at it</b></span>
+      <span>Plan view · elevation · what it costs</span></div>
+    <div class="console-body"><canvas id="scanning" width="1140" height="726"
+      aria-label="Three columns comparing a mechanically rotating radar, a rotating electronically scanned array, and a fixed multi-face array. Each shows a plan view with live per-target age counters, an elevation view, and a panel of what it costs."></canvas></div>
+    <div class="keyed">
+      <div><h4>Motor only</h4><p>One beam, one height, one look per turn. The sweep line is where the
+        metal is pointing and the fade behind it is genuinely how old the picture is.</p></div>
+      <div><h4>Motor plus phase</h4><p>The face turns but the beam need not follow. Stacked in
+        elevation, so height arrives free; swung backwards against the rotation to linger where the
+        weather is eating the signal.</p></div>
+      <div><h4>Phase only</h4><p>Four faces, nothing moving, every direction available every
+        millisecond. Seams where the faces meet, and accuracy dips there.</p></div>
+      <div><h4>What each one costs</h4><p>Update rate, height, whether the energy can be aimed, and how
+        gracefully it fails. Rarely the comparison in the brochure.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Rotation is a visible trade</h3><p>Spin faster and the picture is fresher; spin faster and
+      each patch of sky gets less energy, so range drops. The rate belongs on screen because it is a
+      decision, not a specification.</p></div>
+    <div><h3>Blanking sectors are drawn</h3><p>Transmission stopped over particular bearings looks
+      exactly like calm empty water unless it is marked.</p></div>
+    <div><h3>Decay counted in sweeps</h3><p>On a rotating set the natural unit of time is the
+      revolution, so trails and integration are specified in sweeps. Change the rate and all of them
+      move underneath you.</p></div>
+    <div><h3>The operator gains a verb</h3><p>With a motor, asking the radar to look somewhere means
+      waiting. With an array you point and it looks there next — so the interface needs a cue action
+      and somewhere to show a request is outstanding.</p></div>
+    <div><h3>Coverage is not a clean wedge</h3><p>Steer away from boresight and sensitivity falls off
+      with the cosine of the angle until there is nothing left. A flat symmetrical fan overstates the
+      edges every time.</p></div>
+    <div><h3>Dead elements fade quietly</h3><p>A motor stops and you notice. An array loses elements
+      and keeps working with slightly less reach and worse sidelobes, announcing nothing. The count
+      belongs on the health strip.</p></div>
+  </div>
+
+  <div class="measure" style="margin-top:40px">
+    <h3 style="margin-bottom:12px">Why a long look matters</h3>
+    <p>Digital beam forming floods the sector with one wide transmit beam and forms many receive beams
+    at once, in software. Nothing scans, so the radar can dwell on a target for as long as it likes.
+    Fine speed resolution needs a long look, and fine speed resolution is what separates a drone's
+    spinning blades from a bird's wingbeat. A rotating radar gets tens of milliseconds per target per
+    turn and can never have it.</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:16ch">Tracks, symbols and labels</h2>
+    <span class="tag">The computer's opinion, drawn</span></div>
+  <div class="measure">
+    <p>A track is a claim: <em>this is one object, it is here, it is going there.</em> Everything about
+    how it is drawn exists to let a person accept or reject that claim quickly.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Symbol, tag, trail, vector</b></span>
+      <span>Every element of a track, and the states it moves between</span></div>
+    <div class="console-body"><canvas id="atc" width="1140" height="560"
+      aria-label="A track display showing position symbols, data blocks with leader lines, history trails, velocity vectors, a selected track and a conflict alert"></canvas></div>
+    <div class="keyed">
+      <div><h4><span class="dot" style="background:#23E162"></span>Yours</h4>
+        <p>You are responsible for it. The default state and the commonest colour on the screen.</p></div>
+      <div><h4><span class="dot" style="background:#FFFFFF"></span>Selected</h4>
+        <p>Only ever one, and it changes appearance everywhere it appears — on the picture and in every
+        list.</p></div>
+      <div><h4><span class="dot" style="background:#FF1320"></span>In conflict</h4>
+        <p>Colour plus a filled panel plus a text alert. Three cues, because one is not enough for the
+        thing that matters most.</p></div>
+      <div><h4><span class="dot" style="background:#B3B3B3"></span>Not yours</h4>
+        <p>Present, someone else's problem. Dimmed rather than deleted, and filterable away
+        entirely.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Three lines, no more</h3><p>Identity on top, then two numbers that change — typically
+      height and speed. Everything else is available on request. A tag that tries to say everything
+      says nothing.</p></div>
+    <div><h3>Shape is read before text</h3><p>Eye-tracking work found the outline of a tag tells an
+      operator whether it needs work before a single character is read. Boxing every tag made them
+      easier to read and harder to find, which is a real measured trade.</p></div>
+    <div><h3>Tags collide, so they move</h3><p>Offer all three answers at once: drag a tag by hand,
+      flip it to the other side, or run an algorithm that untangles the field. Operators use all
+      three.</p></div>
+    <div><h3>The trail is the speedometer</h3><p>Three to five marks, equally spaced in <em>time</em>,
+      so uneven spacing means acceleration and a bend means a turn. A human reads that instantly and a
+      number slowly.</p></div>
+    <div><h3>The vector is a promise</h3><p>The stalk is where it will be, not where it is pointing —
+      and the display must state the time span, because a prediction without its horizon is
+      meaningless.</p></div>
+    <div><h3>Trails must not look like targets</h3><p>Written into standards as a sentence of its own.
+      Where something has been can never be mistakable for where something is.</p></div>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Telling things apart</b></span>
+      <span>Shape and colour carrying the same message twice</span></div>
+    <div class="console-body"><canvas id="c2" width="1140" height="500"
+      aria-label="A track display showing four categories distinguished by both outline shape and colour, with stable identifying numbers and velocity leaders"></canvas></div>
+    <div class="keyed">
+      <div><h4><span class="bar" style="background:#07CDED"></span>Curves</h4>
+        <p>Rounded outline, cyan. The category you are not worried about.</p></div>
+      <div><h4><span class="bar" style="background:#FF1320"></span>Corners</h4>
+        <p>Pointed outline, red. The one you are.</p></div>
+      <div><h4><span class="bar" style="background:#DFF334"></span>Clipped corners</h4>
+        <p>Yellow. Deliberately unlike both of the above — undecided is its own state, not a
+        default.</p></div>
+      <div><h4><span class="bar" style="background:#23E162"></span>Square</h4>
+        <p>Green. Identified, present, not a party to anything.</p></div>
+    </div>
+  </div>
+
+  <div class="pull">A symbol whose colour and shape disagree is a bug, not a style choice.</div>
+
+  <div class="cols">
+    <div><h3>Say it twice or don't say it</h3><p>Roughly one person in twelve cannot rely on hue.
+      Anything colour says must also be said by shape, position or a label — and then the display
+      survives a failed colour channel too.</p></div>
+    <div><h3>An identifier is a name</h3><p>Every track gets a stable number the moment it exists, and
+      that number is what people say to each other. Never re-use one: two people saying "track twelve"
+      must mean the same twelve.</p></div>
+    <div><h3>Density sets the technology</h3><p>Ordinary vector graphics stall past one to two thousand
+      symbols, a single drawing surface handles five to ten thousand, and only the graphics card gets
+      you past fifty thousand.</p></div>
+    <div><h3>Detection is measurably uneven</h3><p>Trials find some symbol categories are spotted
+      faster than others, and overlapping symbols wreck all of them. The picture is only as good as
+      its least separable pair.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:16ch">How the operator actually touches it</h2>
+    <span class="tag">On-screen controls</span></div>
+  <div class="measure">
+    <p>This is the half that gets designed last and used most. A radar display is not read, it is
+    <em>operated</em> — gain nudged, range stepped, a zone redrawn, a bad merge pulled apart — and the
+    control vocabulary needed to do that is surprisingly small and surprisingly specific.</p>
+    <p>The governing idea: <strong>nothing should have to be found.</strong> A value you can see is a
+    value you can change, by clicking the place it is displayed. The settings tree stops being
+    somewhere you go.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>The control vocabulary</b></span>
+      <span>Eight patterns that cover almost everything</span></div>
+    <div class="console-body"><canvas id="controls" width="1140" height="398"
+      aria-label="Eight on-screen control patterns: a stepper, a slider with a mode tag, a state button, an inline option row, a draggable overlay handle with numeric entry, a drawn polygon region, a guarded hold-to-confirm action, and preset slots."></canvas></div>
+    <div class="keyed">
+      <div><h4>Coarse on click, fine on wheel</h4><p>One control, two speeds, no mode to remember.
+        Clicking steps the handful of values anyone actually uses; the wheel gives the full range.</p></div>
+      <div><h4>Level and mode together</h4><p>A slider shows how far it is turned up <em>and</em>
+        whether a human or the machine is turning it. Half the trouble with an automatic control is
+        not knowing it is on.</p></div>
+      <div><h4>Buttons carry their value</h4><p>A button labelled with its current setting rather than
+        just its name turns a row of controls into a status panel you can also press.</p></div>
+      <div><h4>Two routes to one number</h4><p>Drag the handle on the picture or type the figure. Both
+        must exist: one is fast, the other is exact, and operators use whichever suits the moment.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Show every option, grey the impossible</h3><p>A setting displays its whole range of values
+      with the live one boxed — a status display that happens to be clickable. What cannot be done now
+      stays in place, greyed, so the operator learns it exists and that something is in the way.</p></div>
+    <div><h3>Right-click the thing itself</h3><p>A small mark on a readout means it has a menu behind
+      it. To change how speed is measured, right-click the speed. Menus open beside the picture, never
+      over it.</p></div>
+    <div><h3>Say what the buttons do, now</h3><p>A permanent line naming what left and right will do at
+      this instant, switching mid-action to name the action and how to abandon it. The only
+      modal-state indicator on the screen, and it is always visible.</p></div>
+    <div><h3>Guard by delay, not by dialog</h3><p>A confirmation box gets dismissed by reflex within a
+      week. A control that must be held for two seconds, with the progress drawn on the control
+      itself, does not — and it should still be undoable afterwards.</p></div>
+    <div><h3>Regions are drawn, not configured</h3><p>Guard zones and masks are arbitrary shapes pulled
+      about by their corners, because what you want to ignore is a building or a headland.</p></div>
+    <div><h3>Presets, and what they spare</h3><p>A one-press reset returns range, rulers, vectors and
+      alarm limits to known values — and explicitly does <em>not</em> drop the tracks or the map. It
+      clears the last person's preferences, not the situation.</p></div>
+    <div><h3>Some settings survive the reset</h3><p>Gain and tuning are held over because they belong
+      to the weather rather than to a person. Someone decided, line by line, which settings are
+      opinions and which are measurements.</p></div>
+    <div><h3>Keyboard reaches everything</h3><p>Numbered menu items answer to their number, and the
+      frequently used actions get a key. Under load, a hand that knows where to go beats a hand that
+      has to look.</p></div>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Menus, in place</b></span>
+      <span>Right-click a readout · the menu opens beside the picture, never on it</span></div>
+    <div class="console-body"><canvas id="menus" width="1140" height="470"
+      aria-label="A reconstruction of on-screen boxes with menu-shortcut arrows, and the three-level menu that opens in the data column with all options printed inline"></canvas></div>
+    <div class="keyed">
+      <div><h4>All options, always visible</h4><p>No dropdown, no dialog, no hidden state. The whole
+        setting is legible without opening anything.</p></div>
+      <div><h4>Greyed, not gone</h4><p>Removing an unavailable item leaves the operator wondering
+        whether the function exists at all.</p></div>
+      <div><h4>The cursor changes shape</h4><p>An arrow outside the picture, a cross inside it. A free
+        reminder of which world your next click lands in.</p></div>
+      <div><h4>Numbers reach the items</h4><p>Nine items, each answering to its own key, so the same
+        menu serves both the mouse and the muscle memory.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:15ch">More than one sensor</h2>
+    <span class="tag">Fusion, and how not to lie about it</span></div>
+  <div class="measure">
+    <p>A radar gives an excellent position and no idea who anything is. A transponder gives a name and
+    lies if switched off. A camera gives certainty, in one direction. A direction finder gives a
+    bearing and no range. Each is blind exactly where another sees.</p>
+    <p>The temptation is to average them into one confident number. Mature systems explicitly do not:
+    they <em>associate</em> the reports, decide they are the same object, and then show one of them —
+    and which one is a setting the operator owns. Nobody has ever measured the average of a radar
+    position and a transponder position, so nobody displays it.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Four sensors, one picture</b></span>
+      <span>What each track is made of · and where they disagree</span></div>
+    <div class="console-body"><canvas id="fusion" width="1140" height="600"
+      aria-label="A fused surveillance picture showing tracks built from radar, transponder, camera and radio direction finding, including an associated pair, a disagreement, an unassociated duplicate and a radar-only contact, with a detail panel and camera inset."></canvas></div>
+    <div class="keyed">
+      <div><h4><span class="dot" style="background:#35E07A"></span>R · radar</h4>
+        <p>Where it is, to the metre, whether or not it wants to be seen. No idea what it is.</p></div>
+      <div><h4><span class="dot" style="background:#07CDED"></span>T · transponder</h4>
+        <p>Name, type, destination, intent. Present only while it chooses to be.</p></div>
+      <div><h4><span class="dot" style="background:#DFF334"></span>C · camera</h4>
+        <p>Certainty, in one direction at a time. Slaved to whichever track you select.</p></div>
+      <div><h4><span class="dot" style="background:#F684D8"></span>F · radio bearing</h4>
+        <p>A line, not a point — and often a line to the operator rather than to the machine.</p></div>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Association, and its undo</b></span>
+      <span>How two reports become one track · and why a cross-fix is a patch</span></div>
+    <div class="console-body"><canvas id="assoc" width="1140" height="420"
+      aria-label="Left: the four stages of an association, from two separate reports through a scored candidate link to a merged track and an operator-forced split. Right: two bearing wedges crossing in an uncertainty ellipse."></canvas></div>
+    <div class="keyed">
+      <div><h4>A score, not a verdict</h4><p>Close enough for long enough gets a number. Showing that
+        number is what lets an operator disagree with it.</p></div>
+      <div><h4>One action pulls it apart</h4><p>Written as a requirement. Automatic association without
+        a manual undo is worse than no association at all.</p></div>
+      <div><h4>Keep both sets of figures</h4><p>Merging is a display decision, not a data decision. The
+        underlying reports stay separate so the merge is always reversible.</p></div>
+      <div><h4>A fix is a patch</h4><p>Two bearings cross in an ellipse whose shape says more about the
+        quality of the fix than any confidence number could.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Show the disagreement</h3><p>The strongest pattern in service is a split symbol: one half
+      is what your own sensor thinks, the other what the network thinks. When they differ you see it
+      rather than having it resolved behind the scenes.</p></div>
+    <div><h3>The gaps are the interesting part</h3><p>A contact with a radar return and no transponder
+      is the one worth looking at. A transponder with no radar return means something is wrong with
+      the radar, the weather, or the story. Both deserve their own symbol.</p></div>
+    <div><h3>Two symbols for one object</h3><p>The dangerous failure, because nothing about it looks
+      wrong. It doubles the apparent traffic and it happens whenever association is too timid.</p></div>
+    <div><h3>Say what each track is made of</h3><p>A row of source letters lit for the sensors currently
+      contributing. It costs almost no space and it is the difference between trusting a symbol and
+      knowing why.</p></div>
+    <div><h3>The picture drives the camera</h3><p>Select a track and the camera turns to it and keeps
+      following. That link — from an abstract symbol to a live image — is what turns a plausible track
+      into a decision someone will sign for.</p></div>
+    <div><h3>Identity and position come from different places</h3><p>Almost always. Design the track
+      record so that each field remembers which sensor produced it, and the rest follows.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:16ch">Listening instead of transmitting</h2>
+    <span class="tag">The receiver's own display</span></div>
+  <div class="measure">
+    <p>A receiver that transmits nothing and listens to everyone else's radar answers a different
+    question: <em>who is looking at me, and how worried should I be.</em> You get bearings without
+    ranges and intent without positions, and the geometry of the display changes to suit.</p>
+    <p>Which produces the most counter-intuitive decision in the field, and it is correct: distance
+    from the centre of the screen is <strong>not distance</strong>. It is how much trouble you are in.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Three receiver screens</b></span>
+      <span>Who is looking · what they are · and what happens when they shout</span></div>
+    <div class="console-body"><canvas id="ew" width="1140" height="520"
+      aria-label="Left: a warning receiver where the rings are lethality rather than range. Middle: a listening receiver showing interleaved pulses, sorted lanes, measured parameters and an ambiguous library match. Right: a radar picture with a noise jamming strobe."></canvas></div>
+    <div class="keyed">
+      <div><h4><span class="dot" style="background:#FF1320"></span>Inner ring</h4>
+        <p>Something has launched. The diamond marks whichever is worst, and making that judgement is
+        the display's main job.</p></div>
+      <div><h4><span class="dot" style="background:#FE930D"></span>Middle ring</h4>
+        <p>Locked on and tracking. Same emitter, different mode — and the <em>change</em> is what
+        matters.</p></div>
+      <div><h4><span class="dot" style="background:#DFF334"></span>Outer ring</h4>
+        <p>Emitting, sweeping, has not found you. Worth knowing, not yet a problem.</p></div>
+      <div><h4><span class="dot" style="background:#5E8DF6"></span>Strobe</h4>
+        <p>Jamming denies range and leaves bearing. A line of noise with no distance on it, and the
+        display has to say so rather than draw a target.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Sort by danger, not distance</h3><p>Under threat an operator needs an order of business,
+      not a map. Spending the whole screen on priority is the right trade — and it is the only display
+      here that throws geometry away.</p></div>
+    <div><h3>A bearing is a line</h3><p>Drawing it as a point invents a range nobody measured. Draw the
+      line, cross two of them for a position, and draw the patch where they cross.</p></div>
+    <div><h3>Never one name when there are three</h3><p>Identification is a library lookup against a
+      crowded parameter space, so matches are routinely ambiguous. List the candidates with their
+      confidences.</p></div>
+    <div><h3>The change of mode is the event</h3><p>The same transmitter searching, tracking and
+      guiding is three situations from one signal. The alert belongs on the transition, not the
+      existence.</p></div>
+    <div><h3>Sort the pulses on screen</h3><p>What arrives is every emitter interleaved. Showing the
+      sorted lanes, one per emitter with its pulse spacing labelled, is most of the value the display
+      adds.</p></div>
+    <div><h3>Jamming is drawn, not hidden</h3><p>A bright wedge along that bearing, labelled, plus the
+      range at which detection is expected to return. Quietly showing a clean picture with a hole in
+      it is far worse.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:15ch">Where you cannot see</h2>
+    <span class="tag">Coverage, terrain and shadows</span></div>
+  <div class="measure">
+    <p>Ground does three separate jobs. It <em>blocks</em> — a ridge casts a shadow no transmitter
+    power fixes. It <em>constrains</em> — a vehicle is on a road, at the height the ground happens to
+    be. And it <em>locates</em> — the shape of the ground beneath you is unique enough to tell you
+    where you are with no satellite involved.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>What the hill takes away</b></span>
+      <span>Side view above · the same coverage from overhead below</span></div>
+    <div class="console-body"><canvas id="terrain" width="1140" height="560"
+      aria-label="Top: a side-on terrain profile with a radar, its beam, and the shadow regions behind two ridges. Bottom: the same coverage seen from above, with shadow wedges and a track that is coasted while it crosses one."></canvas></div>
+    <div class="keyed">
+      <div><h4><span class="dot" style="background:#23E162"></span>Seen</h4>
+        <p>Line of sight from the aerial, with the earth's curve included. Computed from an elevation
+        model, not guessed.</p></div>
+      <div><h4><span class="dot" style="background:#5D2E59"></span>Shadow</h4>
+        <p>Behind a ridge, below the horizon, or under the beam. Drawn, because an unmarked gap looks
+        exactly like empty sky.</p></div>
+      <div><h4><span class="dot" style="background:#FE930D"></span>Coasted</h4>
+        <p>A track crossing a shadow is predicted, not observed. Dashed, and labelled with how long it
+        has been running on faith.</p></div>
+      <div><h4>Visible is not detectable</h4>
+        <p>A coverage map says a target <em>could</em> be seen. Whether it <em>would</em> be depends on
+        its size and the weather, and the honest tools say which question they answer.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Coverage answers "visible to what"</h3><p>Change the target height and the picture
+      changes, so the answer is always relative to something. Earth curvature puts a floor under long
+      range regardless of terrain.</p></div>
+    <div><h3>The map is a tracker input</h3><p>A tracker that knows the road network keeps motion
+      models matching nearby roads and makes soft rather than hard decisions about which one. Better
+      prediction, easier matching, fewer impossible tracks.</p></div>
+    <div><h3>Height is not free either</h3><p>A ground vehicle is at the ground's height and its
+      velocity lies along the local slope. Constrain the filter to the terrain — softly, so an
+      inaccurate map does not wreck it.</p></div>
+    <div><h3>Terrain as a position fix</h3><p>Measure your height above the ground as you move and you
+      collect a profile that fits the stored map in essentially one place. That is how navigation
+      works when the satellites are jammed.</p></div>
+  </div>
+
+  <div class="pull">A gap you have drawn is coverage information. A gap you have not drawn is a lie.</div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:15ch">When an input dies</h2>
+    <span class="tag">The part with no equivalent in ordinary software</span></div>
+  <div class="measure">
+    <p>Every number carries the instrument that produced it. When that instrument is not the proper
+    one, the label turns yellow. When it stops answering, the number is <em>replaced with
+    asterisks</em> — never left frozen at its last good value, which is the most dangerous state a
+    readout can be in.</p>
+    <p>Then it gets stricter. Lose the compass and the display drops to the one orientation that needs
+    no compass and <strong>erases every track, chart and map</strong> that was drawn using it. A blank
+    screen you can see is blank beats a confident picture that is quietly wrong.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Four states of the same panel</b></span>
+      <span>Healthy · fallback source · signal lost · compass lost</span></div>
+    <div class="console-body"><canvas id="honesty" width="1140" height="440"
+      aria-label="The same data panel shown healthy, using a fallback sensor with yellow labels, with a lost signal showing asterisks, and after compass loss with all tracks erased"></canvas></div>
+    <div class="keyed">
+      <div><h4>Never a stale number</h4><p>Thirty seconds without a signal and the value becomes
+        asterisks. A number that has stopped changing looks exactly like one that is correct.</p></div>
+      <div><h4>Failover announces itself</h4><p>The system switches source by itself and raises an
+        alert saying it did. Silent recovery is how an operator ends up trusting a figure from
+        somewhere else.</p></div>
+      <div><h4>The label names the number</h4><p>The same field reads ground track, water track or
+        plain course depending on what feeds it, so the number cannot be misread.</p></div>
+      <div><h4>Identifiers are never recycled</h4><p>A vacated track number is not handed to a new
+        target until restart.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>A pulse you can watch</h3><p>A small ring that turns while the software is alive. Its one
+      job is to stop — because a frozen picture looks entirely normal, and every other indicator is
+      part of the thing that has stopped.</p></div>
+    <div><h3>And a watchdog that shouts</h3><p>Something outside the drawing loop notices the freeze
+      within thirty seconds and makes a noise of its own.</p></div>
+    <div><h3>Machine-chosen values look different</h3><p>Tie the trail length to the range scale and
+      the number turns yellow. Anything the system is choosing on your behalf is coloured unlike
+      anything you chose.</p></div>
+    <div><h3>Draw the edge of what you can see</h3><p>A separate marker for how far returns actually
+      reach, not the range you zoomed to. Two different numbers, and only one is a promise about
+      coverage.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:14ch">Alerting</h2>
+    <span class="tag">Priority, rhythm and budget</span></div>
+  <div class="measure">
+    <p>Alert design is where good displays are most often ruined. The pattern that works fixes the
+    <em>rhythm</em> by urgency and leaves pitch and tone colour free, so one learned rhythm means the
+    same thing forever while the voice identifies which part of the system is speaking.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>The cues, drawn</b></span>
+      <span>Alert rhythms above · what a moving thing actually sounds like below</span></div>
+    <div class="console-body"><canvas id="cues" width="1140" height="470"
+      aria-label="Timing diagrams of three alert rhythms at three priorities, and waveform sketches of the raw Doppler signatures of a walking person, a vehicle and a drone."></canvas></div>
+    <div class="keyed">
+      <div><h4>Highest priority</h4><p>Three short signals every 7 to 10 seconds. Immediate threat,
+        immediate action.</p></div>
+      <div><h4>Middle</h4><p>Two short signals, every 15 seconds to 5 minutes. Needs attention, not
+        this second. A different rhythm, not a different volume.</p></div>
+      <div><h4>Lowest</h4><p>Silence, deliberately. It goes on the list and waits to be read.</p></div>
+      <div><h4>And the raw sound</h4><p>Unprocessed Doppler is already audible. A drone's blade buzz
+        around a quiet body is the whole reason it can be told from a bird by ear.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Only the worst thing sounds</h3><p>With two alerts unacknowledged you hear the higher one.
+      Two alert sounds at once is not twice the information, it is none.</p></div>
+    <div><h3>Acknowledging changes state</h3><p>Unacknowledged flashes; acknowledged goes solid and
+      stays until the situation itself has passed. The operator can quieten the screen without losing
+      the fact.</p></div>
+    <div><h3>Silence is timed and short</h3><p>Silencing buys tens of seconds, not permission. New
+      alerts sound through it and nothing is dismissed — only quietened.</p></div>
+    <div><h3>Ignoring it escalates</h3><p>An unacknowledged warning repeats, and can be promoted to the
+      level above. Silence is not treated as consent.</p></div>
+    <div><h3>Count what you emit</h3><p>About one alarm a minute is the human ceiling. Fewer than six
+      an hour is the target, ten in ten minutes is a flood. Past that people stop listening, and that
+      is a design failure.</p></div>
+    <div><h3>Most alerts need no action</h3><p>Studies of deployed alerting found the large majority
+      required nothing from the operator. Every one of those is training them to ignore the rest.</p></div>
+    <div><h3>Interface sound is separate</h3><p>The click a control makes has its own volume, kept
+      apart from the alerts. Turning down the chatter must never turn down the warnings.</p></div>
+    <div><h3>Give the ear its own channel</h3><p>The Doppler shift is already an audible tone. Piping
+      it to a speaker gives a classifier that needs no training data and never goes down.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:16ch">Colour, and designing for the dark</h2>
+    <span class="tag">Where the numbers are published</span></div>
+  <div class="measure">
+    <p>One field publishes an exact palette, chosen so that operators with the common forms of colour
+    blindness can still separate every pair. Eleven foreground colours, four backgrounds, specified to
+    precise coordinates. These are the real values, and they are a reasonable starting palette for
+    anything of this kind.</p>
+  </div>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:#FFFFFF"></div><div class="lbl"><b>White</b>FFFFFF</div></div>
+    <div class="sw"><div class="chip" style="background:#B3B3B3"></div><div class="lbl"><b>Grey</b>B3B3B3</div></div>
+    <div class="sw"><div class="chip" style="background:#23E162"></div><div class="lbl"><b>Green</b>23E162</div></div>
+    <div class="sw"><div class="chip" style="background:#DFF334"></div><div class="lbl"><b>Yellow</b>DFF334</div></div>
+    <div class="sw"><div class="chip" style="background:#FE930D"></div><div class="lbl"><b>Orange</b>FE930D</div></div>
+    <div class="sw"><div class="chip" style="background:#FF1320"></div><div class="lbl"><b>Red</b>FF1320</div></div>
+    <div class="sw"><div class="chip" style="background:#07CDED"></div><div class="lbl"><b>Aqua</b>07CDED</div></div>
+    <div class="sw"><div class="chip" style="background:#5E8DF6"></div><div class="lbl"><b>Blue</b>5E8DF6</div></div>
+    <div class="sw"><div class="chip" style="background:#F684D8"></div><div class="lbl"><b>Pink</b>F684D8</div></div>
+    <div class="sw"><div class="chip" style="background:#D822FF"></div><div class="lbl"><b>Magenta</b>D822FF</div></div>
+    <div class="sw"><div class="chip" style="background:#C5955B"></div><div class="lbl"><b>Brown</b>C5955B</div></div>
+    <div class="sw"><div class="chip" style="background:#173928"></div><div class="lbl"><b>Weather 1</b>173928</div></div>
+    <div class="sw"><div class="chip" style="background:#5A4A14"></div><div class="lbl"><b>Weather 2</b>5A4A14</div></div>
+    <div class="sw"><div class="chip" style="background:#5D2E59"></div><div class="lbl"><b>Weather 3</b>5D2E59</div></div>
+    <div class="sw"><div class="chip" style="background:#000000"></div><div class="lbl"><b>Ground</b>000000</div></div>
+  </div>
+
+  <div class="cols">
+    <div><h3>Six, not eleven</h3><p>Having eleven approved colours does not mean using them. Guidance
+      caps colour <em>coding</em> at six on one screen, because recognition accuracy falls off a cliff
+      beyond that.</p></div>
+    <div><h3>Three to one, minimum</h3><p>A floor on how much brighter a symbol must be than what is
+      behind it — and a warning to the operator when their own brightness control takes them below it.
+      They may make it worse, but not silently.</p></div>
+    <div><h3>Red means now</h3><p>Red for act immediately, amber for act soon, anything but red or
+      green for information. Every decorative red makes the real one worth less.</p></div>
+    <div><h3>Pairs that fail</h3><p>Saturated red beside blue, red on black, yellow on white, yellow on
+      green, blue for anything small. Several are what an untrained eye reaches for first.</p></div>
+  </div>
+
+  <div class="measure" style="margin-top:44px">
+    <h3 style="margin-bottom:12px">A dark mode built by people who meant it</h3>
+    <p>A light switch and a dark switch is not the answer. Mature displays offer eight named palettes —
+    three light levels crossed with three background tints — and then, underneath, fourteen independent
+    brightness sliders, one per class of thing on the screen. The heading line has its own. The
+    coordinate grid has its own.</p>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Layer of control</th><th>What the operator gets</th></tr></thead>
+      <tbody>
+        <tr><td>Palette</td><td>day–grey · day–blue · day–green · dusk–grey · dusk–blue · dusk–green · night–grey · night–blue, plus two user slots</td></tr>
+        <tr><td>Echo colour</td><td>yellow · green · white · amber, plus two that colour the echo <em>by strength</em>, red for strong through to green for weak</td></tr>
+        <tr><td>Brightness</td><td>panel · characters · cursor · echoes · trails · heading line</td></tr>
+        <tr><td>Brightness, continued</td><td>range rings · bearing ruler · bearing line · range circle · index lines · track symbols · transponder symbols · coordinate grid</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="cols">
+    <div><h3>Why that many</h3><p>At night the echoes want to be dim and the tags must stay readable.
+      One master brightness cannot serve both, so give the individual controls.</p></div>
+    <div><h3>Colour by strength</h3><p>Two echo palettes run red for a strong return through to green
+      for a weak one, so a cliff stops looking like a dinghy without anyone classifying either.</p></div>
+    <div><h3>Three light levels, not two</h3><p>Day, dusk, night. Dusk is the one people leave out and
+      the one a watch spends hours in.</p></div>
+    <div><h3>Text has a size floor</h3><p>Minimum character height and width published against the
+      viewing distance the screen is designed for. Legibility in millimetres, not left to whoever picks
+      the font.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:18ch">One screen with all of it present</h2>
+    <span class="tag">A worked example</span></div>
+  <div class="measure">
+    <p>Every part above, assembled. Note how little of it is hidden: the button strip down the left
+    carries each function's <em>current value</em>, the controls along the bottom are the rulers, and
+    the column on the right runs from own state through the target list to the alerts and finally to a
+    line telling you what your two mouse buttons do right now.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Everything at once</b></span>
+      <span>Every box in its real position</span></div>
+    <div class="console-body"><canvas id="marine" width="1140" height="760"
+      aria-label="A dense operational radar display with a button strip, echo adjustment bars, a circular picture with rulers and a guard zone, a right-hand data column with own state, cursor readout, target list, alerts and a button guidance box, and a bottom strip of ruler controls."></canvas></div>
+    <div class="keyed">
+      <div><h4><span class="dot" style="background:#35E07A"></span>Raw echo</h4>
+        <p>Painted in 32 brightness steps, so a cliff and a dinghy differ without any computer
+        involved.</p></div>
+      <div><h4><span class="dot" style="background:#FFFFFF"></span>Tracked</h4>
+        <p>A circle with a stalk. The stalk is where it will be in six minutes.</p></div>
+      <div><h4><span class="dot" style="background:#07CDED"></span>Reported</h4>
+        <p>A triangle. A different <em>shape</em> for a different source, never just a different
+        colour.</p></div>
+      <div><h4><span class="dot" style="background:#FF1320"></span>Dangerous</h4>
+        <p>Flashing until acknowledged, then solid until the situation itself passes.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>The ruler ring lives outside</h3><p>The bearing scale sits outside the picture, never over
+      it. Nothing is allowed to obscure the part that is safety-critical.</p></div>
+    <div><h3>Two rulers, told apart by dashes</h3><p>The second of each pair has longer dashes — a
+      distinction that survives a failed colour channel and a colour-blind operator.</p></div>
+    <div><h3>Sleep is a third state</h3><p>Between fully live and deleted sits quiet: a zone that still
+      exists but has stopped shouting. Two states force a choice between noise and blindness.</p></div>
+    <div><h3>Time-bounded honesty</h3><p>A new track must show a trend within one minute and a firm
+      prediction within three, and the display must say when it is running out of track slots.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2>The rules underneath</h2><span class="tag">What transfers</span></div>
+  <div class="rules">
+    <div class="rule"><h3>Say it twice or don't say it</h3>
+      <p>Anything colour tells the operator must also be told by shape, position or a label. It is what
+      keeps the display working for the tenth of people who cannot rely on hue — and for the day a
+      colour channel fails.</p></div>
+
+    <div class="rule"><h3>Never delete the raw picture</h3>
+      <p>Draw detections underneath the conclusions. Operators are trained to catch the target the
+      tracker dropped, and a display that only shows tracks hides its own failures.</p></div>
+
+    <div class="rule"><h3>One selection, everywhere</h3>
+      <p>At most one thing is selected across the whole interface, and picking it anywhere lights it up
+      everywhere. This single rule is what stops a multi-panel display fragmenting into several
+      unrelated screens.</p></div>
+
+    <div class="rule"><h3>Show where it has been</h3>
+      <p>Three to five fading marks, equally spaced in time. Humans read speed and turn from a trail
+      instantly and from a number slowly — and the trail must never look like a target.</p></div>
+
+    <div class="rule"><h3>Predict, and say how far ahead</h3>
+      <p>The stalk is where it will be, with the operator choosing the horizon. The prediction is
+      worthless unless the screen states the time span it covers.</p></div>
+
+    <div class="rule"><h3>Let them measure by hand</h3>
+      <p>A draggable bearing line and a draggable range circle. The operator will always want a number
+      nobody thought to precompute, and the alternative is that they guess.</p></div>
+
+    <div class="rule"><h3>Every readout is its own settings button</h3>
+      <p>A mark on a box means it has a menu behind it. You change how a value is measured by clicking
+      the value. Nothing has to be found.</p></div>
+
+    <div class="rule"><h3>Show every option, grey the impossible ones</h3>
+      <p>A setting displays its whole range with the live one boxed — a status display that happens to
+      be clickable. What cannot be done stays in place, greyed, so the operator learns it exists.</p></div>
+
+    <div class="rule"><h3>Say what the buttons do, right now</h3>
+      <p>A permanent line naming both button actions, changing mid-action to name the action and the way
+      out. The display explains itself continuously instead of relying on a manual.</p></div>
+
+    <div class="rule"><h3>Coarse on the click, fine on the wheel</h3>
+      <p>Clicking steps through the values anyone actually uses; the wheel gives the full range at fine
+      resolution. One control, two speeds, no mode to remember.</p></div>
+
+    <div class="rule"><h3>Guard by delay, not by dialog</h3>
+      <p>A confirmation box is dismissed by reflex within a week. A control held down for two seconds,
+      with the progress drawn on the control, is not — and it should still be undoable.</p></div>
+
+    <div class="rule"><h3>Two routes to every number</h3>
+      <p>Drag it on the picture or type it in a field. One is fast and one is exact, and which is wanted
+      changes minute by minute.</p></div>
+
+    <div class="rule"><h3>Sleep is a third state</h3>
+      <p>Between fully live and deleted sits quiet. Two states force the operator to choose between
+      noise and blindness; three do not.</p></div>
+
+    <div class="rule"><h3>Never freeze a dead number</h3>
+      <p>Thirty seconds without a signal and the value is replaced by asterisks. A figure that has
+      stopped updating is indistinguishable from one that is correct.</p></div>
+
+    <div class="rule"><h3>Delete what depended on the dead sensor</h3>
+      <p>Lose the reference and erase everything drawn from it, then force the display into a mode that
+      does not need it. A blank screen you can see is blank beats a confident picture that is wrong.</p></div>
+
+    <div class="rule"><h3>Say which sensor said so</h3>
+      <p>Beside every number, the source that produced it. When two numbers disagree the operator needs
+      to know which instrument to distrust, and that is not something to go hunting for.</p></div>
+
+    <div class="rule"><h3>The field name says what kind of number it is</h3>
+      <p>Change the source and the label changes with it, so the number underneath cannot be read as
+      something it is not.</p></div>
+
+    <div class="rule"><h3>Never re-use an identifier</h3>
+      <p>A vacated number is not handed to a new object until restart. Two people saying "track twelve"
+      must mean the same twelve.</p></div>
+
+    <div class="rule"><h3>Associate, do not average</h3>
+      <p>Decide two reports are the same object, keep both sets of figures, and display whichever the
+      operator asked for. Nobody measured the average.</p></div>
+
+    <div class="rule"><h3>Breaking a merge is one action</h3>
+      <p>Automatic association without a manual undo is worse than no association at all.</p></div>
+
+    <div class="rule"><h3>Sort by danger, not by distance</h3>
+      <p>When the question is "how much trouble am I in", geometry is the wrong answer. Spend the screen
+      on priority instead.</p></div>
+
+    <div class="rule"><h3>A bearing is a line, not a dot</h3>
+      <p>Drawing a bearing as a point invents a range nobody measured. Cross two lines for a position,
+      and draw the patch where they cross.</p></div>
+
+    <div class="rule"><h3>Never one name when the library gives three</h3>
+      <p>Identification against a crowded parameter space is routinely ambiguous. List the candidates
+      with confidences; a single confident name hides the doubt.</p></div>
+
+    <div class="rule"><h3>The change of mode is the event</h3>
+      <p>Alert on the transition, not the existence. The thing has been there for twenty minutes; what
+      changed is that it started tracking.</p></div>
+
+    <div class="rule"><h3>Draw the shadow, not just the coverage</h3>
+      <p>Compute where the ground blocks the beam, allow for the earth's curve, and paint the blind
+      regions. An unmarked gap is indistinguishable from empty sky.</p></div>
+
+    <div class="rule"><h3>Predicted must not look observed</h3>
+      <p>A track crossing a blind region is a guess. Draw it differently, label how long it has been
+      coasting, and let it die on a stated timer.</p></div>
+
+    <div class="rule"><h3>Say whether you mean visible or detectable</h3>
+      <p>A coverage map says a target could be seen. Whether it would be detected depends on its size
+      and the weather. State which question you are answering.</p></div>
+
+    <div class="rule"><h3>Draw the edge of what you can actually see</h3>
+      <p>A separate marker for how far returns genuinely reach, not the range you zoomed to. Only one of
+      those is a promise about coverage.</p></div>
+
+    <div class="rule"><h3>The state of the machine is on the glass</h3>
+      <p>Separate indicators for the failures that look identical from the picture: am I receiving, is
+      the aerial turning, am I keeping up. Each with a few seconds of hysteresis so a blanked sector
+      does not cry wolf.</p></div>
+
+    <div class="rule"><h3>A pulse you can watch, and a watchdog that shouts</h3>
+      <p>A ring that turns while the software is alive, and something outside the drawing loop that
+      notices when it stops.</p></div>
+
+    <div class="rule"><h3>Machine-chosen values look different</h3>
+      <p>Anything the system is deciding on the operator's behalf is coloured unlike anything the
+      operator decided.</p></div>
+
+    <div class="rule"><h3>Declutter is a control — until it isn't</h3>
+      <p>Give the operator the knife. Then note what a mature system does when a danger alarm fires: it
+      switches the hidden layer back on by itself.</p></div>
+
+    <div class="rule"><h3>Rhythm for urgency, timbre for identity</h3>
+      <p>Fix the pattern by how bad it is and leave pitch and tone colour free, so one learned rhythm
+      means the same thing forever while the voice says which box is speaking.</p></div>
+
+    <div class="rule"><h3>One sound at a time, and count them</h3>
+      <p>Only the highest unacknowledged priority makes noise. Then budget: about one a minute is the
+      human ceiling, and past it people stop listening.</p></div>
+
+    <div class="rule"><h3>Alarms change state, not existence</h3>
+      <p>Acknowledging stops the flashing and leaves it solid until the situation itself has passed.
+      Quieten the screen without losing the fact.</p></div>
+
+    <div class="rule"><h3>Design for the dark</h3>
+      <p>Three light levels, per-element brightness, and no hue shift as it dims — because if the
+      colours move, the colour code stops meaning anything.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><h2 style="max-width:16ch">Putting it together</h2>
+    <span class="tag">A small forward-looking radar</span></div>
+  <div class="measure">
+    <p>The parts above, assembled for a compact radar that watches a forward sector rather than
+    spinning through a full circle. Two things drive the layout: the picture is a wedge, not a disc,
+    and the radar's natural output is a distance-versus-speed grid rather than a set of blips — so that
+    grid is a first-class panel, not a hidden debugging view.</p>
+    <p>The third panel earns its place. A rolling trace of how a target's speed wobbles: spinning
+    blades write a fuzzy band, a wingbeat writes a slow ripple, a wheeled vehicle writes a clean line.
+    It is the difference between an alarm the operator believes and one they learn to ignore.</p>
+  </div>
+
+  <div class="console">
+    <div class="console-bar"><span><b>Forward sector · staring array</b></span>
+      <span>Night palette · 1.2 km · transmitting · calibrated 4 h ago</span></div>
+    <div class="console-body"><canvas id="applied" width="1140" height="700"
+      aria-label="A proposed layout for a small forward-looking radar: a sector plan view with classified tracks, a range versus speed grid, a rolling speed-signature trace, a track list and a hardware health strip."></canvas></div>
+    <div class="keyed">
+      <div><h4><span class="dot" style="background:#FF1320"></span>Confident</h4>
+        <p>Pointed symbol, solid outline. Classified, with the evidence behind it.</p></div>
+      <div><h4><span class="dot" style="background:#FE930D"></span>Suspected</h4>
+        <p>Pointed symbol, dashed outline. Moving like one, not yet proven.</p></div>
+      <div><h4><span class="dot" style="background:#23E162"></span>Dismissed</h4>
+        <p>Rounded symbol. Tracked and set aside — still drawn, because dismissals are sometimes
+        wrong.</p></div>
+      <div><h4><span class="dot" style="background:#B3B3B3"></span>Unclassified</h4>
+        <p>Plain square. Detected, tracked, no opinion offered yet.</p></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div><h3>The wedge, not a circle</h3><p>Drawing an unfilled disc around a radar that only looks
+      forward claims cover it does not have. The dark area outside the wedge is information.</p></div>
+    <div><h3>Health as a strip, always</h3><p>Transmit state, gain, temperature, timing lock, and how
+      long since calibration. A drifted array lies about direction while looking perfectly
+      healthy.</p></div>
+    <div><h3>Ranges that are round numbers</h3><p>Fixed steps, always labelled, never a free zoom.
+      Operators build a mental sense of scale that continuous zoom destroys.</p></div>
+    <div><h3>One click, four panels</h3><p>Selecting a track anywhere highlights it everywhere and pins
+      its speed signature. Without that link, four panels are four separate problems.</p></div>
+    <div><h3>Two colours in the wedge</h3><p>The whole return dim, and the part that changed since the
+      running average in red on top — separating a hovering target from the hedge behind it before any
+      tracker commits.</p></div>
+    <div><h3>Compute the mask, don't draw it</h3><p>Feed it building heights and run line-of-sight from
+      the aerial's real position, and the blind regions draw themselves — and correct themselves when
+      the radar is moved.</p></div>
+    <div><h3>A listen button on the selected track</h3><p>Play the selected target's own Doppler tone.
+      It costs nothing, needs no model, and a person who has heard twenty will beat a classifier on the
+      twenty-first.</p></div>
+    <div><h3>An alarm budget, written down</h3><p>Decide how many times an hour this is allowed to make
+      a noise, and treat exceeding it as a bug. Something that cries wolf gets muted within a week.</p></div>
+  </div>
+</section>
+
+<footer class="wrap foot">
+  <div class="measure">
+    Built from primary sources: international standards for radar display and alert presentation ·
+    published human-factors research on colour, symbology and clutter · a full operator manual for a
+    current commercial radar · commercial radar processing, scan-conversion and display-coprocess
+    documentation · published symbology and receiver conventions · work on line-of-sight coverage over
+    elevation models and on map-constrained tracking · alarm-management practice. Every console above
+    is a reconstruction; the coverage map and the moving-target overlay are computed live in the page.
+  </div>
+</footer>
+
+<script>
+(function(){
+"use strict";
+var reduce = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+          || /[?&]still=1/.test(location.search);
+
+/* One scheduler for every console. A screen only redraws while it is on screen,
+   and holds a single still frame when the viewer prefers reduced motion. */
+function run(cv, draw){
+  var visible = true, queued = false;
+  function tick(t){ queued = false; draw(t); if(visible && !reduce) queue(); }
+  function queue(){ if(!queued){ queued = true; requestAnimationFrame(tick); } }
+  if(window.IntersectionObserver){
+    new IntersectionObserver(function(es){
+      visible = es[0].isIntersecting;
+      if(visible && !reduce) queue();
+    },{rootMargin:"160px"}).observe(cv);
+  }
+  draw(0);
+  if(!reduce) queue();
+}
+
+/* ---------- shared drawing helpers ---------- */
+var C = {
+  white:"#FFFFFF", grey:"#B3B3B3", green:"#23E162", yellow:"#DFF334",
+  orange:"#FE930D", red:"#FF1320", aqua:"#07CDED", blue:"#5E8DF6",
+  pink:"#F684D8", magenta:"#D822FF", brown:"#C5955B",
+  wx1:"#173928", wx2:"#5A4A14", wx3:"#5D2E59",
+  phos:"#35E07A", amber:"#FFA51F", tube:"#080B0A", dim:"#1E2A27"
+};
+function mono(ctx,size,weight){ ctx.font=(weight||"")+" "+size+"px ui-monospace,'SF Mono',Menlo,Consolas,monospace"; }
+function txt(ctx,s,x,y,col,size,weight,align){
+  mono(ctx,size||11,weight); ctx.fillStyle=col; ctx.textAlign=align||"left"; ctx.textBaseline="alphabetic";
+  ctx.fillText(s,x,y);
+}
+function line(ctx,x1,y1,x2,y2,col,w,dash){
+  ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=w||1; if(dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); ctx.restore();
+}
+function ring(ctx,cx,cy,r,col,w,dash){
+  ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=w||1; if(dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); ctx.restore();
+}
+function panel(ctx,x,y,w,h,label){
+  ctx.strokeStyle=C.dim; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,w,h);
+  if(label){ ctx.fillStyle=C.tube; ctx.fillRect(x+9,y-5,ctx.measureText?label.length*6.2+8:60,10);
+    txt(ctx,label,x+13,y+4,"#6E8078",9.5,"600"); }
+}
+/* pseudo-random but stable */
+function rnd(seed){ var s=seed; return function(){ s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
+
+/* A deterministic coastline. Radar only lights the shore facing it — the land
+   behind is in shadow — so the edge is drawn bright and the mass behind it faint. */
+function coast(ctx,cx,cy,R,seed,edge,fill){
+  var r=rnd(seed||97), pts=[], i, n=110, drift=0;
+  var x0=cx-R*1.7, y0=cy+R*0.55, x1=cx+R*0.35, y1=cy-R*1.7;
+  var dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy), nx=dy/L, ny=-dx/L;
+  for(i=0;i<=n;i++){
+    var f=i/n;
+    drift = drift*0.88 + (r()-0.5)*R*0.055;
+    var w = Math.sin(f*Math.PI*2.3+0.7)*R*0.15 + Math.sin(f*Math.PI*6.9)*R*0.045 + drift;
+    pts.push([x0+dx*f+nx*w, y0+dy*f+ny*w]);
+  }
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  if(fill){
+    ctx.save(); ctx.lineTo(cx-R*2.2,cy-R*2.2); ctx.closePath();
+    ctx.fillStyle=fill; ctx.fill(); ctx.restore();
+  }
+  ctx.strokeStyle=edge; ctx.lineWidth=2.4; ctx.lineJoin="round"; ctx.stroke();
+  ctx.restore();
+}
+
+/* ================= HERO : plan position indicator ================= */
+(function(){
+  var cv=document.getElementById("heroPPI"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var cx=W*0.5, cy=H*0.5, R=Math.min(W,H)*0.395;
+  var sweep=0;
+  var blips=[]; var r=rnd(31);
+  for(var i=0;i<26;i++){
+    blips.push({a:r()*Math.PI*2, d:(0.18+r()*0.78)*R, s:1+r()*3.4, drift:(r()-0.5)*0.0016});
+  }
+  var tracks=[
+    {a:-1.05,d:0.62,hdg:1.9,sp:0.00042,lab:"BAW117"},
+    {a:0.55,d:0.44,hdg:-1.1,sp:0.00051,lab:"EZY42"},
+    {a:2.35,d:0.74,hdg:0.35,sp:0.00033,lab:"NLY9"}
+  ];
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.clip();
+    coast(ctx,cx,cy,R,97,"rgba(120,255,175,0.55)","rgba(53,224,122,0.075)");
+    ctx.restore();
+    /* range rings + bearing scale */
+    for(var k=1;k<=4;k++) ring(ctx,cx,cy,R*k/4,"rgba(53,224,122,0.20)",1.5);
+    ring(ctx,cx,cy,R+22,"rgba(53,224,122,0.34)",1.6);
+    for(var d=0;d<360;d+=5){
+      var A=(d-90)*Math.PI/180, big=(d%30===0);
+      var r1=R+22, r2=R+22+(big?15:7);
+      line(ctx,cx+Math.cos(A)*r1,cy+Math.sin(A)*r1,cx+Math.cos(A)*r2,cy+Math.sin(A)*r2,
+        big?"rgba(53,224,122,0.62)":"rgba(53,224,122,0.3)",1.6);
+      if(big&&d%90===0) txt(ctx,(d===0?"000":("00"+d).slice(-3)),
+        cx+Math.cos(A)*(R+56),cy+Math.sin(A)*(R+56)+7,"rgba(53,224,122,0.6)",20,"600","center");
+    }
+    /* sweep with decaying wedge */
+    if(!reduce) sweep = (t/1000*0.72)%(Math.PI*2);
+    var steps=64;
+    for(var s=0;s<steps;s++){
+      var a0=sweep-s*0.013, alpha=0.15*Math.pow(1-s/steps,2.1);
+      ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,R,a0-0.020,a0); ctx.closePath();
+      ctx.fillStyle="rgba(53,224,122,"+alpha.toFixed(4)+")"; ctx.fill();
+    }
+    line(ctx,cx,cy,cx+Math.cos(sweep)*R,cy+Math.sin(sweep)*R,"rgba(150,255,190,0.9)",2.2);
+    /* blips brighten as the sweep passes */
+    blips.forEach(function(b){
+      if(!reduce) b.a+=b.drift;
+      var da=((sweep-b.a)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+      var glow=Math.max(0,1-da/1.9);
+      var x=cx+Math.cos(b.a)*b.d, y=cy+Math.sin(b.a)*b.d;
+      ctx.beginPath(); ctx.arc(x,y,b.s*1.5,0,Math.PI*2);
+      ctx.fillStyle="rgba(150,255,190,"+(0.14+glow*0.82).toFixed(3)+")"; ctx.fill();
+    });
+    /* tracked aircraft with tags */
+    tracks.forEach(function(tr){
+      if(!reduce){ tr.a += tr.sp*0.25; }
+      var x=cx+Math.cos(tr.a)*tr.d*R, y=cy+Math.sin(tr.a)*tr.d*R;
+      for(var h=1;h<=3;h++){
+        var hx=x-Math.cos(tr.hdg)*h*17, hy=y-Math.sin(tr.hdg)*h*17;
+        ctx.save(); ctx.translate(hx,hy); ctx.rotate(tr.hdg);
+        ctx.fillStyle="rgba(255,255,255,"+(0.44-h*0.1).toFixed(2)+")";
+        ctx.fillRect(-6,-2.4,12,4.8); ctx.restore();
+      }
+      line(ctx,x,y,x+Math.cos(tr.hdg)*46,y+Math.sin(tr.hdg)*46,"rgba(255,255,255,0.6)",1.8);
+      ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fillStyle=C.white; ctx.fill();
+      line(ctx,x+4,y-4,x+28,y-28,"rgba(255,255,255,0.45)",1.4);
+      txt(ctx,tr.lab,x+32,y-30,C.white,21,"600");
+    });
+  }
+  run(cv, frame);
+})();
+
+/* ================= AIR TRAFFIC CONTROL ================= */
+(function(){
+  var cv=document.getElementById("atc"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var ac=[
+    {x:250,y:180,hd:0.5,v:0.34,cs:"UAL1287",alt:"330",sp:"46",st:"own"},
+    {x:640,y:150,hd:2.5,v:0.30,cs:"DAL904",alt:"310",sp:"44",st:"own"},
+    {x:430,y:400,hd:-0.7,v:0.26,cs:"SWA55",alt:"170",sp:"31",st:"sel"},
+    {x:840,y:330,hd:3.05,v:0.28,cs:"N412TC",alt:"085",sp:"18",st:"other"},
+    {x:700,y:455,hd:-1.9,v:0.32,cs:"FDX21",alt:"240",sp:"39",st:"alert"},
+    {x:790,y:520,hd:-2.3,v:0.33,cs:"AAL78",alt:"245",sp:"41",st:"alert"},
+    {x:170,y:430,hd:1.15,v:0.22,cs:"JBU330",alt:"120",sp:"25",st:"own"}
+  ];
+  ac.forEach(function(a){ a.hist=[]; for(var i=0;i<3;i++) a.hist.push({x:a.x,y:a.y}); });
+  var tick=0;
+  function frame(){
+    ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+    /* Rain cells, nested by severity and deliberately dim so tags stay readable. */
+    [[C.wx1,175,96,1],[C.wx2,104,57,2],[C.wx3,47,26,3]].forEach(function(w){
+      var rr=rnd(w[3]*13+5);
+      ctx.fillStyle=w[0]; ctx.beginPath();
+      for(var i=0;i<=48;i++){
+        var a=i/48*Math.PI*2, k=0.80+0.30*Math.sin(a*3+w[3])+0.16*rr();
+        var px=316+Math.cos(a+0.4)*w[1]*k, py=470+Math.sin(a+0.4)*w[2]*k;
+        ctx[i?"lineTo":"moveTo"](px,py);
+      }
+      ctx.closePath(); ctx.fill();
+    });
+    /* airway map, dim grey-blue */
+    ctx.save(); ctx.strokeStyle="rgba(94,141,246,0.30)"; ctx.lineWidth=1; ctx.setLineDash([7,7]);
+    ctx.beginPath(); ctx.moveTo(60,120); ctx.lineTo(1080,300); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(180,540); ctx.lineTo(900,60); ctx.stroke(); ctx.restore();
+    /* runway + fixes */
+    ctx.strokeStyle="rgba(179,179,179,0.55)"; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(500,300); ctx.lineTo(600,285); ctx.stroke();
+    [[150,250,"MOLUS"],[880,190,"CEGAM"],[560,500,"TIPUL"]].forEach(function(f){
+      ctx.strokeStyle=C.grey; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(f[0],f[1]-5); ctx.lineTo(f[0]+5,f[1]+4); ctx.lineTo(f[0]-5,f[1]+4);
+      ctx.closePath(); ctx.stroke();
+      txt(ctx,f[2],f[0]+9,f[1]+6,"rgba(179,179,179,0.75)",10.5,"600");
+    });
+    /* range ring */
+    ring(ctx,560,300,255,"rgba(179,179,179,0.22)",1,[3,6]);
+
+    tick++;
+    ac.forEach(function(a){
+      if(!reduce){
+        a.x+=Math.cos(a.hd)*a.v; a.y+=Math.sin(a.hd)*a.v;
+        if(tick%70===0){ a.hist.unshift({x:a.x,y:a.y}); a.hist.length=3; }
+        if(a.x<40)a.x=1100; if(a.x>1110)a.x=40; if(a.y<40)a.y=520; if(a.y>530)a.y=40;
+      }
+      var col = a.st==="own"?C.green : a.st==="sel"?C.white : a.st==="alert"?C.red : C.grey;
+      /* history trail: slanted dashes, never round like a target */
+      a.hist.forEach(function(h,i){
+        ctx.save(); ctx.translate(h.x,h.y); ctx.rotate(a.hd);
+        ctx.fillStyle=col; ctx.globalAlpha=0.42-i*0.11;
+        ctx.fillRect(-4,-1.6,8,3.2); ctx.restore();
+      });
+      /* velocity leader: one minute ahead */
+      line(ctx,a.x,a.y,a.x+Math.cos(a.hd)*34,a.y+Math.sin(a.hd)*34,col,1);
+      /* position symbol with owning controller letter */
+      ctx.beginPath(); ctx.arc(a.x,a.y,7,0,Math.PI*2);
+      ctx.strokeStyle=col; ctx.lineWidth=1.3; ctx.stroke();
+      txt(ctx,a.st==="other"?"E":"A",a.x,a.y+3.6,col,9.5,"600","center");
+      /* leader line to the tag, drawn to the 1 o'clock position */
+      var lx=a.x+30, ly=a.y-40;
+      line(ctx,a.x+5,a.y-5,lx-4,ly+9,col,1);
+      if(a.st==="alert"){
+        ctx.fillStyle=C.red; ctx.fillRect(lx-5,ly-13,84,40);
+        txt(ctx,a.cs,lx,ly,"#000",14,"700");
+        txt(ctx,a.alt,lx,ly+15,"#000",13,"600");
+        txt(ctx,a.sp,lx+46,ly+15,"#000",13,"600");
+        txt(ctx,"CA",lx+46,ly,"#000",12,"700");
+      } else {
+        txt(ctx,a.cs,lx,ly,col,14,"600");
+        txt(ctx,a.alt,lx,ly+15,col,13,"400");
+        txt(ctx,a.sp,lx+46,ly+15,col,13,"400");
+      }
+    });
+    /* fixed furniture: status strip + list */
+    ctx.fillStyle="rgba(0,0,0,0.85)"; ctx.fillRect(0,0,W,26);
+    line(ctx,0,26,W,26,C.dim,1);
+    txt(ctx,"PRESET  30NM   CENTER  ARR/DEP   FUSED   WX 1-3-5   LDR 1   HIST 3",14,17,"#5E8DF6",11,"600");
+    txt(ctx,"CA / MSAW  ON",W-140,17,C.green,11,"600");
+    /* conflict alert box, bottom left */
+    ctx.fillStyle="rgba(0,0,0,0.9)"; ctx.fillRect(14,H-56,232,42);
+    ctx.strokeStyle=C.red; ctx.lineWidth=1; ctx.strokeRect(14.5,H-55.5,231,41);
+    txt(ctx,"CONFLICT ALERT",24,H-38,C.red,12,"700");
+    txt(ctx,"FDX21  /  AAL78     1.8 NM   200 FT",24,H-22,C.red,11,"600");
+  }
+  run(cv, frame);
+})();
+
+/* ================= MARINE ================= */
+(function(){
+  var cv=document.getElementById("marine"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var BAR=58;                       /* InstantAccess bar down the left edge */
+  var TOP=34, BOT=H-52;             /* top indication strip, bottom box strip */
+  var RIGHT=W-268;                  /* right-hand data column starts here */
+  var cx=BAR+(RIGHT-BAR)/2-6, cy=(TOP+BOT)/2, R=Math.min((RIGHT-BAR)/2-40,(BOT-TOP)/2-36);
+  var ebl=-0.62, vrm=R*0.63;
+  var tgts=[
+    {a:-0.75,d:0.60,c:0.9,sp:0.9,type:"tt", st:"danger",id:"T04",cpa:"0.4",tcpa:"07",brg:"031",rng:"1.8"},
+    {a:0.42, d:0.44,c:-1.7,sp:0.7,type:"ais",st:"ok",   id:"MARIA S",cpa:"2.1",tcpa:"31",brg:"112",rng:"2.6"},
+    {a:2.05, d:0.70,c:0.2, sp:1.1,type:"tt", st:"ok",   id:"T07",cpa:"3.6",tcpa:"44",brg:"241",rng:"4.1"},
+    {a:-2.35,d:0.34,c:1.4, sp:0.5,type:"ais",st:"ok",   id:"NORDKAP",cpa:"1.8",tcpa:"22",brg:"298",rng:"2.0"},
+    {a:1.15, d:0.86,c:-2.4,sp:0.8,type:"tt", st:"acq",  id:"ACQUIRING",cpa:"—",tcpa:"—",brg:"156",rng:"5.0"}
+  ];
+  /* Every button on the bar carries its own current state, which is the point of it. */
+  var bar=[["STBY","TX",1],["PULSE","M1",0],["TX CH","3",0],["IR","2",1],["ES","OFF",0],
+           ["EAV","1",1],["ACE","OFF",0],["MAP","ON",1],["HL","OFF",0],["CU/TM","RESET",0],
+           ["AIS","ON",1],["PLT1","100",0]];
+  function box(x,y,w,h,title,fill,shortcut){
+    ctx.fillStyle=fill||"rgba(10,16,14,0.92)"; ctx.fillRect(x,y,w,h);
+    ctx.strokeStyle="#22302C"; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,w-1,h-1);
+    if(title) txt(ctx,title,x+7,y+13,"#5E7269",9,"700");
+    /* a small arrow means this readout has its own settings menu behind it */
+    if(shortcut!==false){
+      ctx.fillStyle="#4E6058"; ctx.beginPath();
+      ctx.moveTo(x+w-9,y+6); ctx.lineTo(x+w-4,y+10); ctx.lineTo(x+w-9,y+14); ctx.closePath(); ctx.fill();
+    }
+  }
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+
+    /* ---- InstantAccess bar : one column of stacked, always-visible state buttons ---- */
+    ctx.fillStyle="#0C1211"; ctx.fillRect(0,0,BAR,H);
+    line(ctx,BAR,0,BAR,H,"#22302C",1);
+    bar.forEach(function(b,i){
+      var y=10+i*44;
+      ctx.fillStyle= b[2] ? "#12251C" : "#101616";
+      ctx.fillRect(5,y,BAR-10,38);
+      ctx.strokeStyle= b[2] ? "#2C5C42" : "#222C2A"; ctx.strokeRect(5.5,y+.5,BAR-11,37);
+      txt(ctx,b[0],BAR/2,y+16,"#8FA39B",9.5,"700","center");
+      txt(ctx,b[1],BAR/2,y+30,b[2]?C.phos:"#5E7269",11,"700","center");
+    });
+
+    /* ---- top strip ---- */
+    box(BAR+6,4,74,26); txt(ctx,"RANGE",BAR+12,15,"#5E7269",8.5,"700");
+    txt(ctx,"6 NM",BAR+12,27,C.phos,13,"700");
+    box(BAR+86,4,84,26); txt(ctx,"REF POINT",BAR+92,15,"#5E7269",8.5,"700");
+    txt(ctx,"ANT",BAR+92,27,C.phos,12,"700");
+    box(BAR+176,4,70,26); txt(ctx,"WATCH",BAR+182,15,"#5E7269",8.5,"700");
+    txt(ctx,"04:12",BAR+182,27,C.yellow,12,"700");
+    /* echo adjust: each control shows its level AND whether it is auto or manual */
+    box(BAR+252,4,318,26); txt(ctx,"ECHO ADJUST",BAR+258,15,"#5E7269",8.5,"700");
+    [["GAIN",0.72,"MAN"],["SEA",0.38,"AUTO"],["RAIN",0.15,"MAN"]].forEach(function(g,i){
+      var x=BAR+256+i*104;
+      txt(ctx,g[0],x,27,"#8FA39B",9,"700");
+      ctx.fillStyle="#1B2624"; ctx.fillRect(x+30,20,34,7);
+      ctx.fillStyle=C.phos; ctx.fillRect(x+30,20,34*g[1],7);
+      txt(ctx,g[2],x+68,27,g[2]==="AUTO"?C.aqua:"#5E7269",8,"700");
+    });
+    txt(ctx,"14 AUG  09:41:07 UTC",RIGHT-32,20,"#5E7269",10.5,"600","right");
+    /* the heartbeat: a ring that turns while the software is alive, and stops when it is not */
+    var hb=RIGHT-18, hy=15;
+    ring(ctx,hb,hy,7,"rgba(94,141,246,0.35)",1.4);
+    var ha=(reduce?0.8:(t/700)%(Math.PI*2));
+    ctx.save(); ctx.strokeStyle=C.blue; ctx.lineWidth=2.2; ctx.lineCap="round";
+    ctx.beginPath(); ctx.arc(hb,hy,7,ha,ha+1.5); ctx.stroke(); ctx.restore();
+
+    /* ---- operational display area ---- */
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.clip();
+    ctx.fillStyle="#050807"; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+    coast(ctx,cx,cy,R,97,"rgba(240,200,60,0.72)","rgba(150,118,24,0.11)");
+    coast(ctx,cx-R*0.15,cy-R*0.1,R*0.55,53,"rgba(240,200,60,0.5)","rgba(150,118,24,0.08)");
+    var r=rnd(7);
+    for(var i=0;i<200;i++){
+      var a=r()*Math.PI*2, d=Math.pow(r(),2.4)*R*0.34;
+      ctx.fillStyle="rgba(255,214,64,"+(0.05+r()*0.15).toFixed(3)+")";
+      ctx.fillRect(cx+Math.cos(a)*d,cy+Math.sin(a)*d,1.6,1.6);
+    }
+    ctx.restore();
+    for(var k=1;k<=6;k++) ring(ctx,cx,cy,R*k/6,"rgba(53,224,122,0.18)",1);
+    /* acquisition zone: white dashed, deliberately unlike the target alarm zone */
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,R*0.84,-1.15,-0.32);
+    ctx.arc(cx,cy,R*0.62,-0.32,-1.15,true); ctx.closePath();
+    ctx.setLineDash([6,4]); ctx.strokeStyle="rgba(255,255,255,0.7)"; ctx.lineWidth=1.2; ctx.stroke();
+    ctx.restore();
+    txt(ctx,"AZ1",cx+R*0.52,cy-R*0.68,"rgba(255,255,255,0.6)",9.5,"700");
+    line(ctx,cx,cy,cx,cy-R,"rgba(255,255,255,0.8)",1.4);
+    line(ctx,cx,cy,cx+Math.cos(ebl)*R,cy+Math.sin(ebl)*R,C.amber,1,[9,6]);
+    ring(ctx,cx,cy,vrm,C.amber,1,[4,5]);
+    /* parallel index lines */
+    for(var pi=-1;pi<=1;pi+=2){
+      var nx=Math.cos(ebl+Math.PI/2)*R*0.28*pi, ny=Math.sin(ebl+Math.PI/2)*R*0.28*pi;
+      line(ctx,cx+nx-Math.cos(ebl)*R,cy+ny-Math.sin(ebl)*R,
+              cx+nx+Math.cos(ebl)*R,cy+ny+Math.sin(ebl)*R,"rgba(94,141,246,0.45)",1,[3,7]);
+    }
+    tgts.forEach(function(g){
+      if(!reduce) g.a += 0.001*g.sp;
+      var x=cx+Math.cos(g.a)*g.d*R, y=cy+Math.sin(g.a)*g.d*R;
+      var col = g.st==="danger"?C.red : g.st==="acq"?C.grey : (g.type==="ais"?C.aqua:C.white);
+      var flash = g.st==="danger" && !reduce && Math.floor(t/420)%2===0;
+      line(ctx,x,y,x+Math.cos(g.c)*44,y+Math.sin(g.c)*44,col,flash?2:1.2);
+      if(g.type==="ais"){
+        ctx.save(); ctx.translate(x,y); ctx.rotate(g.c+Math.PI/2);
+        ctx.beginPath(); ctx.moveTo(0,-9); ctx.lineTo(6.5,7); ctx.lineTo(-6.5,7); ctx.closePath();
+        ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.stroke(); ctx.restore();
+      } else if(g.st==="acq"){
+        ctx.strokeStyle=col; ctx.lineWidth=1.2;
+        [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){
+          ctx.beginPath();
+          ctx.moveTo(x+s[0]*10,y+s[1]*4); ctx.lineTo(x+s[0]*10,y+s[1]*10); ctx.lineTo(x+s[0]*4,y+s[1]*10);
+          ctx.stroke();
+        });
+      } else if(g.st==="danger"){
+        ctx.strokeStyle=col; ctx.lineWidth=flash?2.6:1.5;
+        ctx.beginPath(); ctx.moveTo(x,y-11); ctx.lineTo(x+9.5,y+6.5); ctx.lineTo(x-9.5,y+6.5);
+        ctx.closePath(); ctx.stroke();
+      } else {
+        ring(ctx,x,y,7.5,col,1.5);
+      }
+      if(g.st!=="acq") txt(ctx,g.id,x+12,y-10,col,11,"600");
+    });
+    ctx.fillStyle=C.white; ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+    /* bearing scale outside the picture, as the standard demands */
+    ring(ctx,cx,cy,R+13,"rgba(53,224,122,0.30)",1);
+    for(var d2=0;d2<360;d2+=2){
+      var A=(d2-90)*Math.PI/180, big=(d2%10===0), r1=R+13, r2=R+13+(big?7:3);
+      line(ctx,cx+Math.cos(A)*r1,cy+Math.sin(A)*r1,cx+Math.cos(A)*r2,cy+Math.sin(A)*r2,
+        big?"rgba(53,224,122,0.55)":"rgba(53,224,122,0.22)",1);
+    }
+    [[0,"000"],[90,"090"],[180,"180"],[270,"270"]].forEach(function(p){
+      var A=(p[0]-90)*Math.PI/180;
+      txt(ctx,p[1],cx+Math.cos(A)*(R+32),cy+Math.sin(A)*(R+32)+4,"rgba(53,224,122,0.55)",10,"600","center");
+    });
+
+    /* ---- right-hand data column ---- */
+    var rx=RIGHT+8, rw=W-rx-8;
+    box(rx,34,rw,112,"OWN SHIP");
+    [["HDG","287.4 °T","GYR"],["SPD","12.4 kn","LOG"],["COG","285.1 °T","GPS"],["SOG","12.6 kn","GPS"]]
+      .forEach(function(v,i){
+        txt(ctx,v[0],rx+8,62+i*19,"#5E7269",10);
+        txt(ctx,v[1],rx+50,62+i*19,C.phos,12,"600");
+        txt(ctx,v[2],rx+rw-12,62+i*19,"#43554E",9,"700","right");   /* which sensor said so */
+      });
+    txt(ctx,"57°42.11'N  004°18.63'W",rx+8,138,C.phos,10.5,"600");
+
+    box(rx,152,rw,44,"CURSOR");
+    txt(ctx,"011.2°  2.41 NM",rx+8,176,C.phos,12,"600");
+    txt(ctx,"TTG 11 min",rx+8,190,"#5E7269",10,"600");
+
+    box(rx,202,rw,124,"TARGET LIST");
+    txt(ctx,"NAME        CPA   TCPA",rx+8,226,"#43554E",9,"700");
+    tgts.forEach(function(g,i){
+      var y=244+i*17;
+      var col = g.st==="danger"?C.red : g.st==="acq"?C.grey : (g.type==="ais"?C.aqua:C.white);
+      if(g.st==="danger"&&!reduce&&Math.floor(t/420)%2===0){
+        ctx.fillStyle="rgba(255,19,32,0.16)"; ctx.fillRect(rx+4,y-11,rw-8,15); }
+      txt(ctx,g.id.slice(0,9),rx+8,y,col,10.5,"600");
+      txt(ctx,g.cpa,rx+112,y,col,10.5,"600");
+      txt(ctx,g.tcpa,rx+156,y,col,10.5,"600");
+    });
+
+    box(rx,332,rw,40,"ACQUISITION ZONE");
+    txt(ctx,"AZ1 WORK",rx+8,360,C.phos,11,"700");
+    txt(ctx,"AZ2 SLEEP",rx+84,360,"#5E7269",11,"700");   /* a third state, between on and gone */
+
+    /* alert box: text stays until the situation clears, colour says how bad */
+    box(rx,378,rw,80,"ALERTS", "rgba(24,6,8,0.92)");
+    var ackd = Math.floor(t/3000)%2===1;
+    if(!reduce && !ackd && Math.floor(t/420)%2===0){
+      ctx.fillStyle="rgba(255,19,32,0.20)"; ctx.fillRect(rx+4,398,rw-8,17); }
+    txt(ctx,"TT DANGER OF COLLISION",rx+8,411,C.red,10.5,"700");
+    txt(ctx,ackd?"ACKNOWLEDGED — SOLID":"UNACKNOWLEDGED — FLASHING",rx+8,425,
+      ackd?"#5E7269":C.red,9,"700");
+    txt(ctx,"TT NEW TARGET",rx+8,442,C.orange,10.5,"700");
+    txt(ctx,"AIS LAYER FORCED ON",rx+8,453,"#5E7269",9,"700");
+
+    /* guidance box: what the two buttons do, right now */
+    box(rx,464,rw,44,"GUIDANCE");
+    txt(ctx,"L  ACQUIRE TARGET",rx+8,490,C.phos,10.5,"700");
+    txt(ctx,"R  TARGET MENU",rx+8,503,C.phos,10.5,"700");
+
+    /* ---- bottom strip of small boxes ---- */
+    var bxs=[["EBL 1","324.6 °R"],["VRM 1","3.78 NM"],["VECTOR","T  6 min"],
+             ["TRAIL","REL 3 min"],["PI","3 × 0.5 NM"],["MARK","BUOY"]];
+    bxs.forEach(function(b,i){
+      var x=BAR+8+i*((RIGHT-BAR-16)/6), w=(RIGHT-BAR-16)/6-8;
+      box(x,BOT+8,w,36);
+      txt(ctx,b[0],x+7,BOT+21,"#5E7269",8.5,"700");
+      txt(ctx,b[1],x+7,BOT+36,C.amber,11,"700");
+    });
+    txt(ctx,"NORTH UP   TRUE MOTION   SEA STAB",rx+8,BOT+22,"#5E7269",9.5,"700");
+    txt(ctx,"TT 4 / 40    AIS 27 SLEEPING",rx+8,BOT+38,"#5E7269",9.5,"700");
+  }
+  run(cv, frame);
+})();
+
+/* ================= MILITARY C2 ================= */
+(function(){
+  var cv=document.getElementById("c2"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var trk=[
+    {x:210,y:150,hd:0.35,v:0.30,aff:"hostile",n:"0412",alt:"240",sp:"480"},
+    {x:430,y:330,hd:-0.9,v:0.24,aff:"friend",n:"1108",alt:"180",sp:"320"},
+    {x:700,y:200,hd:2.7,v:0.22,aff:"unknown",n:"0517",alt:"090",sp:"210"},
+    {x:900,y:360,hd:1.8,v:0.16,aff:"neutral",n:"0803",alt:"035",sp:"140"},
+    {x:330,y:410,hd:-0.2,v:0.28,aff:"hostile",n:"0415",alt:"250",sp:"505"}
+  ];
+  var col={hostile:C.red,friend:C.aqua,unknown:C.yellow,neutral:C.green};
+  function sym(ctx,x,y,aff,c){
+    ctx.strokeStyle=c; ctx.lineWidth=1.8; ctx.beginPath();
+    if(aff==="friend"){ /* rounded */
+      ctx.moveTo(x-13,y+9); ctx.lineTo(x-13,y-1);
+      ctx.arc(x,y-1,13,Math.PI,0); ctx.lineTo(x+13,y+9); ctx.closePath();
+    } else if(aff==="hostile"){ /* pointed */
+      ctx.moveTo(x,y-14); ctx.lineTo(x+13,y); ctx.lineTo(x,y+14); ctx.lineTo(x-13,y); ctx.closePath();
+    } else if(aff==="unknown"){ /* clipped-corner square */
+      ctx.moveTo(x-8,y-13); ctx.lineTo(x+8,y-13); ctx.lineTo(x+13,y-8); ctx.lineTo(x+13,y+8);
+      ctx.lineTo(x+8,y+13); ctx.lineTo(x-8,y+13); ctx.lineTo(x-13,y+8); ctx.lineTo(x-13,y-8); ctx.closePath();
+    } else { /* plain square */
+      ctx.rect(x-12,y-12,24,24);
+    }
+    ctx.stroke();
+  }
+  function frame(){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    /* classification banners - never declutterable */
+    ctx.fillStyle="#1E7A3C"; ctx.fillRect(0,0,W,18); ctx.fillRect(0,H-18,W,18);
+    txt(ctx,"UNCLASSIFIED // EXERCISE",W/2,13,"#FFF",10.5,"700","center");
+    txt(ctx,"UNCLASSIFIED // EXERCISE",W/2,H-5,"#FFF",10.5,"700","center");
+    /* grid */
+    ctx.save(); ctx.strokeStyle="rgba(94,141,246,0.14)"; ctx.lineWidth=1;
+    for(var gx=60;gx<W;gx+=90){ ctx.beginPath(); ctx.moveTo(gx,20); ctx.lineTo(gx,H-20); ctx.stroke(); }
+    for(var gy=60;gy<H-20;gy+=80){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+    ctx.restore();
+    /* defended asset + engagement ring */
+    ring(ctx,560,265,190,"rgba(255,19,32,0.30)",1,[8,7]);
+    ring(ctx,560,265,110,"rgba(223,243,52,0.28)",1,[4,6]);
+    txt(ctx,"WEZ 40 KM",560,265-196,"rgba(255,19,32,0.6)",10,"600","center");
+    ctx.fillStyle=C.aqua; ctx.beginPath();
+    ctx.moveTo(560,255); ctx.lineTo(568,271); ctx.lineTo(552,271); ctx.closePath(); ctx.fill();
+    txt(ctx,"SITE ALPHA",576,270,C.aqua,10.5,"600");
+
+    trk.forEach(function(t){
+      if(!reduce){ t.x+=Math.cos(t.hd)*t.v; t.y+=Math.sin(t.hd)*t.v;
+        if(t.x>W+30)t.x=-20; if(t.x<-30)t.x=W+20; if(t.y>H-20)t.y=30; if(t.y<20)t.y=H-30; }
+      var c=col[t.aff];
+      for(var h=1;h<=4;h++){
+        ctx.fillStyle=c; ctx.globalAlpha=0.30-h*0.06;
+        ctx.fillRect(t.x-Math.cos(t.hd)*h*15-1.5,t.y-Math.sin(t.hd)*h*15-1.5,3,3);
+      }
+      ctx.globalAlpha=1;
+      line(ctx,t.x,t.y,t.x+Math.cos(t.hd)*46,t.y+Math.sin(t.hd)*46,c,1.3);
+      sym(ctx,t.x,t.y,t.aff,c);
+      txt(ctx,t.n,t.x+19,t.y-6,c,12,"700");
+      txt(ctx,t.alt+"  "+t.sp,t.x+19,t.y+9,c,10.5,"600");
+    });
+    /* track tote, right */
+    ctx.fillStyle="rgba(8,11,10,0.92)"; ctx.fillRect(W-232,32,216,150);
+    ctx.strokeStyle=C.dim; ctx.strokeRect(W-231.5,32.5,215,149);
+    txt(ctx,"TRACK TOTE",W-220,50,"#5E7269",10,"600");
+    trk.forEach(function(t,i){
+      txt(ctx,t.n,W-220,70+i*21,col[t.aff],12,"700");
+      txt(ctx,t.aff.toUpperCase(),W-172,70+i*21,col[t.aff],10,"600");
+      txt(ctx,t.alt,W-70,70+i*21,col[t.aff],11,"600");
+    });
+  }
+  run(cv, frame);
+})();
+
+/* ================= SCANNING : motor, motor+phase, phase =================
+   The teaching point is the AGE COUNTER on each target: it climbs, and resets
+   the instant that target is looked at. Watch the three columns reset differently. */
+(function(){
+  var cv=document.getElementById("scanning"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var CW=W/3, PLAN_Y=54, PLAN_H=318, EL_Y=PLAN_Y+PLAN_H+38, EL_H=150, COST_Y=EL_Y+EL_H+32;
+  function mk(){ return [
+    {a:-1.05,d:0.62,pri:2},{a:0.42,d:0.44,pri:2},{a:2.15,d:0.74,pri:0},
+    {a:-2.30,d:0.35,pri:2},{a:1.30,d:0.86,pri:0},{a:-0.30,d:0.52,pri:1}];}
+  var A=mk(), B=mk(), Cc=mk();
+  A.forEach(function(g){g.age=0;}); B.forEach(function(g){g.age=0;});
+  Cc.forEach(function(g){g.age=0; g.next=0;});
+  var BLANK0=-2.78, BLANK1=-2.18;
+  var last=0, sweep=0, back=0, cueT=0, cueLive=false, elBar=0;
+  var dwells=[];                                  /* {a,r,t0} most recent brightest */
+
+  function norm(x){ return ((x%(Math.PI*2))+Math.PI*2)%(Math.PI*2); }
+  function passed(prev,now,a){                     /* did the beam cross bearing a? */
+    var p=norm(prev), n=norm(now), t=norm(a);
+    if(n>=p) return t>p && t<=n;
+    return t>p || t<=n;                            /* wrapped */
+  }
+  function colTitle(i,t1,t2){
+    txt(ctx,t1,i*CW+16,24,"#8FA39B",11,"700");
+    txt(ctx,t2,i*CW+16,40,"#4E6058",9.5,"700");
+  }
+  function ageTag(x,y,g,col){
+    var hot=g.age<0.35;
+    txt(ctx,g.age.toFixed(1)+"s",x+9,y-6,hot?"#EAFFF2":col,9,"700");
+    if(hot){ ring(ctx,x,y,10,"#EAFFF2",1.2); }
+  }
+  function costPanel(i,rows){
+    var x=i*CW+16, w=CW-32;
+    ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(x,COST_Y,w,H-COST_Y-14);
+    ctx.strokeStyle=C.dim; ctx.strokeRect(x+.5,COST_Y+.5,w-1,H-COST_Y-15);
+    rows.forEach(function(r,k){
+      var y=COST_Y+20+k*18;
+      txt(ctx,r[0],x+10,y,"#5E7269",9.5,"600");
+      txt(ctx,r[1],x+w-10,y,r[2]||C.phos,10.5,"700","right");
+    });
+  }
+
+  function frame(t){
+    var dt=Math.min(0.1,(t-last)/1000); if(!last||reduce) dt=reduce?0:0.016; last=t;
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    line(ctx,CW,0,CW,H,C.dim,1); line(ctx,2*CW,0,2*CW,H,C.dim,1);
+    var prev=sweep;
+    if(!reduce){
+      sweep=norm(sweep+dt*(Math.PI*2/2.5));        /* 24 rpm */
+      back=norm(sweep-0.55-0.25*Math.sin(t/1400)); /* the beam lagging the face */
+      elBar=(elBar+dt*9)%8;
+      cueT=(t/7000)%1; cueLive=cueT<0.30;
+    }
+
+    /* ---------- 1. motor only ---------- */
+    var cx0=CW*0.5, cy0=PLAN_Y+PLAN_H*0.5, R0=Math.min(CW*0.37,PLAN_H*0.45);
+    colTitle(0,"MOTOR ONLY","one beam · 24 rpm · everything resets together");
+    for(var k=1;k<=3;k++) ring(ctx,cx0,cy0,R0*k/3,"rgba(53,224,122,0.15)",1);
+    ring(ctx,cx0,cy0,R0+9,"rgba(53,224,122,0.24)",1);
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx0,cy0);
+    ctx.arc(cx0,cy0,R0,BLANK0,BLANK1); ctx.closePath();
+    ctx.fillStyle="rgba(93,46,89,0.5)"; ctx.fill();
+    ctx.setLineDash([4,4]); ctx.strokeStyle="rgba(216,34,255,0.65)"; ctx.lineWidth=1.1; ctx.stroke();
+    ctx.restore();
+    txt(ctx,"BLANK",cx0+Math.cos((BLANK0+BLANK1)/2)*R0*0.66,
+      cy0+Math.sin((BLANK0+BLANK1)/2)*R0*0.66,"rgba(216,34,255,0.8)",8.5,"700","center");
+    for(var s0=0;s0<76;s0++){
+      var a0=sweep-s0*0.012;
+      ctx.beginPath(); ctx.moveTo(cx0,cy0); ctx.arc(cx0,cy0,R0,a0-0.019,a0); ctx.closePath();
+      ctx.fillStyle="rgba(53,224,122,"+(0.15*Math.pow(1-s0/76,2.2)).toFixed(4)+")"; ctx.fill();
+    }
+    line(ctx,cx0,cy0,cx0+Math.cos(sweep)*R0,cy0+Math.sin(sweep)*R0,"rgba(150,255,190,0.9)",2);
+    A.forEach(function(g){
+      g.age+=dt;
+      var blank = g.a>BLANK0 && g.a<BLANK1;
+      if(!blank && passed(prev,sweep,g.a)) g.age=0;
+      if(blank) return;
+      var x=cx0+Math.cos(g.a)*g.d*R0, y=cy0+Math.sin(g.a)*g.d*R0;
+      ring(ctx,x,y,5,C.white,1.5); ageTag(x,y,g,"#8FA39B");
+    });
+    band(0);
+    /* one fan, no height */
+    ctx.save(); ctx.beginPath(); ctx.moveTo(EX(0),EY);
+    ctx.lineTo(EX(0)+ER,EY-EH*0.28); ctx.lineTo(EX(0)+ER,EY-EH*0.70); ctx.closePath();
+    ctx.fillStyle="rgba(53,224,122,0.18)"; ctx.fill();
+    ctx.strokeStyle="rgba(53,224,122,0.5)"; ctx.stroke(); ctx.restore();
+    txt(ctx,"one fan, fixed tilt",EX(0)+ER*0.30,EY-EH*0.30,"#6E8078",9.5,"700");
+    txt(ctx,"a contact is somewhere in there — no height",EX(0),EY+18,C.orange,9.5,"700");
+
+    /* ---------- 2. motor + phase ---------- */
+    var cx1=CW*1.5, cy1=cy0, R1=R0;
+    colTitle(1,"MOTOR + PHASE","the face turns · the beam does not have to follow");
+    for(var b=0;b<360;b+=3){
+      var ang=b*Math.PI/180;
+      var dd=Math.abs(((b-250+540)%360)-180);
+      var boost=1+0.5*Math.exp(-Math.pow(dd/26,2));
+      ctx.save(); ctx.beginPath(); ctx.moveTo(cx1,cy1);
+      ctx.arc(cx1,cy1,R1*Math.min(1,0.70*boost),ang-0.03,ang+0.03); ctx.closePath();
+      ctx.fillStyle="rgba(53,224,122,"+(0.045+0.05*(boost-1)/0.5).toFixed(3)+")"; ctx.fill(); ctx.restore();
+    }
+    for(var k1=1;k1<=3;k1++) ring(ctx,cx1,cy1,R1*k1/3,"rgba(53,224,122,0.15)",1);
+    ring(ctx,cx1,cy1,R1+9,"rgba(53,224,122,0.24)",1);
+    /* the face: a solid bar. the beam: an orange wedge, visibly elsewhere */
+    ctx.save(); ctx.strokeStyle="rgba(150,255,190,0.5)"; ctx.lineWidth=6; ctx.lineCap="butt";
+    ctx.beginPath(); ctx.arc(cx1,cy1,R1+9,sweep-0.10,sweep+0.10); ctx.stroke(); ctx.restore();
+    txt(ctx,"FACE",cx1+Math.cos(sweep)*(R1+26),cy1+Math.sin(sweep)*(R1+26),
+      "rgba(150,255,190,0.75)",8.5,"700","center");
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx1,cy1);
+    ctx.arc(cx1,cy1,R1,back-0.10,back+0.10); ctx.closePath();
+    ctx.fillStyle="rgba(255,147,13,0.22)"; ctx.fill();
+    ctx.strokeStyle=C.orange; ctx.lineWidth=1.3; ctx.stroke(); ctx.restore();
+    /* the arc showing how far behind the beam is */
+    ctx.save(); ctx.strokeStyle="rgba(255,147,13,0.7)"; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.arc(cx1,cy1,R1*0.34,back,sweep); ctx.stroke(); ctx.restore();
+    txt(ctx,"BACK-SCAN",cx1,cy1+R1+24,C.orange,9.5,"700","center");
+    txt(ctx,"the beam lingers where the rain is",cx1,cy1+R1+36,"#4E6058",9,"700","center");
+    B.forEach(function(g){
+      g.age+=dt;
+      if(passed(prev,sweep,g.a)||passed(norm(back-dt*2),back,g.a)) g.age=0;
+      var x=cx1+Math.cos(g.a)*g.d*R1, y=cy1+Math.sin(g.a)*g.d*R1;
+      ring(ctx,x,y,5,C.white,1.5); ageTag(x,y,g,"#8FA39B");
+    });
+    band(1);
+    for(var e1=0;e1<8;e1++){
+      var lo=0.05+e1*0.112, hi=lo+0.098, live=Math.floor(elBar)===e1;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(EX(1),EY);
+      ctx.lineTo(EX(1)+ER,EY-EH*lo); ctx.lineTo(EX(1)+ER,EY-EH*hi); ctx.closePath();
+      ctx.fillStyle= live ? "rgba(150,255,190,0.34)" : "rgba(53,224,122,0.09)";
+      ctx.fill();
+      ctx.strokeStyle= live ? "rgba(150,255,190,0.8)" : "rgba(53,224,122,0.26)"; ctx.stroke();
+      ctx.restore();
+    }
+    txt(ctx,"eight beams, stepped through every revolution",EX(1)+ER*0.16,EY-EH*1.02,"#6E8078",9.5,"700");
+    txt(ctx,"height comes free — no second radar",EX(1),EY+18,C.phos,9.5,"700");
+
+    /* ---------- 3. phase only ---------- */
+    var cx2=CW*2.5, cy2=cy0, R2=R0;
+    colTitle(2,"PHASE ONLY","four fixed faces · attention is spent, not swept");
+    for(var f=0;f<4;f++){
+      var c0=-Math.PI/2+f*Math.PI/2;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(cx2,cy2);
+      for(var aa=-Math.PI/4;aa<=Math.PI/4;aa+=0.03){
+        var rr=R2*Math.pow(Math.cos(aa),0.8);
+        ctx.lineTo(cx2+Math.cos(c0+aa)*rr, cy2+Math.sin(c0+aa)*rr);
+      }
+      ctx.closePath();
+      ctx.fillStyle="rgba(53,224,122,0.055)"; ctx.fill();
+      ctx.strokeStyle="rgba(53,224,122,0.30)"; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
+      var sa=c0+Math.PI/4;
+      line(ctx,cx2+Math.cos(sa)*R2*0.5,cy2+Math.sin(sa)*R2*0.5,
+              cx2+Math.cos(sa)*R2*1.0,cy2+Math.sin(sa)*R2*1.0,"rgba(223,243,52,0.45)",1,[3,3]);
+    }
+    txt(ctx,"SEAMS",cx2+R2*0.78,cy2-R2*0.80,"rgba(223,243,52,0.75)",8.5,"700","center");
+    for(var k2=1;k2<=3;k2++) ring(ctx,cx2,cy2,R2*k2/3,"rgba(53,224,122,0.12)",1);
+    /* schedule: high priority every 0.4 s, medium 1.2 s, low 4 s */
+    Cc.forEach(function(g){
+      g.age+=dt; g.next-=dt;
+      if(g.next<=0){
+        g.age=0; g.next=[4.0,1.2,0.4][g.pri];
+        dwells.push({a:g.a,r:g.d,born:t});
+      }
+    });
+    if(!reduce && dwells.length<40 && Math.random===Math.random){
+      /* fill in search dwells between track looks, marching round the compass */
+      var sa2=(t/300)%(Math.PI*2);
+      if(dwells.length===0 || t-dwells[dwells.length-1].born>60)
+        dwells.push({a:sa2,r:0.92,born:t,search:true});
+    }
+    dwells=dwells.filter(function(d){ return t-d.born<1400; });
+    dwells.forEach(function(d){
+      var f2=1-(t-d.born)/1400;
+      var rr=R2*Math.pow(Math.cos(((norm(d.a)+Math.PI/4)%(Math.PI/2))-Math.PI/4),0.8)*(d.search?1:d.r+0.12);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(cx2,cy2);
+      ctx.arc(cx2,cy2,rr,d.a-0.05,d.a+0.05); ctx.closePath();
+      ctx.fillStyle="rgba(53,224,122,"+(0.26*f2*f2).toFixed(4)+")"; ctx.fill(); ctx.restore();
+    });
+    if(cueLive){
+      var ca=-0.62, cr=R2*0.96;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(cx2,cy2);
+      ctx.arc(cx2,cy2,cr,ca-0.07,ca+0.07); ctx.closePath();
+      ctx.fillStyle="rgba(255,147,13,0.30)"; ctx.fill();
+      ctx.strokeStyle=C.orange; ctx.lineWidth=1.3; ctx.stroke(); ctx.restore();
+      txt(ctx,"CUED",cx2+Math.cos(ca)*cr*1.12,cy2+Math.sin(ca)*cr*1.12,C.orange,9,"700","center");
+    }
+    Cc.forEach(function(g){
+      var x=cx2+Math.cos(g.a)*g.d*R2, y=cy2+Math.sin(g.a)*g.d*R2;
+      var col=[C.grey,C.aqua,C.white][g.pri];
+      ring(ctx,x,y,5,col,1.5); ageTag(x,y,g,col);
+    });
+    band(2);
+    var picks=[0.10,0.52,0.30,0.78,0.22,0.64];
+    picks.forEach(function(pv,pi){
+      var live=Math.floor((t/220)%picks.length)===pi;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(EX(2),EY);
+      ctx.lineTo(EX(2)+ER,EY-EH*pv); ctx.lineTo(EX(2)+ER,EY-EH*(pv+0.075)); ctx.closePath();
+      ctx.fillStyle= live?"rgba(150,255,190,0.34)":"rgba(53,224,122,0.08)"; ctx.fill();
+      ctx.strokeStyle= live?"rgba(150,255,190,0.8)":"rgba(53,224,122,0.24)"; ctx.stroke(); ctx.restore();
+    });
+    txt(ctx,"any angle, any order, any time",EX(2)+ER*0.22,EY-EH*1.02,"#6E8078",9.5,"700");
+    txt(ctx,"revisit is a decision, not a mechanism",EX(2),EY+18,C.phos,9.5,"700");
+
+    costPanel(0,[["Update rate","fixed by rpm","#8FA39B"],["Height","none",C.orange],
+      ["Aim the energy","no",C.orange],["If it breaks","stops dead",C.red]]);
+    costPanel(1,[["Update rate","rpm, plus back-scan",C.phos],["Height","yes, free",C.phos],
+      ["Aim the energy","within the sector",C.phos],["If it breaks","motor is one point",C.orange]]);
+    costPanel(2,[["Update rate","per track, chosen",C.phos],["Height","yes",C.phos],
+      ["Aim the energy","anywhere, instantly",C.phos],["If it breaks","fades quietly",C.yellow]]);
+  }
+  var ER=CW-56, EH=EL_H-46, EY=EL_Y+EL_H-24;
+  function EX(i){ return i*CW+16; }
+  function band(i){
+    line(ctx,i*CW,EL_Y-16,i*CW+CW,EL_Y-16,C.dim,1);
+    txt(ctx,"IN ELEVATION",i*CW+16,EL_Y-4,"#4E6058",9,"700");
+    line(ctx,EX(i),EY,EX(i)+ER,EY,"#3C5C50",1.2);
+  }
+  run(cv, frame);
+})();
+
+
+/* ================= EW : who is looking at me ================= */
+(function(){
+  var cv=document.getElementById("ew"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var CW=W/3;
+  var em=[
+    {a:-0.9, lvl:0.22,code:"LAUNCHER",mode:"LAUNCH",top:true},
+    {a:2.10, lvl:0.55,code:"AIRBORNE",mode:"TRACK"},
+    {a:0.95, lvl:0.58,code:"BATTERY", mode:"TRACK"},
+    {a:-2.5, lvl:0.90,code:"EARLY WARN",mode:"SEARCH"},
+    {a:1.85, lvl:0.88,code:"GUN",     mode:"SEARCH"},
+    {a:-1.9, lvl:0.86,code:"SURFACE", mode:"SEARCH"}
+  ];
+  var trains=[
+    {pri:0.081,pw:2.0,c:C.red,   n:"E-1"},
+    {pri:0.134,pw:1.4,c:C.aqua,  n:"E-2"},
+    {pri:0.207,pw:2.6,c:C.yellow,n:"E-3"}
+  ];
+  var swp=0;
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    line(ctx,CW,0,CW,H,C.dim,1); line(ctx,2*CW,0,2*CW,H,C.dim,1);
+    var flash=!reduce && Math.floor(t/420)%2===0;
+    if(!reduce) swp=(t/2400)%1;
+
+    /* ---- 1. the warning receiver ---- */
+    txt(ctx,"WARNING RECEIVER",16,26,"#8FA39B",11,"700");
+    txt(ctx,"the rings are lethality — not range",16,42,C.orange,9.5,"700");
+    var cx=CW*0.5, cy=290, R=Math.min(CW*0.40,180);
+    [[1.00,"rgba(223,243,52,0.07)"],[0.72,"rgba(254,147,13,0.09)"],[0.40,"rgba(255,19,32,0.12)"]]
+      .forEach(function(b){
+        ctx.beginPath(); ctx.arc(cx,cy,R*b[0],0,Math.PI*2);
+        ctx.fillStyle=b[1]; ctx.fill();
+      });
+    [[1.00,C.yellow,"EMITTING"],[0.72,C.orange,"TRACKING"],[0.40,C.red,"LAUNCHING"]]
+      .forEach(function(b){
+        ring(ctx,cx,cy,R*b[0],b[1],1,[4,4]);
+        txt(ctx,b[2],cx,cy-R*b[0]+13,b[1],8.5,"700","center");
+      });
+    ctx.strokeStyle="rgba(255,255,255,0.8)"; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(cx,cy-11); ctx.lineTo(cx,cy+9);
+    ctx.moveTo(cx-8,cy+1); ctx.lineTo(cx+8,cy+1);
+    ctx.moveTo(cx-4,cy+8); ctx.lineTo(cx+4,cy+8); ctx.stroke();
+    em.forEach(function(e){
+      var x=cx+Math.sin(e.a)*R*e.lvl, y=cy-Math.cos(e.a)*R*e.lvl;
+      var col = e.mode==="LAUNCH"?C.red:(e.mode==="TRACK"?C.orange:C.yellow);
+      if(e.mode==="LAUNCH" && flash) ring(ctx,x,y,19,C.red,1.6);
+      if(e.top){
+        ctx.strokeStyle=col; ctx.lineWidth=1.4;
+        ctx.beginPath(); ctx.moveTo(x,y-15); ctx.lineTo(x+13,y); ctx.lineTo(x,y+15);
+        ctx.lineTo(x-13,y); ctx.closePath(); ctx.stroke();
+      }
+      txt(ctx,e.code,x,y+4,col,e.code.length>7?8.5:10,"700","center");
+    });
+    txt(ctx,"the diamond is whatever is worst right now",cx,cy+R+26,"#4E6058",9,"700","center");
+    txt(ctx,"a launcher far away that has locked on sits inside",cx,cy+R+44,"#4E6058",9,"700","center");
+    txt(ctx,"a search radar close by that has not noticed you",cx,cy+R+56,"#4E6058",9,"700","center");
+
+    /* ---- 2. the listening receiver ---- */
+    var mx=CW+16, mw=CW-32;
+    txt(ctx,"LISTENING RECEIVER",mx,26,"#8FA39B",11,"700");
+    txt(ctx,"everything here is a pattern in time",mx,42,"#4E6058",9.5,"700");
+    txt(ctx,"WHAT ARRIVES — ALL EMITTERS AT ONCE",mx,66,"#5E7269",9,"700");
+    ctx.fillStyle="#050807"; ctx.fillRect(mx,74,mw,34);
+    ctx.strokeStyle="#1E2A27"; ctx.strokeRect(mx+.5,74.5,mw-1,33);
+    trains.forEach(function(tr){
+      for(var k=0;k*tr.pri<1;k++){
+        var x=mx+mw*((k*tr.pri+swp*tr.pri)%1);
+        if(x>mx+mw-2) continue;
+        ctx.fillStyle=tr.c; ctx.fillRect(x,80,tr.pw,22);
+      }
+    });
+    txt(ctx,"AFTER SORTING — ONE LANE EACH",mx,128,"#5E7269",9,"700");
+    trains.forEach(function(tr,i){
+      var y=144+i*34;
+      ctx.fillStyle="#050807"; ctx.fillRect(mx,y,mw,26);
+      ctx.strokeStyle="#1E2A27"; ctx.strokeRect(mx+.5,y+.5,mw-1,25);
+      for(var k=0;k*tr.pri<1;k++){
+        var x=mx+mw*((k*tr.pri+swp*tr.pri)%1);
+        if(x>mx+mw-2) continue;
+        ctx.fillStyle=tr.c; ctx.fillRect(x,y+4,tr.pw,18);
+      }
+      txt(ctx,tr.n,mx+4,y-3,tr.c,8.5,"700");
+      txt(ctx,"gap "+Math.round(tr.pri*1000)+" µs",mx+mw-4,y-3,"#4E6058",8.5,"700","right");
+    });
+    var py=258;
+    txt(ctx,"MEASURED",mx,py,"#5E7269",9,"700");
+    ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(mx,py+8,mw,74);
+    ctx.strokeStyle=C.dim; ctx.strokeRect(mx+.5,py+8.5,mw-1,73);
+    [["FREQUENCY","9.31 GHz"],["PULSE LENGTH","0.8 µs"],["GAP BETWEEN PULSES","81 µs"],
+     ["SWEEP PERIOD","2.4 s"]].forEach(function(r,i){
+      var y=py+26+i*16;
+      txt(ctx,r[0],mx+10,y,"#5E7269",9);
+      txt(ctx,r[1],mx+mw-10,y,C.phos,10,"700","right");
+    });
+    txt(ctx,"THE LIBRARY SAYS IT COULD BE",mx,py+104,"#5E7269",9,"700");
+    ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(mx,py+112,mw,74);
+    ctx.strokeStyle=C.dim; ctx.strokeRect(mx+.5,py+112.5,mw-1,73);
+    [["FIRE CONTROL, TYPE A",0.62,C.orange],["FIRE CONTROL, TYPE B",0.29,C.yellow],
+     ["SURFACE SEARCH",0.09,"#5E7269"]].forEach(function(r,i){
+      var y=py+132+i*20;
+      txt(ctx,r[0],mx+10,y,r[2],9.5,"700");
+      ctx.fillStyle="#1B2624"; ctx.fillRect(mx+mw-78,y-8,60,9);
+      ctx.fillStyle=r[2]; ctx.fillRect(mx+mw-78,y-8,60*r[1],9);
+      txt(ctx,Math.round(r[1]*100)+"%",mx+mw-10,y,r[2],9,"700","right");
+    });
+    txt(ctx,"three candidates, not one confident name",mx,py+200,C.orange,9,"700");
+
+    /* ---- 3. what jamming does ---- */
+    var jx=2*CW, jcx=CW*2.5, jcy=290, JR=Math.min(CW*0.40,180);
+    txt(ctx,"WHAT THE RADAR SEES WHEN JAMMED",jx+16,26,"#8FA39B",11,"700");
+    txt(ctx,"range denied, bearing survives",jx+16,42,C.blue,9.5,"700");
+    ctx.save(); ctx.beginPath(); ctx.arc(jcx,jcy,JR,0,Math.PI*2); ctx.clip();
+    ctx.fillStyle="#050807"; ctx.fillRect(jcx-JR,jcy-JR,JR*2,JR*2);
+    var r2=rnd(83);
+    for(var i2=0;i2<120;i2++){
+      var aa=r2()*Math.PI*2, dd=Math.pow(r2(),0.6)*JR;
+      ctx.fillStyle="rgba(53,224,122,"+(0.10+r2()*0.25).toFixed(3)+")";
+      ctx.fillRect(jcx+Math.cos(aa)*dd,jcy+Math.sin(aa)*dd,1.8,1.8);
+    }
+    var ja=-0.65, r3=rnd(11+Math.floor(t/90)%500);
+    for(var w2=-0.085;w2<=0.085;w2+=0.006){
+      for(var d2=10;d2<JR;d2+=2){
+        var amp=0.55*(1-Math.abs(w2)/0.085)*(0.35+0.65*r3());
+        ctx.fillStyle="rgba(94,141,246,"+amp.toFixed(3)+")";
+        ctx.fillRect(jcx+Math.cos(ja+w2)*d2, jcy+Math.sin(ja+w2)*d2, 2.2,2.2);
+      }
+    }
+    ctx.restore();
+    for(var k3=1;k3<=3;k3++) ring(ctx,jcx,jcy,JR*k3/3,"rgba(53,224,122,0.18)",1);
+    ring(ctx,jcx,jcy,JR*0.34,C.yellow,1.3,[5,4]);
+    txt(ctx,"BURNTHROUGH",jcx-JR*0.34-8,jcy+4,C.yellow,9,"700","right");
+    var tx2=jcx+Math.cos(ja)*JR*0.26, ty2=jcy+Math.sin(ja)*JR*0.26;
+    ring(ctx,tx2,ty2,6,C.white,1.6);
+    txt(ctx,"visible again",tx2+10,ty2+4,C.white,9,"700");
+    line(ctx,jcx,jcy,jcx+Math.cos(ja)*JR,jcy+Math.sin(ja)*JR,"rgba(94,141,246,0.5)",1,[6,5]);
+    txt(ctx,"JAMMING STROBE",jcx+Math.cos(ja)*JR*0.62+10,jcy+Math.sin(ja)*JR*0.62-10,C.blue,9.5,"700");
+    txt(ctx,"a bearing with no range on it",jcx,jcy+JR+26,C.blue,9,"700","center");
+    txt(ctx,"draw the noise and label it — never show a",jcx,jcy+JR+44,"#4E6058",9,"700","center");
+    txt(ctx,"clean picture with a hole in it",jcx,jcy+JR+56,"#4E6058",9,"700","center");
+  }
+  run(cv, frame);
+})();
+
+/* ================= FUSION : several sensors, one object ================= */
+(function(){
+  var cv=document.getElementById("fusion"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var PANE=W-330;                       /* the picture; the rest is detail */
+  var cx=PANE*0.5, cy=H*0.54, R=Math.min(PANE*0.40,H*0.40);
+  /* src: R radar, T transponder, C camera, F radio bearing */
+  var trk=[
+    {a:-1.02,d:0.58,name:"MARIA S",  src:"RT C",kind:"fused", sel:true},
+    {a:0.38, d:0.44,name:"NORDKAP",  src:"RT",  kind:"fused"},
+    {a:2.05, d:0.70,name:"—",        src:"R",   kind:"radaronly"},
+    {a:-2.35,d:0.36,name:"BREMEN",   src:"T",   kind:"tponly"},
+    {a:1.28, d:0.82,name:"DELTA-9",  src:"RT",  kind:"disagree"},
+    {a:-0.24,d:0.30,name:"KESTREL",  src:"RT",  kind:"dupe"}
+  ];
+  var SRC={R:C.phos,T:C.aqua,C:C.yellow,F:C.pink};
+  function pips(x,y,src,dim){
+    "RTCF".split("").forEach(function(k,i){
+      var on=src.indexOf(k)>=0;
+      ctx.fillStyle= on ? SRC[k] : "#1E2A27";
+      ctx.globalAlpha= dim?0.5:1;
+      ctx.fillRect(x+i*11,y,8,8);
+      if(on){ ctx.fillStyle="#040806"; mono(ctx,7,"700"); ctx.textAlign="center";
+        ctx.fillText(k,x+i*11+4,y+6.4); }
+      ctx.globalAlpha=1;
+    });
+  }
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    line(ctx,PANE,0,PANE,H,C.dim,1);
+    /* the picture */
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.clip();
+    ctx.fillStyle="#050807"; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+    coast(ctx,cx,cy,R,97,"rgba(240,200,60,0.5)","rgba(150,118,24,0.09)");
+    ctx.restore();
+    for(var k=1;k<=3;k++) ring(ctx,cx,cy,R*k/3,"rgba(53,224,122,0.16)",1);
+    txt(ctx,"FUSED PICTURE",16,26,"#8FA39B",11,"700");
+    txt(ctx,"one symbol per object, not one per sensor",16,42,"#4E6058",9.5,"700");
+
+    trk.forEach(function(g){
+      var x=cx+Math.cos(g.a)*g.d*R, y=cy+Math.sin(g.a)*g.d*R;
+      var flash=!reduce && Math.floor(t/500)%2===0;
+      if(g.kind==="fused"){
+        ring(ctx,x,y,8,C.white,1.6);
+        ctx.save(); ctx.translate(x,y); ctx.rotate(g.a+Math.PI/2);
+        ctx.beginPath(); ctx.moveTo(0,-13); ctx.lineTo(8,4); ctx.lineTo(-8,4); ctx.closePath();
+        ctx.strokeStyle=C.aqua; ctx.lineWidth=1.3; ctx.stroke(); ctx.restore();
+      } else if(g.kind==="radaronly"){
+        ring(ctx,x,y,8,C.phos,1.8);
+        line(ctx,x-11,y-11,x+11,y+11,"rgba(53,224,122,0.35)",1);
+      } else if(g.kind==="tponly"){
+        ctx.save(); ctx.translate(x,y); ctx.rotate(g.a+Math.PI/2);
+        ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(0,-13); ctx.lineTo(8,4); ctx.lineTo(-8,4); ctx.closePath();
+        ctx.strokeStyle=C.aqua; ctx.lineWidth=1.5; ctx.stroke(); ctx.restore();
+      } else if(g.kind==="disagree"){
+        /* the split symbol: your radar above, the network below, visibly at odds */
+        ctx.strokeStyle=C.phos; ctx.lineWidth=1.8;
+        ctx.beginPath(); ctx.arc(x,y,9,Math.PI,0); ctx.stroke();
+        ctx.strokeStyle=C.red; ctx.lineWidth=1.8;
+        ctx.beginPath(); ctx.moveTo(x-9,y); ctx.lineTo(x,y+11); ctx.lineTo(x+9,y); ctx.stroke();
+        if(flash){ ring(ctx,x,y,15,C.red,1,[3,3]); }
+        txt(ctx,"ID CONFLICT",x+20,y+30,C.red,9,"700");
+      } else if(g.kind==="dupe"){
+        ring(ctx,x,y,8,C.phos,1.6);
+        ctx.save(); ctx.translate(x+15,y-8); ctx.rotate(g.a+Math.PI/2);
+        ctx.beginPath(); ctx.moveTo(0,-11); ctx.lineTo(7,3); ctx.lineTo(-7,3); ctx.closePath();
+        ctx.strokeStyle=C.aqua; ctx.lineWidth=1.3; ctx.stroke(); ctx.restore();
+        ctx.save(); ctx.setLineDash([2,3]);
+        ctx.strokeStyle=C.orange; ctx.lineWidth=1.2;
+        ctx.beginPath(); ctx.ellipse(x+7,y-4,22,15,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
+        txt(ctx,"NOT ASSOCIATED",x+34,y+30,C.orange,9,"700");
+      }
+      if(g.sel) ring(ctx,x,y,19,C.white,1,[3,3]);
+      if(g.name!=="—") txt(ctx,g.name,x+13,y-13,
+        g.kind==="disagree"?C.red:(g.kind==="tponly"?C.aqua:C.white),10,"700");
+      pips(x-22,y+15,g.src,g.kind==="tponly");
+    });
+    /* the radio bearing: a line, not a point */
+    var fa=-1.02;
+    line(ctx,cx,cy,cx+Math.cos(fa)*R*1.0,cy+Math.sin(fa)*R*1.0,"rgba(246,132,216,0.55)",1.4,[7,5]);
+    txt(ctx,"RF BEARING — a line, no range",cx+Math.cos(fa)*R*0.72+8,cy+Math.sin(fa)*R*0.72-8,
+      "rgba(246,132,216,0.8)",9,"700");
+    ctx.fillStyle=C.white; ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+
+    /* ---------- the detail panel ---------- */
+    var px=PANE+16, pw=W-PANE-32;
+    txt(ctx,"SELECTED TRACK",px,26,"#5E7269",10,"700");
+    ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(px,36,pw,120);
+    ctx.strokeStyle=C.dim; ctx.strokeRect(px+.5,36.5,pw-1,119);
+    txt(ctx,"MARIA S",px+10,58,C.white,15,"700");
+    txt(ctx,"BUILT FROM",px+10,76,"#5E7269",8.5,"700");
+    pips(px+10,82,"RT C",false);
+    [["POSITION","radar","+/- 4 m",C.phos],["IDENTITY","transponder","MMSI 2311…",C.aqua],
+     ["CONFIRMED","camera","2 s ago",C.yellow],["RF BEARING","—","not held","#4E6058"]]
+      .forEach(function(r,i){
+        var y=108+i*15;
+        txt(ctx,r[0],px+10,y,"#5E7269",9);
+        txt(ctx,r[1],px+86,y,r[3],9.5,"700");
+        txt(ctx,r[2],px+pw-10,y,r[3],9.5,"700","right");
+      });
+    /* the setting nobody expects to exist */
+    txt(ctx,"WHEN THEY ARE THE SAME SHIP",px,182,"#5E7269",10,"700");
+    ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(px,192,pw,52);
+    ctx.strokeStyle=C.dim; ctx.strokeRect(px+.5,192.5,pw-1,51);
+    txt(ctx,"SHOW",px+10,212,"#5E7269",9,"700");
+    ["RADAR","TRANSPONDER"].forEach(function(o,i){
+      var bx=px+58+i*98, on=(i===1);
+      ctx.strokeStyle=on?C.phos:"#2A3A34"; ctx.lineWidth=1;
+      ctx.strokeRect(bx+.5,201.5,92,15);
+      txt(ctx,o,bx+46,213,on?C.phos:"#4E6058",9,"700","center");
+    });
+    txt(ctx,"BREAK ASSOCIATION  —  one click, always available",px+10,235,C.orange,9,"700");
+    /* the camera, slaved to the selection */
+    txt(ctx,"CAMERA — SLAVED TO SELECTION",px,272,"#5E7269",10,"700");
+    var vy=282, vh=126;
+    ctx.fillStyle="#070B0A"; ctx.fillRect(px,vy,pw,vh);
+    ctx.strokeStyle=C.dim; ctx.strokeRect(px+.5,vy+.5,pw-1,vh-1);
+    /* a crude horizon and a hull, enough to read as a camera image */
+    ctx.fillStyle="rgba(94,141,246,0.10)"; ctx.fillRect(px+1,vy+1,pw-2,vh*0.52);
+    line(ctx,px+1,vy+vh*0.52,px+pw-1,vy+vh*0.52,"rgba(140,170,200,0.35)",1);
+    ctx.fillStyle="rgba(200,210,215,0.55)";
+    ctx.beginPath();
+    ctx.moveTo(px+pw*0.30,vy+vh*0.52); ctx.lineTo(px+pw*0.70,vy+vh*0.52);
+    ctx.lineTo(px+pw*0.64,vy+vh*0.62); ctx.lineTo(px+pw*0.34,vy+vh*0.62); ctx.closePath(); ctx.fill();
+    ctx.fillRect(px+pw*0.44,vy+vh*0.40,pw*0.10,vh*0.12);
+    ctx.strokeStyle=C.yellow; ctx.lineWidth=1.2;
+    ctx.strokeRect(px+pw*0.28,vy+vh*0.34,pw*0.44,vh*0.32);
+    txt(ctx,"TRACKING",px+pw*0.28,vy+vh*0.34-5,C.yellow,9,"700");
+    txt(ctx,"AZ 287.4   EL +1.2   ZOOM 14x",px+8,vy+vh-8,"rgba(223,243,52,0.8)",9,"700");
+  }
+  run(cv, frame);
+})();
+
+/* ================= CONTROLS : the on-screen vocabulary ================= */
+(function(){
+  var cv=document.getElementById("controls"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var COLS=4, GW=(W-24-(COLS-1)*10)/COLS, GH=148;
+  var cells=[
+    "STEPPER","SLIDER + MODE","STATE BUTTON","ALL OPTIONS",
+    "DRAG ON THE PICTURE","DRAWN REGION","GUARDED ACTION","PRESET SLOTS"
+  ];
+  var ranges=["0.25","0.5","0.75","1.5","3","6","12","24"];
+  function cellBox(i){
+    var c=i%COLS, r=Math.floor(i/COLS);
+    var x=12+c*(GW+10), y=54+r*(GH+30);
+    ctx.fillStyle="#0B1110"; ctx.fillRect(x,y,GW,GH);
+    ctx.strokeStyle="#1E2A27"; ctx.strokeRect(x+.5,y+.5,GW-1,GH-1);
+    txt(ctx,cells[i],x+10,y-8,"#5E7269",9.5,"700");
+    return {x:x,y:y,w:GW,h:GH};
+  }
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    txt(ctx,"EIGHT ON-SCREEN CONTROLS THAT DO ALMOST ALL THE WORK",16,26,"#8FA39B",11,"700");
+    txt(ctx,"no physical knobs — everything here is drawn, clicked and dragged",16,42,"#4E6058",9.5,"700");
+    var step=Math.floor((t/1400)%ranges.length);
+    var gain=0.55+0.18*Math.sin(t/2600);
+    var toggleOn=Math.floor(t/3000)%2===0;
+
+    /* 1 — stepper: click steps the list, wheel goes fine */
+    var b=cellBox(0);
+    txt(ctx,"RANGE",b.x+12,b.y+24,"#5E7269",9,"700");
+    txt(ctx,ranges[step]+" NM",b.x+12,b.y+48,C.phos,20,"700");
+    ranges.forEach(function(v,i){
+      var x=b.x+12+i*((b.w-30)/ranges.length), on=i===step;
+      ctx.fillStyle=on?C.phos:"#1B2624"; ctx.fillRect(x,b.y+62,(b.w-30)/ranges.length-3,7);
+    });
+    txt(ctx,"click steps the list",b.x+12,b.y+90,"#6E8078",9,"600");
+    txt(ctx,"wheel goes between",b.x+12,b.y+104,"#6E8078",9,"600");
+    txt(ctx,"coarse and fine, one control",b.x+12,b.y+126,C.orange,9,"700");
+
+    /* 2 — slider with level AND who is driving it */
+    b=cellBox(1);
+    [["GAIN",gain,"MAN"],["SEA",0.38,"AUTO"],["RAIN",0.15,"MAN"]].forEach(function(g,i){
+      var y=b.y+26+i*28;
+      txt(ctx,g[0],b.x+12,y+8,"#5E7269",9,"700");
+      ctx.fillStyle="#1B2624"; ctx.fillRect(b.x+52,y,b.w-118,9);
+      ctx.fillStyle=C.phos; ctx.fillRect(b.x+52,y,(b.w-118)*g[1],9);
+      ctx.fillStyle="#EAFFF2"; ctx.fillRect(b.x+52+(b.w-118)*g[1]-2,y-3,4,15);
+      txt(ctx,g[2],b.x+b.w-12,y+8,g[2]==="AUTO"?C.aqua:"#5E7269",8.5,"700","right");
+    });
+    txt(ctx,"the level and who is setting it",b.x+12,b.y+126,C.orange,9,"700");
+
+    /* 3 — a button that shows its value, not just its name */
+    b=cellBox(2);
+    [["STBY","TX",true],["IR","2",true],["ES","OFF",false],["ACE","OFF",false]].forEach(function(k,i){
+      var x=b.x+12+(i%2)*((b.w-34)/2+10), y=b.y+20+Math.floor(i/2)*46;
+      ctx.fillStyle=k[2]?"#12251C":"#101616"; ctx.fillRect(x,y,(b.w-34)/2,38);
+      ctx.strokeStyle=k[2]?"#2C5C42":"#222C2A"; ctx.strokeRect(x+.5,y+.5,(b.w-34)/2-1,37);
+      txt(ctx,k[0],x+(b.w-34)/4,y+15,"#8FA39B",9,"700","center");
+      txt(ctx,k[1],x+(b.w-34)/4,y+30,k[2]?C.phos:"#5E7269",12,"700","center");
+    });
+    txt(ctx,"reads as a status panel",b.x+12,b.y+126,C.orange,9,"700");
+
+    /* 4 — every option printed, the live one boxed, the impossible one greyed */
+    b=cellBox(3);
+    [["INT REJECTOR","OFF/1/2/3",2,false],["ECHO AVERAGE","OFF/1/2/3",1,false],
+     ["RAIN HATCHING","OFF/ON",0,true]].forEach(function(r,i){
+      var y=b.y+24+i*34;
+      txt(ctx,r[0],b.x+12,y,r[3]?"#3B4744":"#9FB3AA",9.5,"700");
+      var ox=b.x+12, opts=r[1].split("/");
+      opts.forEach(function(o,k){
+        var wdt=o.length*6.2+8;
+        if(k===r[2] && !r[3]){ ctx.strokeStyle=C.phos; ctx.lineWidth=1;
+          ctx.strokeRect(ox-1.5,y+5.5,wdt,13); }
+        txt(ctx,o,ox+3,y+16,r[3]?"#3B4744":(k===r[2]?C.phos:"#6E8078"),9.5,"600");
+        ox+=wdt+3;
+      });
+    });
+    txt(ctx,"greyed, not hidden",b.x+12,b.y+126,C.orange,9,"700");
+
+    /* 5 — drag a handle on the picture, or type the number. same value. */
+    b=cellBox(4);
+    var mx=b.x+b.w*0.34, my=b.y+b.h*0.52, mr=b.h*0.32;
+    ring(ctx,mx,my,mr,"rgba(53,224,122,0.22)",1);
+    var ea=-0.7+0.25*Math.sin(t/1800);
+    line(ctx,mx,my,mx+Math.cos(ea)*mr,my+Math.sin(ea)*mr,C.amber,1.2,[6,4]);
+    ctx.fillStyle=C.amber;
+    ctx.beginPath(); ctx.arc(mx+Math.cos(ea)*mr,my+Math.sin(ea)*mr,4,0,Math.PI*2); ctx.fill();
+    ring(ctx,mx,my,mr*0.62,C.amber,1,[3,4]);
+    txt(ctx,"BEARING",b.x+b.w*0.62,b.y+40,"#5E7269",8.5,"700");
+    txt(ctx,(((ea*180/Math.PI)+450)%360).toFixed(1)+"°",b.x+b.w*0.62,b.y+56,C.amber,13,"700");
+    txt(ctx,"or type it",b.x+b.w*0.62,b.y+76,"#6E8078",9,"600");
+    ctx.strokeStyle="#2A3A34"; ctx.strokeRect(b.x+b.w*0.62+.5,b.y+82.5,b.w*0.30,16);
+    txt(ctx,"3 2 4 . 6",b.x+b.w*0.62+6,b.y+94,"#8FA39B",9.5,"700");
+    txt(ctx,"two routes, one number",b.x+12,b.y+126,C.orange,9,"700");
+
+    /* 6 — a region the operator draws, not a box the designer chose */
+    b=cellBox(5);
+    var px=b.x+16, py=b.y+18, pw=b.w-32, ph=b.h-56;
+    ctx.fillStyle="#050807"; ctx.fillRect(px,py,pw,ph);
+    var pts=[[0.12,0.7],[0.3,0.2],[0.55,0.35],[0.78,0.12],[0.9,0.62],[0.5,0.85]];
+    ctx.beginPath();
+    pts.forEach(function(q,i){ var X=px+pw*q[0], Y=py+ph*q[1];
+      if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); });
+    ctx.closePath();
+    ctx.fillStyle="rgba(223,243,52,0.10)"; ctx.fill();
+    ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle=C.yellow; ctx.lineWidth=1.2; ctx.stroke(); ctx.restore();
+    pts.forEach(function(q,i){
+      var X=px+pw*q[0], Y=py+ph*q[1];
+      var live=Math.floor((t/700)%pts.length)===i;
+      ctx.fillStyle=live?"#EAFFF2":C.yellow; ctx.fillRect(X-3,Y-3,6,6);
+    });
+    txt(ctx,"any shape, dragged by its corners",b.x+12,b.y+126,C.orange,9,"700");
+
+    /* 7 — the action that can ruin your day */
+    b=cellBox(6);
+    ctx.fillStyle="rgba(24,6,8,0.9)"; ctx.fillRect(b.x+14,b.y+22,b.w-28,44);
+    ctx.strokeStyle=C.red; ctx.lineWidth=1.3; ctx.strokeRect(b.x+14.5,b.y+22.5,b.w-29,43);
+    txt(ctx,"DELETE ALL TRACKS",b.x+b.w/2,b.y+42,C.red,11,"700","center");
+    txt(ctx,"HOLD 2 s",b.x+b.w/2,b.y+58,"#8FA39B",9,"700","center");
+    var hold=(t/2600)%1;
+    ctx.fillStyle="rgba(255,19,32,0.35)";
+    ctx.fillRect(b.x+14,b.y+22,(b.w-28)*Math.min(1,hold*1.6),44);
+    txt(ctx,"no dialog to dismiss by reflex —",b.x+12,b.y+90,"#6E8078",9,"600");
+    txt(ctx,"the delay is the confirmation",b.x+12,b.y+104,"#6E8078",9,"600");
+    txt(ctx,"and it is always undoable",b.x+12,b.y+126,C.orange,9,"700");
+
+    /* 8 — presets, because a watch change is a settings change */
+    b=cellBox(7);
+    [["PILOT","reset to a known baseline",C.aqua],
+     ["USER 1","saved",C.phos],["USER 2","empty","#4E6058"]].forEach(function(r,i){
+      var y=b.y+22+i*34;
+      ctx.fillStyle="#101616"; ctx.fillRect(b.x+14,y,b.w-28,26);
+      ctx.strokeStyle="#222C2A"; ctx.strokeRect(b.x+14.5,y+.5,b.w-29,25);
+      txt(ctx,r[0],b.x+24,y+17,r[2],10.5,"700");
+      txt(ctx,r[1],b.x+b.w-24,y+17,"#5E7269",9,"600","right");
+    });
+    txt(ctx,"resets the view, keeps the tracks",b.x+12,b.y+126,C.orange,9,"700");
+  }
+  run(cv, frame);
+})();
+
+/* ================= ASSOCIATION : how two reports become one track ================= */
+(function(){
+  var cv=document.getElementById("assoc"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var LW=W*0.56;                     /* the lifecycle */
+  var phase=0;
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    line(ctx,LW,0,LW,H,C.dim,1);
+    if(!reduce) phase=(t/12000)%1;
+    var stages=["APART","CANDIDATE","ASSOCIATED","BROKEN BY HAND"];
+    var st=Math.min(3,Math.floor(phase*4));
+    txt(ctx,"HOW TWO REPORTS BECOME ONE TRACK",16,26,"#8FA39B",11,"700");
+    txt(ctx,"and how the operator takes it apart again",16,42,"#4E6058",9.5,"700");
+    /* the stage rail */
+    stages.forEach(function(s,i){
+      var x=16+i*((LW-40)/4), on=i===st, done=i<st;
+      ctx.fillStyle= on?"#12251C":"#0B1110"; ctx.fillRect(x,60,(LW-40)/4-8,24);
+      ctx.strokeStyle= on?C.phos:"#1E2A27"; ctx.strokeRect(x+.5,60.5,(LW-40)/4-9,23);
+      txt(ctx,s,x+((LW-40)/4-8)/2,76,on?C.phos:(done?"#5E7269":"#3B4744"),9,"700","center");
+    });
+    /* the two reports converging */
+    var cy=H*0.58, gap=[150,60,0,52][st];
+    var rx=LW*0.36-gap/2, tx=LW*0.36+gap/2;
+    ctx.fillStyle="#050807"; ctx.fillRect(16,110,LW-40,H-140);
+    ctx.strokeStyle="#1E2A27"; ctx.strokeRect(16.5,110.5,LW-41,H-141);
+    if(st===2){
+      /* one symbol, both sources */
+      ring(ctx,LW*0.36,cy,10,C.white,1.8);
+      ctx.save(); ctx.translate(LW*0.36,cy); ctx.rotate(0.5);
+      ctx.beginPath(); ctx.moveTo(0,-16); ctx.lineTo(9,4); ctx.lineTo(-9,4); ctx.closePath();
+      ctx.strokeStyle=C.aqua; ctx.lineWidth=1.4; ctx.stroke(); ctx.restore();
+      txt(ctx,"ONE SYMBOL",LW*0.36,cy+44,C.white,10,"700","center");
+      txt(ctx,"both sets of figures kept underneath",LW*0.36,cy+60,"#5E7269",9,"700","center");
+    } else {
+      ring(ctx,rx,cy,9,C.phos,1.8);
+      txt(ctx,"RADAR",rx,cy+28,C.phos,9,"700","center");
+      ctx.save(); ctx.translate(tx,cy); ctx.rotate(0.5);
+      ctx.beginPath(); ctx.moveTo(0,-15); ctx.lineTo(9,4); ctx.lineTo(-9,4); ctx.closePath();
+      ctx.strokeStyle=C.aqua; ctx.lineWidth=1.5; ctx.stroke(); ctx.restore();
+      txt(ctx,"TRANSPONDER",tx,cy+28,C.aqua,9,"700","center");
+      if(st===1||st===3){
+        ctx.save(); ctx.setLineDash([4,4]);
+        ctx.strokeStyle= st===1?C.yellow:C.orange; ctx.lineWidth=1.4;
+        ctx.beginPath(); ctx.moveTo(rx+12,cy); ctx.lineTo(tx-12,cy); ctx.stroke(); ctx.restore();
+        txt(ctx, st===1?"SAME SHIP?  0.86":"SPLIT — OPERATOR SAID NO",
+          (rx+tx)/2,cy-18, st===1?C.yellow:C.orange,9.5,"700","center");
+      }
+    }
+    var notes=["two reports, no opinion offered",
+               "close enough for long enough — a score, not a verdict",
+               "shown as one; which set of numbers you see is a setting",
+               "one action pulls them apart, and it is always available"];
+    txt(ctx,notes[st],16+ (LW-40)/2, H-24, "#8FA39B",10,"700","center");
+
+    /* ---- right: a cross fix is a patch, not a point ---- */
+    var gx=LW+24, gw=W-LW-48;
+    txt(ctx,"TWO BEARINGS ARE NOT A POSITION",gx,26,"#8FA39B",11,"700");
+    txt(ctx,"they are a patch, and its shape is the answer",gx,42,"#4E6058",9.5,"700");
+    var bx=gx, by=64, bw=gw, bh=H-96;
+    ctx.fillStyle="#050807"; ctx.fillRect(bx,by,bw,bh);
+    ctx.strokeStyle="#1E2A27"; ctx.strokeRect(bx+.5,by+.5,bw-1,bh-1);
+    var s1={x:bx+30,y:by+bh-24}, s2={x:bx+bw-40,y:by+bh-24};
+    var tgt={x:bx+bw*0.52,y:by+bh*0.34};
+    [[s1,"RX 1"],[s2,"RX 2"]].forEach(function(q){
+      ctx.fillStyle=C.phos; ctx.fillRect(q[0].x-6,q[0].y-3,12,6);
+      txt(ctx,q[1],q[0].x,q[0].y+16,"#5E7269",8.5,"700","center");
+      /* the wedge of uncertainty, not a line */
+      var ang=Math.atan2(tgt.y-q[0].y,tgt.x-q[0].x), sp=0.028;
+      ctx.save(); ctx.beginPath(); ctx.moveTo(q[0].x,q[0].y);
+      ctx.arc(q[0].x,q[0].y,bh*1.3,ang-sp,ang+sp); ctx.closePath();
+      ctx.fillStyle="rgba(246,132,216,0.10)"; ctx.fill(); ctx.restore();
+      line(ctx,q[0].x,q[0].y,q[0].x+Math.cos(ang)*bh*1.3,q[0].y+Math.sin(ang)*bh*1.3,
+        "rgba(246,132,216,0.5)",1,[6,5]);
+    });
+    ctx.save(); ctx.translate(tgt.x,tgt.y); ctx.rotate(-0.35);
+    ctx.beginPath(); ctx.ellipse(0,0,34,15,0,0,Math.PI*2);
+    ctx.fillStyle="rgba(246,132,216,0.22)"; ctx.fill();
+    ctx.strokeStyle=C.pink; ctx.lineWidth=1.3; ctx.stroke(); ctx.restore();
+    txt(ctx,"the fix",tgt.x,tgt.y-24,C.pink,9.5,"700","center");
+    txt(ctx,"long and thin along the baseline, tight across it —",bx+bw/2,by+bh+20,"#6E8078",9,"700","center");
+    txt(ctx,"which is why the shape matters more than a number",bx+bw/2,by+bh+32,"#6E8078",9,"700","center");
+  }
+  run(cv, frame);
+})();
+
+/* ================= THE CHAIN : input, processing, display ================= */
+(function(){
+  var cv=document.getElementById("chain"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var cols=[
+    {t:"INPUT",x:24,w:190,c:C.aqua,items:["Live receiver card","Network video","Recorded replay","Test pattern","Scenario generator"]},
+    {t:"PROCESSING",x:250,w:640,c:C.phos,items:[
+      "Correlation","Smoothing","Threshold","CFAR threshold","Area blank","Look-up table",
+      "Clutter map","Scan-to-scan integration","Sea-clutter filter","Rain filter",
+      "Plot extraction","Trail history","Moving-platform correction","Your own stage"]},
+    {t:"DISPLAY",x:926,w:190,c:C.yellow,items:["Plan view","A-scan","B-scan"]}
+  ];
+  function frame(){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    cols.forEach(function(col,ci){
+      txt(ctx,col.t,col.x,26,col.c,10.5,"700");
+      if(ci===1){
+        /* the processing block is a grid, because the stages are peers */
+        var per=Math.ceil(col.items.length/2), bw=(col.w-8*(per-1))/per;
+        col.items.forEach(function(s,i){
+          var r=Math.floor(i/per), k=i%per;
+          var x=col.x+k*(bw+8), y=44+r*74;
+          ctx.fillStyle="#0E1615"; ctx.fillRect(x,y,bw,60);
+          ctx.strokeStyle="#22302C"; ctx.strokeRect(x+.5,y+.5,bw-1,59);
+          /* wrap the label */
+          var words=s.split(" "), lines=[""], lim=Math.floor(bw/6.0);
+          words.forEach(function(wd){
+            if((lines[lines.length-1]+" "+wd).trim().length>lim) lines.push(wd);
+            else lines[lines.length-1]=(lines[lines.length-1]+" "+wd).trim();
+          });
+          lines.slice(0,3).forEach(function(L,li){
+            txt(ctx,L,x+bw/2,y+22+li*13,"#9FB3AA",9.5,"600","center");
+          });
+        });
+      } else {
+        col.items.forEach(function(s,i){
+          var y=44+i*34;
+          ctx.fillStyle="#0E1615"; ctx.fillRect(col.x,y,col.w,26);
+          ctx.strokeStyle="#22302C"; ctx.strokeRect(col.x+.5,y+.5,col.w-1,25);
+          txt(ctx,s,col.x+10,y+17,"#9FB3AA",10.5,"600");
+        });
+      }
+    });
+    /* arrows between the three groups */
+    [[218,"→"],[898,"→"]].forEach(function(a){
+      txt(ctx,"▶",a[0],H/2,"#3C5C50",16,"700","center");
+    });
+    txt(ctx,"POLAR — the radar's own coordinates",24,H-14,"#4E6058",10,"700");
+    txt(ctx,"RECORDING TAPS IN HERE, BEFORE ANY PICTURE EXISTS",250,H-14,C.orange,10,"700");
+    txt(ctx,"CARTESIAN",926,H-14,"#4E6058",10,"700");
+  }
+  run(cv, frame);
+})();
+
+/* ================= TERRAIN : what the hill takes away ================= */
+(function(){
+  var cv=document.getElementById("terrain"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var TOPH=250, BOTY=TOPH+40;
+  /* a deterministic ground profile, in metres, sampled every 10 m out to 11.4 km */
+  var N=1140, ground=new Float32Array(N);
+  (function(){
+    var r=rnd(41);
+    for(var i=0;i<N;i++){
+      var x=i/N;
+      ground[i] = 26
+        + 54*Math.exp(-Math.pow((x-0.30)/0.055,2))     /* first ridge */
+        + 78*Math.exp(-Math.pow((x-0.62)/0.075,2))     /* the big one */
+        + 22*Math.exp(-Math.pow((x-0.86)/0.05,2))
+        + 9*Math.sin(x*38) + 5*r();
+    }
+  })();
+  var RADX=14, RADH=34;                      /* aerial position and height */
+  /* line-of-sight: a point is visible if nothing between raises the sight line.
+     The 4/3-earth term is what puts a floor under long range on flat ground. */
+  var TGT=12;                                /* target height above ground, metres */
+  var vis=new Uint8Array(N), horizon=new Float32Array(N);
+  (function(){
+    var eyeY=ground[RADX]+RADH, maxSlope=-1e9;
+    for(var i=RADX+1;i<N;i++){
+      var d=(i-RADX)*10;
+      var curve=(d*d)/(2*8500000*1.33);      /* earth curvature, 4/3 radius */
+      var s=(ground[i]+curve-eyeY)/d;
+      horizon[i]=eyeY+maxSlope*d-curve;      /* lowest visible height at this range */
+      vis[i] = (ground[i]+TGT+curve-eyeY)/d >= maxSlope ? 1 : 0;
+      if(s>maxSlope) maxSlope=s;
+    }
+  })();
+  var tPhase=0;
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+
+    /* ---------- side view ---------- */
+    var gy=function(m){ return TOPH-14-m*1.30; };
+    txt(ctx,"SIDE VIEW  ·  RADAR AT 34 m  ·  TARGET HEIGHT 12 m  ·  RANGE 11.4 km",16,20,"#6E8078",10,"700");
+    /* sky bands: visible vs shadowed, drawn as vertical extents */
+    for(var i=RADX+1;i<N;i++){
+      var top=gy(ground[i]+230), hz=gy(Math.max(ground[i],horizon[i]));
+      /* everything above the horizon line is seen */
+      ctx.fillStyle="rgba(35,225,98,0.05)";
+      ctx.fillRect(i,top,1,hz-top);
+      /* below it, in the lee of the ridge, is shadow */
+      var gnd=gy(ground[i]);
+      if(gnd>hz){ ctx.fillStyle="rgba(93,46,89,0.55)"; ctx.fillRect(i,hz,1,gnd-hz); }
+    }
+    /* the horizon line itself */
+    ctx.beginPath();
+    for(var i2=RADX+1;i2<N;i2++){
+      var y=gy(Math.max(ground[i2],horizon[i2]));
+      if(i2===RADX+1) ctx.moveTo(i2,y); else ctx.lineTo(i2,y);
+    }
+    ctx.strokeStyle="rgba(35,225,98,0.6)"; ctx.lineWidth=1.2; ctx.stroke();
+    /* the ground */
+    ctx.beginPath(); ctx.moveTo(0,TOPH);
+    for(var i3=0;i3<N;i3++) ctx.lineTo(i3,gy(ground[i3]));
+    ctx.lineTo(N,TOPH); ctx.closePath();
+    ctx.fillStyle="#141A12"; ctx.fill();
+    ctx.strokeStyle="rgba(197,149,91,0.85)"; ctx.lineWidth=1.4;
+    ctx.beginPath();
+    for(var i4=0;i4<N;i4++){ var y4=gy(ground[i4]); if(i4===0) ctx.moveTo(i4,y4); else ctx.lineTo(i4,y4); }
+    ctx.stroke();
+    /* the aerial */
+    var ax=RADX, ay=gy(ground[RADX]+RADH);
+    line(ctx,ax,gy(ground[RADX]),ax,ay,C.phos,2);
+    ctx.fillStyle=C.phos; ctx.fillRect(ax-6,ay-4,12,5);
+    txt(ctx,"AERIAL",ax+12,ay-6,C.phos,9.5,"700");
+    /* two aircraft, one seen one not */
+    [[0.44,150,true],[0.72,44,false]].forEach(function(p){
+      var px=Math.round(p[0]*N), py=gy(ground[px]+p[1]);
+      var seen=p[2];
+      ctx.fillStyle=seen?C.white:C.magenta;
+      ctx.beginPath(); ctx.moveTo(px,py-5); ctx.lineTo(px+7,py+4); ctx.lineTo(px-7,py+4);
+      ctx.closePath(); ctx.fill();
+      line(ctx,ax,ay,px,py,seen?"rgba(255,255,255,0.45)":"rgba(216,34,255,0.35)",1,seen?null:[5,5]);
+      txt(ctx,seen?"SEEN":"IN SHADOW",px+11,py+3,seen?C.white:C.magenta,9.5,"700");
+    });
+    txt(ctx,"the curve of the earth sets this floor even with no hills at all",
+      N-150,gy(0)-8,"#4E6058",9.5,"700","right");
+
+    /* ---------- plan view of the same coverage ---------- */
+    line(ctx,0,TOPH+16,W,TOPH+16,C.dim,1);
+    txt(ctx,"THE SAME COVERAGE FROM ABOVE",16,TOPH+36,"#6E8078",10,"700");
+    var cx=W/2, cy=H-18, R=H-BOTY-24;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,R,-Math.PI,0); ctx.closePath(); ctx.clip();
+    /* paint visibility by bearing: each bearing gets its own ridge line */
+    /* each bearing crosses its own ridge line, so the shadows fan outwards */
+    for(var b=0;b<180;b++){
+      var a0=-Math.PI+b*Math.PI/180, a1=a0+Math.PI/180;
+      var jitter=0.82+0.30*Math.sin(b*0.11)+0.10*Math.sin(b*0.37);
+      var rr=8;
+      while(rr<R){
+        var frac=rr/R, idx=Math.min(N-1,Math.round(RADX+frac*(N-RADX)*jitter));
+        var on=vis[idx], run=rr;
+        while(run<R){
+          var f2=run/R, i2=Math.min(N-1,Math.round(RADX+f2*(N-RADX)*jitter));
+          if(!!vis[i2]!==!!on) break;
+          run+=2;
+        }
+        ctx.beginPath(); ctx.moveTo(cx+Math.cos(a0)*rr,cy+Math.sin(a0)*rr);
+        ctx.arc(cx,cy,rr,a0,a1);
+        ctx.lineTo(cx+Math.cos(a1)*run,cy+Math.sin(a1)*run);
+        ctx.arc(cx,cy,run,a1,a0,true); ctx.closePath();
+        ctx.fillStyle = on ? "rgba(35,225,98,0.15)" : "rgba(93,46,89,0.55)";
+        ctx.fill();
+        rr=run;
+      }
+    }
+    ctx.restore();
+    for(var k=1;k<=4;k++){
+      ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R*k/4,-Math.PI,0);
+      ctx.strokeStyle="rgba(53,224,122,0.22)"; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
+      txt(ctx,(2.85*k).toFixed(1)+" km",cx+6,cy-R*k/4+13,"rgba(53,224,122,0.4)",9,"600");
+    }
+    /* a track that crosses a shadow and gets coasted */
+    if(!reduce) tPhase=(t/9000)%1;
+    var tx0=cx-R*0.86, tx1=cx+R*0.62, ty=cy-R*0.52;
+    var px2=tx0+(tx1-tx0)*tPhase;
+    var fracR=Math.hypot(px2-cx,ty-cy)/R;
+    var angT=Math.atan2(ty-cy,px2-cx);
+    var jit=0.82+0.30*Math.sin(((angT+Math.PI)/Math.PI*180)*0.11);
+    var idxT=Math.min(N-1,Math.round(RADX+fracR*(N-RADX)*jit));
+    var observed=!!vis[idxT];
+    line(ctx,tx0,ty,px2,ty,"rgba(255,255,255,0.25)",1,[4,6]);
+    ctx.strokeStyle=observed?C.white:C.orange; ctx.lineWidth=2;
+    ctx.save(); if(!observed) ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.arc(px2,ty,7,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    line(ctx,px2,ty,px2+26,ty,observed?C.white:C.orange,1.4);
+    txt(ctx,observed?"TK-004  OBSERVED":"TK-004  COASTED  4 s",px2+12,ty-13,
+      observed?C.white:C.orange,10.5,"700");
+    /* the aerial */
+    ctx.fillStyle=C.phos; ctx.fillRect(cx-7,cy-4,14,6);
+    txt(ctx,"SHADOWS ARE DRAWN, NOT LEFT BLANK",W-150,H-14,"rgba(216,34,255,0.75)",10,"700","right");
+  }
+  run(cv, frame);
+})();
+
+/* ================= MENUS : settings where you are already looking ================= */
+(function(){
+  var cv=document.getElementById("menus"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  /* three menu panels, each one level deeper */
+  var panels=[
+    {title:"MAIN MENU",x:392,items:[
+      ["1 ECHO",null,"sel"],["2 MARKS",null,""],["3 NAV TOOLS",null,""],["4 ALERTS",null,""],
+      ["5 TT · AIS",null,""],["6 FILES",null,"grey"],["7 INFORMATION BOX",null,""],
+      ["8 NAV LINE · WPT",null,""],["9 INITIAL SETTINGS",null,""]]},
+    {title:"ECHO (1/2)",x:640,items:[
+      ["1 BACK",null,""],["2 CUSTOMIZED ECHO",null,"sel"],["3 2ND ECHO REJ","OFF/ON",""],
+      ["4 TUNING INITIALIZE",null,""],["5 PERFORMANCE MONITOR","OFF/ON/GRAPH",""],
+      ["6 PM ARC","2/3/5/6",""],["7 SART","OFF/ON",""],["9 WIPER","OFF/1/2",""],["0 NEXT",null,""]]},
+    {title:"CUSTOMIZED ECHO (1/2)",x:888,items:[
+      ["1 BACK",null,""],["2 INT REJECTOR","OFF/1/2/3",""],["3 ECHO STRETCH","OFF/1/2/3","sel"],
+      ["4 ECHO AVERAGE","OFF/1/2/3",""],["5 TARGET ANALYZER","OFF/ON",""],
+      ["6 RAIN ECHO HATCHING","OFF/ON","grey"],["7 NOISE REJECTOR","OFF/ON",""],
+      ["8 VIDEO CONTRAST","A/B/C/D",""],["9 PULSE LENGTH","S1/S2/M1",""]]}
+  ];
+  var chosen={"3 2ND ECHO REJ":0,"5 PERFORMANCE MONITOR":1,"6 PM ARC":0,"7 SART":0,"9 WIPER":1,
+    "2 INT REJECTOR":2,"3 ECHO STRETCH":1,"4 ECHO AVERAGE":1,"5 TARGET ANALYZER":0,
+    "6 RAIN ECHO HATCHING":0,"7 NOISE REJECTOR":1,"8 VIDEO CONTRAST":1,"9 PULSE LENGTH":1};
+  function drawMenu(p){
+    var w=232, y0=54, rowH=p.items.some(function(i){return i[1];})?34:22;
+    var h=18+p.items.length*rowH+6;
+    ctx.fillStyle="#0B1110"; ctx.fillRect(p.x,y0,w,h);
+    ctx.strokeStyle="#22302C"; ctx.strokeRect(p.x+.5,y0+.5,w-1,h-1);
+    ctx.fillStyle="#1B2624"; ctx.fillRect(p.x,y0,w,17);
+    txt(ctx,p.title,p.x+w/2,y0+12,"#9FB3AA",9.5,"700","center");
+    p.items.forEach(function(it,i){
+      var y=y0+18+i*rowH;
+      if(it[2]==="sel"){ ctx.fillStyle="#2E6B4C"; ctx.fillRect(p.x+2,y,w-4,15); }
+      txt(ctx,it[0],p.x+8,y+11,it[2]==="grey"?"#3B4744":(it[2]==="sel"?"#EAFFF2":"#9FB3AA"),10,
+        it[2]==="sel"?"700":"600");
+      if(it[1]){
+        /* every option printed inline, the live one boxed */
+        var opts=it[1].split("/"), ox=p.x+12, cur=chosen[it[0]]||0;
+        opts.forEach(function(o,k){
+          var wdt=o.length*6.4+8;
+          if(k===cur){ ctx.strokeStyle="#4FD98C"; ctx.lineWidth=1;
+            ctx.strokeRect(ox-1.5,y+16.5,wdt,13); }
+          txt(ctx,o,ox+3,y+27,it[2]==="grey"?"#3B4744":(k===cur?C.phos:"#6E8078"),9.5,"600");
+          ox+=wdt+3;
+        });
+      }
+      if(!it[1] && i>0 && p.x<800){       /* an arrow means this item has a level below it */
+        ctx.fillStyle="#4E6058"; ctx.beginPath();
+        ctx.moveTo(p.x+w-11,y+4); ctx.lineTo(p.x+w-6,y+8); ctx.lineTo(p.x+w-11,y+12);
+        ctx.closePath(); ctx.fill();
+      }
+    });
+    return h;
+  }
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    txt(ctx,"THE PICTURE KEEPS ITS SPACE",18,26,"#6E8078",10,"700");
+    /* the picture, untouched by the menu */
+    ctx.save(); ctx.beginPath(); ctx.arc(190,250,150,0,Math.PI*2); ctx.clip();
+    ctx.fillStyle="#050807"; ctx.fillRect(40,100,300,300);
+    coast(ctx,190,250,150,97,"rgba(240,200,60,0.6)","rgba(150,118,24,0.10)");
+    ctx.restore();
+    for(var k=1;k<=3;k++) ring(ctx,190,250,150*k/3,"rgba(53,224,122,0.18)",1);
+    line(ctx,190,250,190,100,"rgba(255,255,255,0.6)",1.2);
+    /* boxes with menu-shortcut arrows */
+    [["RANGE","6 NM",40,60],["SPD","12.4 kn",150,60],["PLT1","100",260,60]].forEach(function(b){
+      ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(b[2],b[3],96,30);
+      ctx.strokeStyle="#22302C"; ctx.strokeRect(b[2]+.5,b[3]+.5,95,29);
+      txt(ctx,b[0],b[2]+7,b[3]+12,"#5E7269",8.5,"700");
+      txt(ctx,b[1],b[2]+7,b[3]+25,C.phos,12,"700");
+      ctx.fillStyle="#4E6058"; ctx.beginPath();
+      ctx.moveTo(b[2]+87,b[3]+7); ctx.lineTo(b[2]+92,b[3]+11); ctx.lineTo(b[2]+87,b[3]+15);
+      ctx.closePath(); ctx.fill();
+    });
+    txt(ctx,"▸  this corner means: right-click me",40,110,"#4E6058",9.5,"700");
+    /* cursor changes shape by where it is */
+    ctx.strokeStyle=C.white; ctx.lineWidth=1.6;
+    line(ctx,236,214,236,236,C.white,1.6); line(ctx,225,225,247,225,C.white,1.6);
+    txt(ctx,"cross inside",252,229,"rgba(255,255,255,0.5)",9,"700");
+    ctx.beginPath(); ctx.moveTo(300,96); ctx.lineTo(300,114); ctx.lineTo(305,109);
+    ctx.lineTo(309,117); ctx.lineTo(312,115); ctx.lineTo(308,108); ctx.lineTo(314,107);
+    ctx.closePath(); ctx.fillStyle=C.white; ctx.fill();
+    txt(ctx,"arrow outside",296,94,"rgba(255,255,255,0.5)",9,"700","right");
+
+    txt(ctx,"THE MENU OPENS IN THE DATA COLUMN",392,26,"#6E8078",10,"700");
+    var hs=panels.map(drawMenu);
+    /* the guidance box, always present, naming what the two buttons do */
+    var gy=54+Math.max.apply(null,hs)+16;
+    ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(392,gy,728,52);
+    ctx.strokeStyle="#22302C"; ctx.strokeRect(392.5,gy+.5,727,51);
+    txt(ctx,"GUIDANCE",400,gy+14,"#5E7269",9,"700");
+    var mid=!reduce && Math.floor(t/3000)%2===1;
+    txt(ctx,mid?"L  EBL OFFSET / EXIT":"L  SELECT",400,gy+32,C.phos,12,"700");
+    txt(ctx,mid?"R  EXIT EBL OFFSET":"R  BACK ONE LEVEL",400,gy+46,C.phos,12,"700");
+    txt(ctx,mid?"mid-action: it names the action and the way out"
+               :"idle: it names what each button does right now",
+      1112,gy+40,"#4E6058",9.5,"700","right");
+  }
+  run(cv, frame);
+})();
+
+/* ================= HONESTY : four states of one panel ================= */
+(function(){
+  var cv=document.getElementById("honesty"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var PW=(W-50)/4;
+  var states=[
+    {name:"HEALTHY",note:"every number, and the instrument behind it",
+     rows:[["HDG","287.4 °T","GYR",C.phos,"#43554E"],["SPD","12.4 kn","LOG",C.phos,"#43554E"],
+           ["COG","285.1 °T","GPS",C.phos,"#43554E"],["SOG","12.6 kn","GPS",C.phos,"#43554E"]],
+     alert:null, pic:"full"},
+    {name:"FALLBACK SOURCE",note:"speed now comes from the satellite, not the log",
+     rows:[["HDG","287.4 °T","GYR",C.phos,"#43554E"],["SPD","12.6 kn","EPFS",C.yellow,C.yellow],
+           ["COG","285.1 °T","GPS",C.phos,"#43554E"],["SOG","12.6 kn","GPS",C.phos,"#43554E"]],
+     alert:["SPD SOURCE CHG",C.orange], pic:"full"},
+    {name:"SIGNAL LOST",note:"asterisks, never the last good value",
+     rows:[["HDG","287.4 °T","GYR",C.phos,"#43554E"],["SPD","*.* kn","---",C.orange,C.orange],
+           ["COG","285.1 °T","GPS",C.phos,"#43554E"],["SOG","12.6 kn","GPS",C.phos,"#43554E"]],
+     alert:["NO LOG(BT) SIGNAL",C.orange], pic:"full"},
+    {name:"COMPASS LOST",note:"head-up, and everything heading-derived erased",
+     rows:[["HDG","*** °T","---",C.red,C.red],["SPD","12.4 kn","LOG",C.phos,"#43554E"],
+           ["COG","--- °T","---","#5E7269","#43554E"],["SOG","12.6 kn","GPS",C.phos,"#43554E"]],
+     alert:["NO GYRO SIGNAL",C.red], pic:"bare"}
+  ];
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    states.forEach(function(s,i){
+      var x=10+i*(PW+10);
+      txt(ctx,s.name,x,24,i===0?"#8FA39B":(i===3?C.red:C.orange),10.5,"700");
+      txt(ctx,s.note,x,40,"#4E6058",9.5,"600");
+      /* a small picture, showing what survives */
+      var cx=x+PW/2, cy=150, R=78;
+      ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.clip();
+      ctx.fillStyle="#050807"; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+      if(s.pic==="full") coast(ctx,cx,cy,R,97,"rgba(240,200,60,0.55)","rgba(150,118,24,0.10)");
+      else coast(ctx,cx,cy,R,97,"rgba(240,200,60,0.55)","rgba(150,118,24,0.10)");
+      ctx.restore();
+      for(var k=1;k<=3;k++) ring(ctx,cx,cy,R*k/3,"rgba(53,224,122,0.16)",1);
+      line(ctx,cx,cy,cx,cy-R,"rgba(255,255,255,0.65)",1.2);
+      if(s.pic==="full"){
+        [[-0.7,0.55],[0.5,0.72],[2.1,0.4]].forEach(function(g){
+          var gx=cx+Math.cos(g[0])*g[1]*R, gy2=cy+Math.sin(g[0])*g[1]*R;
+          ring(ctx,gx,gy2,5,C.white,1.4);
+          line(ctx,gx,gy2,gx+Math.cos(g[0]+1)*20,gy2+Math.sin(g[0]+1)*20,C.white,1.1);
+        });
+        txt(ctx,"NORTH UP  TM",cx,cy+R+18,"#5E7269",9,"700","center");
+      } else {
+        txt(ctx,"TRACKS  ·  MAP  ·  CHART",cx,cy-6,"rgba(255,19,32,0.75)",9.5,"700","center");
+        txt(ctx,"ERASED",cx,cy+8,"rgba(255,19,32,0.75)",11,"700","center");
+        txt(ctx,"HEAD UP  RM   (forced)",cx,cy+R+18,C.red,9,"700","center");
+      }
+      /* the data panel */
+      var py=cy+R+30;
+      ctx.fillStyle="rgba(10,16,14,0.92)"; ctx.fillRect(x,py,PW,96);
+      ctx.strokeStyle="#22302C"; ctx.strokeRect(x+.5,py+.5,PW-1,95);
+      txt(ctx,"OWN SHIP",x+8,py+14,"#5E7269",9,"700");
+      s.rows.forEach(function(r,j){
+        var y=py+34+j*17;
+        txt(ctx,r[0],x+8,y,"#5E7269",10);
+        txt(ctx,r[1],x+46,y,r[3],11.5,"600");
+        txt(ctx,r[2],x+PW-10,y,r[4],9,"700","right");
+      });
+      /* the alert it raises */
+      if(s.alert){
+        var ay=py+104;
+        var flash=!reduce && Math.floor(t/450)%2===0;
+        ctx.fillStyle= s.alert[1]===C.red ? "rgba(24,6,8,0.95)" : "rgba(24,16,4,0.95)";
+        ctx.fillRect(x,ay,PW,30);
+        ctx.strokeStyle=s.alert[1]; ctx.lineWidth=flash?1.6:1; ctx.strokeRect(x+.5,ay+.5,PW-1,29);
+        txt(ctx,"ALERT",x+8,ay+13,"#5E7269",8.5,"700");
+        txt(ctx,s.alert[0],x+8,ay+25,s.alert[1],11,"700");
+      }
+    });
+  }
+  run(cv, frame);
+})();
+
+/* ================= CUES : the alert rhythms and the raw Doppler, drawn ================= */
+(function(){
+  var cv=document.getElementById("cues"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var LX=170, RX=W-24, TW=RX-LX;                 /* the timing lane */
+  /* a 20-second window; the standard's rhythms laid on it to scale */
+  var SPAN=20;
+  var rows=[
+    {n:"ALARM",  s:"three short, every 7–10 s", c:C.red,
+     beeps:[[0,0.22],[0.45,0.22],[0.90,0.22],[8.5,0.22],[8.95,0.22],[9.40,0.22],
+            [17,0.22],[17.45,0.22],[17.90,0.22]]},
+    {n:"WARNING",s:"two short, every 15 s – 5 min", c:C.orange,
+     beeps:[[0,0.22],[0.45,0.22],[15,0.22],[15.45,0.22]]},
+    {n:"CAUTION",s:"no sound at all", c:C.yellow, beeps:[]}
+  ];
+  var sigs=[
+    {n:"A PERSON WALKING", c:"#9FB3AA",
+     f:function(x,r){ var body=0.20*Math.sin(x*30);
+       var limb=0.55*Math.pow(Math.max(0,Math.sin(x*Math.PI*2*2.1)),3);
+       return body + limb*Math.sin(x*150)*0.9 + 0.05*(r()-0.5); }},
+    {n:"A VEHICLE", c:"#9FB3AA",
+     f:function(x,r){ return 0.62*Math.sin(x*260+0.6*Math.sin(x*7)) + 0.07*(r()-0.5); }},
+    {n:"A DRONE", c:C.red,
+     f:function(x,r){ var body=0.26*Math.sin(x*90);
+       var blade=0.46*Math.sin(x*90)*Math.sin(x*1100);
+       return body+blade+0.05*(r()-0.5); }}
+  ];
+  function frame(){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    txt(ctx,"WHAT THE MACHINE SAYS  ·  20 SECONDS OF EACH",24,26,"#8FA39B",11,"700");
+    /* the time ruler */
+    for(var s0=0;s0<=SPAN;s0+=5){
+      var x=LX+TW*s0/SPAN;
+      line(ctx,x,44,x,52+rows.length*54,"rgba(255,255,255,0.07)",1);
+      txt(ctx,s0+"s",x,40,"#4E6058",9,"700",s0===SPAN?"right":"center");
+    }
+    rows.forEach(function(r,i){
+      var y=62+i*54;
+      txt(ctx,r.n,24,y+6,r.c,11,"700");
+      txt(ctx,r.s,24,y+20,"#4E6058",9,"700");
+      ctx.fillStyle="#0B1110"; ctx.fillRect(LX,y-10,TW,28);
+      ctx.strokeStyle="#1E2A27"; ctx.strokeRect(LX+.5,y-9.5,TW-1,27);
+      line(ctx,LX,y+4,LX+TW,y+4,"rgba(255,255,255,0.10)",1);
+      r.beeps.forEach(function(b){
+        var x=LX+TW*b[0]/SPAN, w=Math.max(3,TW*b[1]/SPAN);
+        ctx.fillStyle=r.c; ctx.fillRect(x,y-6,w,20);
+      });
+      if(!r.beeps.length){
+        txt(ctx,"— nothing —",LX+TW/2,y+9,"#3B4744",11,"700","center");
+      }
+    });
+    txt(ctx,"the rhythm is fixed by how bad it is; pitch and tone colour are left free so each "+
+      "instrument sounds like itself",24,52+rows.length*54+22,"#4E6058",9.5,"700");
+
+    /* --- the raw Doppler, as waveforms --- */
+    var BY=252;
+    line(ctx,0,BY-16,W,BY-16,C.dim,1);
+    txt(ctx,"WHAT A MOVING THING SOUNDS LIKE  ·  UNPROCESSED DOPPLER, 0.4 SECONDS",24,BY+2,
+      "#8FA39B",11,"700");
+    var pw=(W-72)/3, ph=140;
+    sigs.forEach(function(sg,i){
+      var x0=24+i*(pw+12), y0=BY+22;
+      ctx.fillStyle="#050807"; ctx.fillRect(x0,y0,pw,ph);
+      ctx.strokeStyle="#1E2A27"; ctx.strokeRect(x0+.5,y0+.5,pw-1,ph-1);
+      line(ctx,x0,y0+ph/2,x0+pw,y0+ph/2,"rgba(255,255,255,0.10)",1);
+      var r=rnd(17+i*29);
+      ctx.beginPath(); ctx.strokeStyle=sg.c; ctx.lineWidth=1.1;
+      for(var px=0;px<=pw;px++){
+        var v=sg.f(px/pw,r);
+        var y=y0+ph/2-Math.max(-1,Math.min(1,v))*(ph/2-8);
+        if(px===0) ctx.moveTo(x0+px,y); else ctx.lineTo(x0+px,y);
+      }
+      ctx.stroke();
+      txt(ctx,sg.n,x0+8,y0-6,sg.c,10,"700");
+    });
+    txt(ctx,"limbs swinging around a slow body",24+pw*0.5,BY+22+ph+16,"#4E6058",9,"700","center");
+    txt(ctx,"one steady tone — pitch is the speed",24+(pw+12)+pw*0.5,BY+22+ph+16,"#4E6058",9,"700","center");
+    txt(ctx,"a hard blade buzz around a quiet body",24+2*(pw+12)+pw*0.5,BY+22+ph+16,C.red,9,"700","center");
+  }
+  run(cv, frame);
+})();
+
+/* ================= LAYERS : raw video plus what moved ================= */
+(function(){
+  var cv=document.getElementById("layers"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var N=112;                                   /* cells across the little world */
+  var live=new Float32Array(N*N), avg=new Float32Array(N*N);
+  var movers=[{x:30,y:62,vx:0.19,vy:-0.06},{x:78,y:74,vx:-0.13,vy:0.10},{x:56,y:92,vx:0.07,vy:-0.15}];
+  var seeded=false;
+  function scene(){
+    /* stationary clutter: a coastline ridge plus scattered land return */
+    var r=rnd(23);
+    live.fill(0);
+    for(var i=0;i<N;i++) for(var j=0;j<N;j++){
+      var d=Math.hypot(i-N/2,j-N/2);
+      var coastY = 13 + 6*Math.sin(i*0.19) + 3*Math.sin(i*0.51);
+      var v=0;
+      if(j<coastY-2) v=0.30+0.18*r();
+      else if(j<coastY+2) v=0.9;
+      if(d<8) v=Math.max(v,0.45*r());              /* clutter around the radar */
+      if(r()>0.9955) v=Math.max(v,0.4+0.4*r());    /* speckle */
+      live[i*N+j]=v;
+    }
+    movers.forEach(function(m){
+      var mi=Math.round(m.x), mj=Math.round(m.y);
+      for(var a=-2;a<=2;a++) for(var b=-2;b<=2;b++){
+        var i=mi+a, j=mj+b, q=Math.hypot(a,b);
+        if(q>2.2) continue;
+        if(i>=0&&i<N&&j>=0&&j<N) live[i*N+j]=Math.max(live[i*N+j], q<1?1.0:0.8);
+      }
+    });
+  }
+  function step(){
+    movers.forEach(function(m){
+      m.x+=m.vx; m.y+=m.vy;
+      if(m.x<7||m.x>N-7) m.vx*=-1;
+      if(m.y<coastFloor||m.y>N-7) m.vy*=-1;
+    });
+    scene();
+    /* the running average: 90% of what it held, 10% of what just arrived */
+    for(var k=0;k<N*N;k++) avg[k]=avg[k]*0.90+live[k]*0.10;
+  }
+  var coastFloor=26;
+  function frame(t){
+    if(!seeded){ for(var w=0;w<90;w++) step(); seeded=true; }
+    else if(!reduce) step();
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    var PW=(W-40)/3, PH=H-64, PY=44;
+    var titles=["LIVE RETURN","THE RUNNING AVERAGE","LIVE MINUS AVERAGE"];
+    for(var p=0;p<3;p++){
+      var px=14+p*(PW+6);
+      ctx.fillStyle="#050807"; ctx.fillRect(px,PY,PW,PH);
+      ctx.strokeStyle=C.dim; ctx.strokeRect(px+.5,PY+.5,PW-1,PH-1);
+      txt(ctx,titles[p],px,PY-10,"#6E8078",10,"700");
+      var cw=PW/N, ch=PH/N, i, j, v;
+      if(p<2){
+        for(i=0;i<N;i++) for(j=0;j<N;j++){
+          v = p===0 ? live[i*N+j] : avg[i*N+j];
+          if(v<0.04) continue;
+          ctx.fillStyle="rgba(53,224,122,"+Math.min(1,v).toFixed(3)+")";
+          ctx.fillRect(px+i*cw,PY+j*ch,cw+0.6,ch+0.6);
+        }
+      } else {
+        /* the composite the operator actually looks at: dimmed green, hot red on top */
+        for(i=0;i<N;i++) for(j=0;j<N;j++){
+          v=live[i*N+j];
+          if(v<0.04) continue;
+          ctx.fillStyle="rgba(53,224,122,"+(v*0.34).toFixed(3)+")";
+          ctx.fillRect(px+i*cw,PY+j*ch,cw+0.6,ch+0.6);
+        }
+        for(i=0;i<N;i++) for(j=0;j<N;j++){
+          v=Math.max(0,live[i*N+j]-avg[i*N+j]-0.08);
+          if(v<0.05) continue;
+          ctx.fillStyle="rgba(255,40,50,"+Math.min(1,v*2.2).toFixed(3)+")";
+          ctx.fillRect(px+i*cw,PY+j*ch,cw+0.9,ch+0.9);
+        }
+      }
+    }
+    txt(ctx,"everything that came back",14,H-8,"#4E6058",10,"600");
+    txt(ctx,"what has been there all along",14+(PW+6),H-8,"#4E6058",10,"600");
+    txt(ctx,"drawn over the green: only what changed",14+2*(PW+6),H-8,C.red,10,"700");
+  }
+  run(cv, frame);
+})();
+
+/* ================= FADE MODES ================= */
+(function(){
+  var cv=document.getElementById("fades"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var pw=W/3, sweep=0;
+  /* One persistence buffer per mode, indexed by bearing. Seeded so that a still
+     frame shows the same thing a moving one would. */
+  var bufs=[[],[],[]];
+  (function(){
+    for(var m=0;m<3;m++) for(var i=0;i<360;i++){
+      var age=(360-i)%360;                         /* degrees since the beam passed */
+      bufs[m][i] = m===0 ? Math.pow(0.5, age/110)  /* smooth: continuous decay */
+                 : m===1 ? Math.max(0,1-Math.floor(age/45)*0.2)  /* stepped */
+                 : (age<18?1:0);                   /* none: one sweep only */
+    }
+  })();
+  var tg=[{a:0.6,d:0.55},{a:2.4,d:0.75},{a:4.3,d:0.4},{a:5.4,d:0.68}];
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    var prev=sweep;
+    if(!reduce) sweep=(t/1000*1.4)%(Math.PI*2);
+    var pd=(sweep-prev+Math.PI*2)%(Math.PI*2);
+    for(var m=0;m<3;m++){
+      if(!reduce){
+        for(var i=0;i<360;i++){
+          if(m===0) bufs[m][i]*=Math.pow(0.5,pd/1.9);      /* smooth, time based */
+        }
+        /* paint the arc the beam just crossed */
+        var a0=prev, steps=Math.max(1,Math.ceil(pd/0.017));
+        for(var s=0;s<steps;s++){
+          var ang=(a0+pd*s/steps)%(Math.PI*2);
+          var idx=Math.floor(ang/(Math.PI*2)*360)%360;
+          if(m===1){ for(var q=0;q<360;q++) if(q!==idx) bufs[m][q]*=0.9975; }
+          bufs[m][idx]=1;
+          if(m===2){ for(var q2=0;q2<360;q2++){ var dd=((q2-idx)%360+360)%360; if(dd>14) bufs[m][q2]=0; } }
+        }
+      }
+      var cx=pw*(m+0.5), cy=H*0.52, R=Math.min(pw*0.40,H*0.34);
+      ring(ctx,cx,cy,R,"rgba(53,224,122,0.20)",1);
+      ring(ctx,cx,cy,R*0.6,"rgba(53,224,122,0.14)",1);
+      for(var i2=0;i2<360;i2++){
+        var v=bufs[m][i2]; if(v<0.02) continue;
+        var ang2=i2*Math.PI/180;
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,ang2-0.012,ang2+0.012); ctx.closePath();
+        ctx.fillStyle="rgba(53,224,122,"+(v*0.20).toFixed(4)+")"; ctx.fill();
+      }
+      tg.forEach(function(g){
+        var idx=Math.floor(g.a/(Math.PI*2)*360)%360, v=bufs[m][idx];
+        if(v<0.02) return;
+        var x=cx+Math.cos(g.a)*g.d*R, y=cy+Math.sin(g.a)*g.d*R;
+        ctx.beginPath(); ctx.arc(x,y,3.6,0,Math.PI*2);
+        ctx.fillStyle="rgba(150,255,190,"+Math.min(1,v*1.1).toFixed(3)+")"; ctx.fill();
+      });
+      line(ctx,cx,cy,cx+Math.cos(sweep)*R,cy+Math.sin(sweep)*R,"rgba(150,255,190,0.85)",1.6);
+      txt(ctx,["SMOOTH","STEPPED","NONE"][m],cx,34,"#8FA39B",12,"700","center");
+      txt(ctx,["decay in seconds","decay in sweeps","one sweep only"][m],cx,50,"#4E6058",10,"600","center");
+      if(m<2) line(ctx,pw*(m+1),0,pw*(m+1),H,C.dim,1);
+    }
+  }
+  run(cv, frame);
+})();
+
+/* ================= FOUR SCOPES ================= */
+(function(){
+  var cv=document.getElementById("scopes"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height, pw=W/4;
+  var T=[{a:-0.5,r:0.42,v:0.62},{a:0.25,r:0.70,v:-0.3},{a:0.95,r:0.30,v:0.15}];
+  var sweep=0, sx=0, sdir=1;
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+    if(!reduce){ sweep=(t/1000*0.9)%(Math.PI*2); sx+=sdir*2.2; if(sx>pw-40||sx<40)sdir*=-1; }
+    for(var i=1;i<4;i++) line(ctx,pw*i,0,pw*i,H,C.dim,1);
+
+    /* All four presentations share one top and bottom so they can be compared. */
+    var TOP=62, BOT=H-58;
+
+    /* 1 : plan position */
+    var cx=pw*0.5, cy=(TOP+BOT)/2, R=(BOT-TOP)/2;
+    for(var k=1;k<=3;k++) ring(ctx,cx,cy,R*k/3,"rgba(53,224,122,0.18)",1);
+    for(var s=0;s<48;s++){
+      var a0=sweep-s*0.017;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,a0-0.024,a0); ctx.closePath();
+      ctx.fillStyle="rgba(53,224,122,"+(0.12*Math.pow(1-s/48,2)).toFixed(4)+")"; ctx.fill();
+    }
+    line(ctx,cx,cy,cx+Math.cos(sweep)*R,cy+Math.sin(sweep)*R,"rgba(120,255,175,0.8)",1.2);
+    T.forEach(function(g){
+      var x=cx+Math.cos(g.a)*g.r*R, y=cy+Math.sin(g.a)*g.r*R;
+      ctx.fillStyle=C.white; ctx.beginPath(); ctx.arc(x,y,3.2,0,Math.PI*2); ctx.fill();
+    });
+    txt(ctx,"PLAN POSITION",14,24,"#6E8078",10,"700");
+    txt(ctx,"bearing × range",14,40,"#4E6058",9.5,"600");
+
+    /* 2 : range vs azimuth */
+    var bx=pw+30, bw=pw-60, by=TOP, bh=BOT-TOP;
+    ctx.strokeStyle="#2E4A40"; ctx.strokeRect(bx+.5,by+.5,bw,bh);
+    line(ctx,bx+sx*(bw/pw),by,bx+sx*(bw/pw),by+bh,"rgba(53,224,122,0.45)",1.2);
+    T.forEach(function(g){
+      var x=bx+((g.a+1.6)/3.2)*bw, y=by+bh-g.r*bh;
+      ctx.fillStyle=C.white; ctx.fillRect(x-2.4,y-2.4,4.8,4.8);
+    });
+    for(var q=1;q<4;q++) line(ctx,bx,by+bh*q/4,bx+bw,by+bh*q/4,"rgba(53,224,122,0.12)",1);
+    txt(ctx,"RANGE × BEARING",pw+14,24,"#6E8078",10,"700");
+    txt(ctx,"a wedge unrolled",pw+14,40,"#4E6058",9.5,"600");
+
+    /* 3 : amplitude vs range */
+    var ax=pw*2+30, aw=pw-60, ay=BOT, ah=BOT-TOP;
+    line(ctx,ax,ay,ax+aw,ay,"#2E4A40",1.2);
+    line(ctx,ax,TOP,ax,BOT,"#2E4A40",1.2);
+    ctx.beginPath(); ctx.strokeStyle=C.phos; ctx.lineWidth=1.3;
+    var rr=rnd(11);
+    for(var px=0;px<=aw;px++){
+      var f=px/aw, amp=0.06+0.05*rr();
+      amp += 0.55*Math.exp(-Math.pow((f-0.30)/0.012,2));
+      amp += 0.40*Math.exp(-Math.pow((f-0.52)/0.011,2));
+      amp += 0.72*Math.exp(-Math.pow((f-0.74)/0.013,2));
+      amp += 0.30*Math.exp(-f*9);   /* transmit breakthrough at zero range */
+      var y=ay-Math.min(amp,1.05)*ah;
+      if(px===0) ctx.moveTo(ax+px,y); else ctx.lineTo(ax+px,y);
+    }
+    ctx.stroke();
+    line(ctx,ax,ay-ah*0.30,ax+aw,ay-ah*0.30,C.amber,1,[5,5]);
+    txt(ctx,"THRESHOLD",ax+aw,ay-ah*0.30-6,C.amber,9,"600","right");
+    txt(ctx,"STRENGTH × RANGE",pw*2+14,24,"#6E8078",10,"700");
+    txt(ctx,"how big is the echo",pw*2+14,40,"#4E6058",9.5,"600");
+
+    /* 4 : range vs speed */
+    var dx=pw*3+30, dw=pw-60, dy=TOP, dh=BOT-TOP;
+    ctx.fillStyle="#050807"; ctx.fillRect(dx,dy,dw,dh);
+    ctx.strokeStyle="#2E4A40"; ctx.strokeRect(dx+.5,dy+.5,dw,dh);
+    line(ctx,dx+dw/2,dy,dx+dw/2,dy+dh,"rgba(53,224,122,0.22)",1);
+    /* ground clutter ridge at zero speed */
+    for(var gy2=0;gy2<dh;gy2+=2){
+      ctx.fillStyle="rgba(53,224,122,0.16)";
+      ctx.fillRect(dx+dw/2-3,dy+gy2,6,1.6);
+    }
+    T.forEach(function(g,i){
+      var x=dx+dw/2+g.v*dw*0.42, y=dy+dh-g.r*dh;
+      var grd=ctx.createRadialGradient(x,y,0,x,y,13);
+      grd.addColorStop(0,"rgba(255,255,255,0.95)");
+      grd.addColorStop(0.4,"rgba(255,165,31,0.55)");
+      grd.addColorStop(1,"rgba(255,165,31,0)");
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2); ctx.fill();
+    });
+    txt(ctx,"RANGE × SPEED",pw*3+14,24,"#6E8078",10,"700");
+    txt(ctx,"hovering vs moving",pw*3+14,40,"#4E6058",9.5,"600");
+    txt(ctx,"AWAY",dx+8,dy+dh+18,"#4E6058",9,"600");
+    txt(ctx,"TOWARDS",dx+dw-8,dy+dh+18,"#4E6058",9,"600","right");
+  }
+  run(cv, frame);
+})();
+
+/* ================= APPLIED : SECTOR DRONE RADAR ================= */
+(function(){
+  var cv=document.getElementById("applied"); if(!cv) return;
+  var ctx=cv.getContext("2d"), W=cv.width, H=cv.height;
+  var SP={x:0,y:26,w:660,h:H-26-84};                 /* sector plan */
+  var RD={x:672,y:26,w:290,h:300};                   /* range-doppler */
+  var MD={x:672,y:338,w:290,h:250};                  /* micro-doppler */
+  var TL={x:974,y:26,w:W-974,h:H-26-84};             /* track list */
+  var HALF=Math.PI/4;    /* the array covers about ±45° */
+  var cx=SP.x+SP.w/2, cy=SP.y+SP.h-34;
+  /* keep the whole wedge and its bearing labels inside the panel */
+  var R=Math.min((SP.w/2-46)/Math.sin(HALF), cy-SP.y-30);
+  var trk=[
+    {az:-0.31,rg:0.62,cls:"drone",id:"TK-014",spd:"14.2",alt:"84",cf:"0.94",hd:0.2},
+    {az:0.22,rg:0.44,cls:"suspect",id:"TK-017",spd:"9.6",alt:"51",cf:"0.61",hd:-0.5},
+    {az:0.55,rg:0.78,cls:"bird",id:"TK-011",spd:"6.1",alt:"37",cf:"0.88",hd:1.2},
+    {az:-0.62,rg:0.35,cls:"unk",id:"TK-021",spd:"3.4",alt:"12",cf:"—",hd:2.4}
+  ];
+  var col={drone:C.red,suspect:C.orange,bird:C.green,unk:C.grey};
+  var sweepPhase=0;
+  var mdBuf=document.createElement("canvas"); mdBuf.width=MD.w-2; mdBuf.height=MD.h-40;
+  var mdCtx=mdBuf.getContext("2d");
+  mdCtx.fillStyle="#050807"; mdCtx.fillRect(0,0,mdBuf.width,mdBuf.height);
+  var mdBody=mdBuf.height*0.5-38;
+  /* One column of the speed trace: a hard line for the airframe, and a fuzzy
+     band either side of it written by the spinning blades. */
+  function mdColumn(t){
+    mdCtx.drawImage(mdBuf,-1,0);
+    mdCtx.fillStyle="#050807"; mdCtx.fillRect(mdBuf.width-1,0,1,mdBuf.height);
+    var rr=rnd(Math.floor(t/16)%2000+3);
+    mdCtx.fillStyle="rgba(255,255,255,0.9)"; mdCtx.fillRect(mdBuf.width-1,mdBody-1,1,3);
+    for(var yy=0;yy<mdBuf.height;yy++){
+      var dd=Math.abs(yy-mdBody);
+      if(dd>4&&dd<46){
+        var a=(0.30-dd*0.0055)*(0.35+0.65*Math.abs(Math.sin(t/230)))*rr();
+        if(a>0.012){ mdCtx.fillStyle="rgba(255,19,32,"+a.toFixed(3)+")"; mdCtx.fillRect(mdBuf.width-1,yy,1,1); }
+      }
+    }
+  }
+  /* Warm the trace so the panel is never blank on arrival. */
+  for(var w=0;w<mdBuf.width;w++) mdColumn(w*16);
+
+  function frame(t){
+    ctx.fillStyle=C.tube; ctx.fillRect(0,0,W,H);
+
+    /* --- top status strip --- */
+    line(ctx,0,26,W,26,C.dim,1);
+    txt(ctx,"5.8 GHz  ·  FMCW  ·  2 TX / 2 RX",12,18,C.phos,11,"700");
+    txt(ctx,"SECTOR ±45°",300,18,"#6E8078",11,"600");
+    txt(ctx,"1.2 km",420,18,"#6E8078",11,"600");
+    txt(ctx,"NIGHT",520,18,"#6E8078",11,"600");
+    txt(ctx,"4 TRACKS",620,18,"#6E8078",11,"600");
+    txt(ctx,"REC",W-40,18,C.red,11,"700");
+    ctx.fillStyle=C.red; ctx.beginPath(); ctx.arc(W-52,14,4,0,Math.PI*2); ctx.fill();
+
+    /* --- sector plan view --- */
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,R,-Math.PI/2-HALF,-Math.PI/2+HALF); ctx.closePath();
+    ctx.fillStyle="rgba(53,224,122,0.030)"; ctx.fill();
+    ctx.clip();
+    /* scanning bloom across the wedge */
+    if(!reduce) sweepPhase=(t/2600)%1;
+    var sa=-Math.PI/2-HALF+sweepPhase*2*HALF;
+    for(var s=0;s<30;s++){
+      ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,R,sa-s*0.007-0.012,sa-s*0.007); ctx.closePath();
+      ctx.fillStyle="rgba(53,224,122,"+(0.05*Math.pow(1-s/30,2)).toFixed(4)+")"; ctx.fill();
+    }
+    ctx.restore();
+    /* wedge edges + range arcs */
+    [-HALF,HALF].forEach(function(h){
+      var A=-Math.PI/2+h;
+      line(ctx,cx,cy,cx+Math.cos(A)*R,cy+Math.sin(A)*R,"rgba(53,224,122,0.42)",1.2);
+    });
+    for(var k=1;k<=4;k++){
+      ctx.save(); ctx.beginPath();
+      ctx.arc(cx,cy,R*k/4,-Math.PI/2-HALF,-Math.PI/2+HALF);
+      ctx.strokeStyle="rgba(53,224,122,0.20)"; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
+      txt(ctx,(0.3*k).toFixed(1)+" km",cx+18,cy-R*k/4+15,"rgba(53,224,122,0.45)",10,"600");
+    }
+    for(var b=-45;b<=45;b+=15){
+      var A2=(b-90)*Math.PI/180;
+      line(ctx,cx+Math.cos(A2)*R,cy+Math.sin(A2)*R,cx+Math.cos(A2)*(R+9),cy+Math.sin(A2)*(R+9),
+        "rgba(53,224,122,0.4)",1);
+      txt(ctx,(b>0?"+":"")+b,cx+Math.cos(A2)*(R+24),cy+Math.sin(A2)*(R+24)+4,
+        "rgba(53,224,122,0.5)",10,"600","center");
+    }
+    /* how far returns actually reach today — not the range you zoomed to */
+    ctx.save(); ctx.beginPath();
+    ctx.arc(cx,cy,R*0.78,-Math.PI/2-HALF,-Math.PI/2+HALF);
+    ctx.setLineDash([9,6]); ctx.strokeStyle="rgba(255,19,32,0.45)"; ctx.lineWidth=1.3; ctx.stroke();
+    ctx.restore();
+    txt(ctx,"DETECTION EDGE  0.94 km",cx-R*0.60,cy-R*0.62,"rgba(255,19,32,0.6)",9.5,"700");
+    /* an exclusion wedge the operator drew */
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,R*0.55,-Math.PI/2+0.30,-Math.PI/2+0.62); ctx.closePath();
+    ctx.setLineDash([5,4]); ctx.strokeStyle="rgba(223,243,52,0.55)"; ctx.lineWidth=1.1; ctx.stroke();
+    ctx.fillStyle="rgba(223,243,52,0.05)"; ctx.fill(); ctx.restore();
+    txt(ctx,"MASK  ROOFLINE",cx+R*0.40,cy-R*0.40,"rgba(223,243,52,0.6)",9.5,"600");
+    /* tracks */
+    trk.forEach(function(g,i){
+      if(!reduce) g.rg -= (g.cls==="bird"?0.00006:0.00012);
+      if(g.rg<0.14) g.rg=0.95;
+      var A=-Math.PI/2+g.az, x=cx+Math.cos(A)*g.rg*R, y=cy+Math.sin(A)*g.rg*R;
+      var c=col[g.cls], sel=(i===0);
+      /* trail */
+      for(var h=1;h<=4;h++){
+        var hr=g.rg+h*0.022, hx=cx+Math.cos(A)*hr*R, hy=cy+Math.sin(A)*hr*R;
+        ctx.globalAlpha=0.34-h*0.07; ctx.fillStyle=c; ctx.fillRect(hx-1.6,hy-1.6,3.2,3.2);
+      }
+      ctx.globalAlpha=1;
+      line(ctx,x,y,x+Math.cos(A+g.hd*0.1)*-30,y+Math.sin(A+g.hd*0.1)*-30,c,1.2);
+      /* shape carries the class too */
+      ctx.strokeStyle=c; ctx.lineWidth=sel?2.2:1.6;
+      ctx.save(); if(g.cls==="suspect") ctx.setLineDash([3,2.4]);
+      ctx.beginPath();
+      if(g.cls==="drone"||g.cls==="suspect"){
+        ctx.moveTo(x,y-10); ctx.lineTo(x+9,y+2); ctx.lineTo(x,y+9); ctx.lineTo(x-9,y+2); ctx.closePath();
+      } else if(g.cls==="bird"){ ctx.arc(x,y,8.5,0,Math.PI*2); }
+      else { ctx.rect(x-8,y-8,16,16); }
+      ctx.stroke(); ctx.restore();
+      if(sel){ ring(ctx,x,y,17,c,1,[3,3]); }
+      txt(ctx,g.id,x+14,y-8,c,11,"700");
+      txt(ctx,g.spd+" m/s   "+g.alt+" m",x+14,y+6,c,10,"600");
+    });
+    /* radar head */
+    ctx.fillStyle=C.phos; ctx.fillRect(cx-9,cy-3,18,7);
+    txt(ctx,"ARRAY",cx,cy+20,"#6E8078",9.5,"700","center");
+
+    /* --- range vs speed --- */
+    panel(ctx,RD.x,RD.y+14,RD.w,RD.h-14);
+    txt(ctx,"RANGE × SPEED",RD.x+10,RD.y+8,"#6E8078",10,"700");
+    var rdx=RD.x+1, rdy=RD.y+15, rdw=RD.w-2, rdh=RD.h-16;
+    ctx.fillStyle="#050807"; ctx.fillRect(rdx,rdy,rdw,rdh);
+    for(var gy=0;gy<rdh;gy+=2){ ctx.fillStyle="rgba(53,224,122,0.13)"; ctx.fillRect(rdx+rdw/2-3,rdy+gy,6,1.5); }
+    line(ctx,rdx+rdw/2,rdy,rdx+rdw/2,rdy+rdh,"rgba(53,224,122,0.25)",1);
+    trk.forEach(function(g,i){
+      var v = g.cls==="bird"?-0.22 : g.cls==="unk"?0.05 : (g.cls==="suspect"?0.30:0.52);
+      var x=rdx+rdw/2+v*rdw*0.42, y=rdy+rdh-g.rg*rdh;
+      var c=col[g.cls];
+      var grd=ctx.createRadialGradient(x,y,0,x,y,14);
+      grd.addColorStop(0,"rgba(255,255,255,0.95)");
+      grd.addColorStop(0.35,c);
+      grd.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.globalAlpha=0.85; ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.arc(x,y,14,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+      if(i===0) ring(ctx,x,y,17,c,1,[3,3]);
+    });
+    txt(ctx,"GROUND",rdx+rdw/2+6,rdy+14,"rgba(53,224,122,0.45)",9,"600");
+    txt(ctx,"← AWAY",rdx+6,rdy+rdh-8,"#4E6058",9,"600");
+    txt(ctx,"TOWARDS →",rdx+rdw-6,rdy+rdh-8,"#4E6058",9,"600","right");
+
+    /* --- rolling speed signature --- */
+    panel(ctx,MD.x,MD.y+14,MD.w,MD.h-14);
+    txt(ctx,"SPEED SIGNATURE  ·  TK-014",MD.x+10,MD.y+8,"#6E8078",10,"700");
+    if(!reduce) mdColumn(t);
+    ctx.drawImage(mdBuf,MD.x+1,MD.y+15);
+    line(ctx,MD.x+1,MD.y+15+mdBody,MD.x+MD.w-1,MD.y+15+mdBody,"rgba(255,255,255,0.18)",1,[4,5]);
+    txt(ctx,"BLADE RETURN PRESENT",MD.x+10,MD.y+MD.h-10,C.red,10,"700");
+    txt(ctx,"← 3 s",MD.x+MD.w-10,MD.y+MD.h-10,"#4E6058",9.5,"600","right");
+
+    /* --- track list --- */
+    line(ctx,TL.x-8,26,TL.x-8,H-84,C.dim,1);
+    txt(ctx,"TRACKS",TL.x,48,"#5E7269",10,"700");
+    trk.forEach(function(g,i){
+      var y=72+i*74, c=col[g.cls];
+      if(i===0){ ctx.fillStyle="rgba(255,19,32,0.09)"; ctx.fillRect(TL.x-8,y-16,TL.w,68); }
+      txt(ctx,g.id,TL.x,y,c,13,"700");
+      txt(ctx,g.cls==="unk"?"UNCLASSIFIED":g.cls.toUpperCase(),TL.x,y+16,c,10,"700");
+      txt(ctx,"conf "+g.cf,TL.x,y+32,"#6E8078",10,"600");
+      txt(ctx,g.spd+" m/s",TL.x+90,y+16,"#8FA39B",10.5,"600");
+      txt(ctx,g.alt+" m agl",TL.x+90,y+32,"#8FA39B",10.5,"600");
+      line(ctx,TL.x-8,y+46,TL.x+TL.w-16,y+46,C.dim,1);
+    });
+
+    /* --- health strip: the state of the machine, always visible --- */
+    line(ctx,0,H-84,W,H-84,C.dim,1);
+    /* three failures that look identical from the picture alone, told apart */
+    [["SIGNAL",true],["SWEEP",true],["KEEPING UP",true],["CALIBRATED",false]].forEach(function(l,i){
+      var x=18+i*116;
+      ctx.fillStyle=l[1]?"#12251C":"#2A2410";
+      ctx.fillRect(x,H-70,104,26);
+      ctx.strokeStyle=l[1]?"#2C5C42":"#5A4A14"; ctx.strokeRect(x+.5,H-69.5,103,25);
+      ctx.fillStyle=l[1]?C.green:C.yellow;
+      ctx.beginPath(); ctx.arc(x+13,H-57,5,0,Math.PI*2); ctx.fill();
+      txt(ctx,l[0],x+24,H-53,l[1]?C.green:C.yellow,10.5,"700");
+    });
+    [["RX GAIN","32 dB"],["NOISE","-96 dBm"],["TEMP","41 °C"],
+     ["CAL AGE","4 h 12 m"],["CPU","46 %"],["DROPPED","0"]].forEach(function(it,i){
+      var x=500+i*108;
+      txt(ctx,it[0],x,H-58,"#5E7269",9,"700");
+      txt(ctx,it[1],x,H-40,it[0]==="CAL AGE"?C.yellow:C.phos,13,"700");
+    });
+    txt(ctx,"CALIBRATION AGEING — BEARINGS MAY DRIFT",18,H-14,C.yellow,10,"700");
+  }
+  run(cv, frame);
+})();
+})();
+</script>
