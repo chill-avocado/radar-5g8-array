@@ -3286,7 +3286,7 @@ function coast(ctx,cx,cy,R,seed,edge,fill){
         trk.forEach(function(g){ if(g.state==="live"){ g.state="coast"; g.coast=8; } });
       } else {
         st.fault=false;
-        st.dropped+=trk.filter(function(g){return g.state!=="live";}).length;
+        st.dropped+=trk.filter(function(g){return g.state==="coast";}).length;
         var r=rnd(nextId*17+3);
         trk=[
           mkTrack("TK-0"+(nextId++),"drone",  -0.20-r()*0.3, 0.70+r()*0.2,  0.011,-14.2,84,0.91),
@@ -3353,7 +3353,7 @@ function coast(ctx,cx,cy,R,seed,edge,fill){
   cv.addEventListener("contextmenu",function(e){
     e.preventDefault();
     var q=inWedge(pos(e));
-    if(q){ st.cue={az:q.az,left:2.4}; repaint(); }
+    if(q){ st.cue={az:q.az,left:6}; repaint(); }
   });
   cv.addEventListener("wheel",function(e){
     var p=pos(e), c=hitCtrl(p);
@@ -3427,7 +3427,7 @@ function coast(ctx,cx,cy,R,seed,edge,fill){
 
     trk.forEach(function(g){
       if(g.state==="dropped") return;
-      if(g.state==="coast"){ g.coast-=dt; if(g.coast<=0){ g.state="dropped"; } }
+      if(g.state==="coast"){ g.coast-=dt; if(g.coast<=0){ g.state="dropped"; st.dropped++; } }
       var drg=(g.mps/(st.rangeKm*1000))*dt;
       g.rg+=drg;
       if(g.rg<0.12) g.rg=0.98;
@@ -3502,6 +3502,13 @@ function coast(ctx,cx,cy,R,seed,edge,fill){
     wedgePath(-HALF,HALF,0,1);
     ctx.fillStyle="rgba(53,224,122,"+(0.028+0.010*Math.sin(t/1900)).toFixed(4)+")"; ctx.fill();
     ctx.clip();
+
+    /* --- a look the operator asked for: the array simply spends longer here --- */
+    if(st.cue){
+      wedgePath(st.cue.az-0.055,st.cue.az+0.055,0,1);
+      ctx.fillStyle="rgba(7,205,237,"+(0.055+0.05*Math.abs(Math.sin(t/260))).toFixed(4)+")";
+      ctx.fill();
+    }
 
     /* --- video --- */
     if(st.show===0){
@@ -3725,15 +3732,20 @@ function coast(ctx,cx,cy,R,seed,edge,fill){
     txt(ctx,"TOWARDS →",rdx+rdw-6,rdy+rdh-8,"#4E6058",9,"600","right");
 
     /* ================= the speed signature of the selected track ================= */
-    var g0=sel();
+    var g0=sel(), gone=(g0.state==="dropped");
     panel(ctx,MD.x,MD.y+14,MD.w,MD.h-14);
-    txt(ctx,"SPEED SIGNATURE  ·  "+g0.id,MD.x+10,MD.y+8,"#6E8078",10,"700");
-    if(!reduce) mdColumn(t,g0.cls);
+    txt(ctx,"SPEED SIGNATURE  ·  "+g0.id,MD.x+10,MD.y+8,gone?C.yellow:"#6E8078",10,"700");
+    if(!reduce&&!gone) mdColumn(t,g0.cls);
     ctx.drawImage(mdBuf,MD.x+1,MD.y+15);
+    if(gone){
+      ctx.fillStyle="rgba(8,11,10,0.62)"; ctx.fillRect(MD.x+1,MD.y+15,mdBuf.width,mdBuf.height);
+      txt(ctx,"SIGNAL LOST",MD.x+MD.w/2,MD.y+15+mdMid-4,C.yellow,14,"700","center");
+      txt(ctx,"TRACE FROZEN WHERE THE TRACK DIED",MD.x+MD.w/2,MD.y+15+mdMid+15,"#8FA39B",9.5,"700","center");
+    }
     line(ctx,MD.x+1,MD.y+15+mdMid,MD.x+MD.w-1,MD.y+15+mdMid,"rgba(255,255,255,0.16)",1,[4,5]);
     txt(ctx,"+ TOWARDS",MD.x+8,MD.y+28,"#3E5049",9,"700");
     txt(ctx,"− AWAY",MD.x+8,MD.y+13+mdBuf.height-6,"#3E5049",9,"700");
-    var cap=MDCAP[g0.cls];
+    var cap=gone?["NOTHING NEW SINCE THE TRACK WAS DROPPED",C.yellow]:MDCAP[g0.cls];
     txt(ctx,cap[0],MD.x+10,MD.y+MD.h-24,cap[1],10,"700");
     txt(ctx,"← 3 s",MD.x+MD.w-10,MD.y+MD.h-24,"#4E6058",9.5,"600","right");
     if(st.listen){
@@ -3747,11 +3759,12 @@ function coast(ctx,cx,cy,R,seed,edge,fill){
     txt(ctx,"MEASURE",AUX.x+10,AUX.y+8,"#6E8078",10,"700");
     if(st.ebl){
       var degs=st.ebl.az*180/Math.PI, kms=st.ebl.rg*st.rangeKm;
-      txt(ctx,"BEARING",AUX.x+12,AUX.y+40,"#5E7269",9,"700");
-      txt(ctx,(degs>=0?"+":"")+degs.toFixed(1)+"°",AUX.x+12,AUX.y+60,C.aqua,15,"700");
+      txt(ctx,st.fault?"BEARING · UNTRUSTED":"BEARING",AUX.x+12,AUX.y+40,st.fault?C.yellow:"#5E7269",9,"700");
+      txt(ctx,(degs>=0?"+":"")+degs.toFixed(1)+"°",AUX.x+12,AUX.y+60,st.fault?C.yellow:C.aqua,15,"700");
       txt(ctx,"RANGE",AUX.x+110,AUX.y+40,"#5E7269",9,"700");
       txt(ctx,kms.toFixed(3)+" km",AUX.x+110,AUX.y+60,C.aqua,15,"700");
-      txt(ctx,"BY HAND  ·  ESC CLEARS",AUX.x+12,AUX.y+80,"#3E5049",9.5,"700");
+      txt(ctx,st.fault?"RANGE STILL GOOD  ·  BEARING IS NOT":"BY HAND  ·  ESC CLEARS",
+          AUX.x+12,AUX.y+80,st.fault?C.yellow:"#4E6058",9.5,"700");
     } else {
       txt(ctx,"DRAG THE PICTURE TO MEASURE",AUX.x+12,AUX.y+46,"#7E938B",11,"700");
       txt(ctx,"A BEARING LINE AND A RANGE RING,",AUX.x+12,AUX.y+64,"#4E6058",9.5,"700");
