@@ -560,6 +560,7 @@
     }
 
     /* --- tracks --- */
+    var tags=[];
     trk.forEach(function(g,i){
       if(g.state==="dropped"){ g._x=undefined; return; }
       var p9=px(g.az,g.rg), x=p9[0], y=p9[1], c3=col[g.cls], isSel=(i===st.sel);
@@ -599,9 +600,41 @@
       if(isSel) ring(ctx,x,y,17,c3,1.2,[3,3]);
       if(st.hoverTrk===i&&!isSel) ring(ctx,x,y,17,"rgba(255,255,255,0.35)",1);
 
-      txt(ctx,g.id,x+15,y-8,c3,11,"700");
-      if(coasting) txt(ctx,"COAST "+Math.ceil(g.coast)+" s",x+15,y+6,C.yellow,10,"700");
-      else txt(ctx,Math.abs(g.mps).toFixed(1)+" m/s   "+g.alt+" m",x+15,y+6,c3,10,"600");
+      tags.push({x:x,y:y,c:c3,blink:blink,
+        l1:g.id,
+        l2:coasting?("COAST "+Math.ceil(g.coast)+" s")
+                   :(Math.abs(g.mps).toFixed(1)+" m/s   "+g.alt+" m"),
+        c2:coasting?C.yellow:c3});
+      ctx.globalAlpha=1;
+    });
+
+    /* --- the tags, placed so they do not sit on each other ---
+       The page offers three answers to colliding tags: drag it, flip it to the
+       other side, or let something untangle the field. This is the third: keep it
+       on the right if the right is free, flip it if it is not, step it clear if
+       neither is, and run a leader line back to the symbol whenever it has moved. */
+    var placed=[];
+    tags.forEach(function(T){
+      mono(ctx,11,"700"); var w1=ctx.measureText(T.l1).width;
+      mono(ctx,10,"600"); var w2=ctx.measureText(T.l2).width;
+      var tw=Math.max(w1,w2), th=28;
+      var opts=[[15,0],[15,-26],[15,26],[-15-tw,0],[-15-tw,-26],[-15-tw,26],[15,-50],[-15-tw,-50]];
+      var best=opts[0];
+      for(var o=0;o<opts.length;o++){
+        var bx2=T.x+opts[o][0], by2=T.y-18+opts[o][1];
+        var clash=placed.some(function(P){
+          return bx2<P.x+P.w+7 && bx2+tw+7>P.x && by2<P.y+P.h+4 && by2+th+4>P.y;
+        });
+        if(!clash){ best=opts[o]; break; }
+      }
+      var lx=T.x+best[0], ly=T.y-18+best[1];
+      placed.push({x:lx,y:ly,w:tw,h:th});
+      ctx.globalAlpha=T.blink?1:0.28;
+      if(best[1]!==0||best[0]<0){
+        line(ctx,T.x+(best[0]<0?-9:9),T.y,best[0]<0?lx+tw:lx,ly+13,T.c,0.8);
+      }
+      txt(ctx,T.l1,lx,ly+10,T.c,11,"700");
+      txt(ctx,T.l2,lx,ly+24,T.c2,10,"600");
       ctx.globalAlpha=1;
     });
 
